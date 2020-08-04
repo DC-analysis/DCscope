@@ -2,7 +2,11 @@
 Name=ShapeOutMix
 Comment=Mix of themes for Shape-Out 2
 
-Directories=breeze/actions/16,breeze/actions/22,breeze/actions/24,breeze/actions/32,breeze/places/16,breeze/places/22,breeze/places/32,breeze/places/64,breeze/status/16,breeze/status/22,breeze/status/24,breeze/status/64
+Directories=shapeout2,breeze/actions/16,breeze/actions/22,breeze/actions/24,breeze/actions/32,breeze/places/16,breeze/places/22,breeze/places/32,breeze/places/64,breeze/status/16,breeze/status/22,breeze/status/24,breeze/status/64
+
+[shapeout2]
+Size=16
+Type=Fixed
 
 [breeze/actions/16]
 Size=16

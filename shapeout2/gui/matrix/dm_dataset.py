@@ -1,6 +1,6 @@
 import pkg_resources
 
-from PyQt5 import uic, QtWidgets, QtCore
+from PyQt5 import uic, QtWidgets, QtCore, QtGui
 
 from ... import meta_tool
 from ... import pipeline
@@ -103,15 +103,11 @@ class MatrixDataset(QtWidgets.QWidget):
             name = slot.name
             self.set_label_string(name)
             # Set region image
-            # I had to import this here, otherwise the tests would hang
-            # on Appveyor (2020-07-30).
-            from PyQt5.Qt import QPixmap
             region = meta_tool.get_info(self.path,
                                         section="setup",
                                         key="chip region")
-            path_region_image = pkg_resources.resource_filename(
-                "shapeout2.img", "region_{}.svg".format(region))
-            pixmap = QPixmap(path_region_image)
+            icon = QtGui.QIcon.fromTheme("region_{}".format(region))
+            pixmap = icon.pixmap(16)
             self.label_region.setPixmap(pixmap)
             self.label_region.setToolTip(region)
             if region == "channel":
