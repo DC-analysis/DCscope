@@ -3,6 +3,7 @@
    rate (#45)
  - docs: update visualization of Young's modulus look-up tables
    using new figure script from dclab
+ - build: bump Python to 3.8 for Windows builds
 2.2.2
  - fix: correct box filter ranges when feature contains inf values
  - enh: add pretty tool icons from KDE breeze theme

@@ -31,7 +31,6 @@ install:
   - "appveyor-retry pip install -e ."
   - "appveyor-retry pip install git+git://github.com/ZELLMECHANIK-DRESDEN/dclab.git"
   - "appveyor-retry pip install git+git://github.com/ZELLMECHANIK-DRESDEN/pyqtgraph.git"
-  - 'pip install "pyqt5<=5.13"'
   # Show the installed packages
   - "pip freeze"
 
