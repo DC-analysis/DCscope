@@ -244,7 +244,7 @@ class QuickView(QtWidgets.QWidget):
                 cellimg = cellimg - bgimg + int(np.mean(bgimg))
                 cellimg = np.clip(cellimg, 0, 255)
                 cellimg = cellimg.astype(np.uint8)
-            # automatic contrast
+        # automatic contrast
         if state["event"]["image auto contrast"]:
             vmin, vmax = cellimg.min(), cellimg.max()
             cellimg = (cellimg - vmin) / (vmax - vmin) * 255
