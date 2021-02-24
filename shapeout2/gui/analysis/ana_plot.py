@@ -320,7 +320,7 @@ class PlotPanel(QtWidgets.QWidget):
                 if spacing >= 1:
                     dec = 2
                 else:
-                    dec = -np.int(np.log10(spacing)) + 3
+                    dec = -int(np.log10(spacing)) + 3
                 spinBox.setDecimals(dec)
                 spinBox.setMinimum(10**-dec)
                 spinBox.setMaximum(max(10*spacing, 10))

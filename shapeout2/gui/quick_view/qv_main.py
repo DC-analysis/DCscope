@@ -242,8 +242,6 @@ class QuickView(QtWidgets.QWidget):
                 bgimg = ds["image_bg"][event].astype(np.int16)
                 cellimg = cellimg.astype(np.int16)
                 cellimg = cellimg - bgimg + int(np.mean(bgimg))
-                cellimg = np.clip(cellimg, 0, 255)
-                cellimg = cellimg.astype(np.uint8)
         # automatic contrast
         if state["event"]["image auto contrast"]:
             vmin, vmax = cellimg.min(), cellimg.max()
@@ -252,7 +250,8 @@ class QuickView(QtWidgets.QWidget):
         cellimg = cellimg.reshape(
             cellimg.shape[0], cellimg.shape[1], 1)
         cellimg = np.repeat(cellimg, 3, axis=2)
-        # convert to int
+        # clip and convert to int
+        cellimg = np.clip(cellimg, 0, 255)
         cellimg = np.require(cellimg, np.uint8, 'C')
 
         # Only load contour data if there is an image column.
