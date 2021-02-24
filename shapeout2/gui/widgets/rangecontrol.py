@@ -201,10 +201,10 @@ class RangeControl(QtWidgets.QWidget):
             if vmin >= 0:
                 vminh = 0
             else:
-                lmin = np.int(np.ceil(np.log10(np.abs(vmin)))) + 1
+                lmin = int(np.ceil(np.log10(np.abs(vmin)))) + 1
                 vminh = -10**lmin
             if vmax > 0:
-                lmax = np.int(np.ceil(np.log10(vmax))) + 1
+                lmax = int(np.ceil(np.log10(vmax))) + 1
                 vmaxh = 10**lmax
             else:
                 vmaxh = 0
