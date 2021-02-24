@@ -280,7 +280,7 @@ def test_subtract_background(qtbot):
     qtbot.addWidget(mw)
 
     # Data with feature "image_bg"
-    path1 = datapath / "2020-10_image_bg.rtdc"
+    path1 = datapath / "artificial_with_image_bg.rtdc"
 
     # Data without feature "image_bg"
     path2 = datapath / "calibration_beads_47.rtdc"
