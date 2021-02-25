@@ -65,6 +65,8 @@ class QuickView(QtWidgets.QWidget):
             self.on_event_scatter_update)
         self.checkBox_image_zoom.stateChanged.connect(
             self.on_event_scatter_update)
+        self.checkBox_image_background.stateChanged.connect(
+            self.on_event_scatter_update)
         self.checkBox_trace_raw.stateChanged.connect(
             self.on_event_scatter_update)
         self.checkBox_trace_legend.stateChanged.connect(
@@ -137,6 +139,7 @@ class QuickView(QtWidgets.QWidget):
             "image auto contrast": self.checkBox_image_contrast.isChecked(),
             "image contour": self.checkBox_image_contour.isChecked(),
             "image zoom": self.checkBox_image_zoom.isChecked(),
+            "image background": self.checkBox_image_background.isChecked(),
             "trace legend": self.checkBox_trace_legend.isChecked(),
             "trace raw": self.checkBox_trace_raw.isChecked(),
             "trace zoom": self.checkBox_trace_zoom.isChecked(),
@@ -175,6 +178,8 @@ class QuickView(QtWidgets.QWidget):
                 event["image auto contrast"])
             self.checkBox_image_contour.setChecked(event["image contour"])
             self.checkBox_image_zoom.setChecked(event["image zoom"])
+            self.checkBox_image_background.setChecked(
+                    event["image background"])
             self.spinBox_event.setValue(event["index"])
             self.checkBox_trace_raw.setChecked(event["trace raw"])
             self.checkBox_trace_legend.setChecked(event["trace legend"])
@@ -222,10 +227,21 @@ class QuickView(QtWidgets.QWidget):
     def rtdc_ds(self, rtdc_ds):
         self._rtdc_ds = rtdc_ds
 
+        # Hide "Subtract Background"-Checkbox if feature
+        # "image_bg" not in dataset
+        contains_bg_feat = "image_bg" in rtdc_ds
+        self.checkBox_image_background.setVisible(contains_bg_feat)
+
     def get_event_image(self, ds, event):
         state = self.__getstate__()
         imkw = self.imkw.copy()
         cellimg = ds["image"][event]
+        # apply background correction
+        if "image_bg" in ds:
+            if state["event"]["image background"]:
+                bgimg = ds["image_bg"][event].astype(np.int16)
+                cellimg = cellimg.astype(np.int16)
+                cellimg = cellimg - bgimg + int(np.mean(bgimg))
         # automatic contrast
         if state["event"]["image auto contrast"]:
             vmin, vmax = cellimg.min(), cellimg.max()
@@ -234,7 +250,8 @@ class QuickView(QtWidgets.QWidget):
         cellimg = cellimg.reshape(
             cellimg.shape[0], cellimg.shape[1], 1)
         cellimg = np.repeat(cellimg, 3, axis=2)
-        # convert to int
+        # clip and convert to int
+        cellimg = np.clip(cellimg, 0, 255)
         cellimg = np.require(cellimg, np.uint8, 'C')
 
         # Only load contour data if there is an image column.

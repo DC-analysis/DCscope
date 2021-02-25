@@ -35,7 +35,7 @@ def test_clear_session_issue_25(qtbot):
     qtbot.addWidget(mw)
 
     # add a dataslot
-    path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+    path = datapath / "calibration_beads_47.rtdc"
     mw.add_dataslot(paths=[path])
 
     assert len(mw.pipeline.slot_ids) == 1, "we added that"
@@ -97,7 +97,7 @@ def test_no_events_issue_37(qtbot):
     qtbot.addWidget(mw)
 
     # add a dataslot
-    path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+    path = datapath / "calibration_beads_47.rtdc"
     mw.add_dataslot(paths=[path, path])
 
     assert len(mw.pipeline.slot_ids) == 2, "we added those"
@@ -164,7 +164,7 @@ def test_remove_dataset_h5py_error(qtbot):
     qtbot.addWidget(mw)
 
     # add a dataslot
-    path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+    path = datapath / "calibration_beads_47.rtdc"
     mw.add_dataslot(paths=[path, path])
 
     assert len(mw.pipeline.slot_ids) == 2, "we added those"
@@ -201,7 +201,7 @@ def test_update_polygon_filter_issue_26(qtbot):
     qtbot.addWidget(mw)
 
     # add a dataslot
-    path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+    path = datapath / "calibration_beads_47.rtdc"
     filt_id = mw.add_filter()
     slot_ids = mw.add_dataslot(paths=[path])
 
@@ -267,3 +267,72 @@ def test_update_polygon_filter_issue_26(qtbot):
     assert np.sum(ds2.filter.all) == 8
     # but the plots were not updated in #26
     assert len(qv.widget_scatter.scatter.getData()[0]) == 8
+
+
+def test_subtract_background(qtbot):
+    """https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/issues/54
+
+    Adding the "Subtract Background"-CheckBox
+    """
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    # Data with feature "image_bg"
+    path1 = datapath / "artificial_with_image_bg.rtdc"
+
+    # Data without feature "image_bg"
+    path2 = datapath / "calibration_beads_47.rtdc"
+
+    mw.add_dataslot(paths=[path1, path2])
+
+    assert len(mw.pipeline.slot_ids) == 2, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Test if CheckBox is visible for dataset with feature "image_bg"
+    # and if it is checked by default
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_background.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_background.isChecked(), (
+            "Checkbox is not checked by default")
+
+    # Test if CheckBox is hidden for dataset with no feature "image_bg"
+
+    slot_id2 = mw.pipeline.slot_ids[1]
+    em2 = mw.block_matrix.get_widget(slot_id2, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em2, QtCore.Qt.LeftButton)
+    # Open dataset in QuickView
+    qtbot.mouseClick(em2, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+
+    qv2 = mw.widget_quick_view
+
+    # Check if "Subtract Background"-CheckBox is hidden
+    # note: event tool is still open from test above
+    assert not qv2.checkBox_image_background.isVisible(), (
+            " Subtract Background-Checkbox is visible for dataset "
+            " that don't contain \"image_bg\"-feature"
+            )
