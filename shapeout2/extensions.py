@@ -31,6 +31,11 @@ class ExtensionManager:
         self.extension_hash_dict = collections.OrderedDict()
         self.load_extensions_from_store()
 
+    def __contains__(self, key):
+        if isinstance(key, Extension):
+            key = key.hash
+        return key in self.extension_hash_dict
+
     def __getitem__(self, key):
         return self.get_extension_or_bust(key)
 
@@ -133,8 +138,9 @@ class Extension:
         """Helper class for managing individual extensions"""
         self.path = pathlib.Path(path)
         self.suffix = self.path.suffix
-        self.path_lock_disabled = self.path.with_name(
-            self.path.name + "_disabled")
+
+    def __repr__(self):
+        return f"<Shape-Out Extension {self.path} at {hex(id(self))}>"
 
     @property
     def description(self):
@@ -169,6 +175,10 @@ class Extension:
             return bool(self.get_plugin_feature_instances())
         elif self.type == "feat_anc_ml":
             return bool(self.get_ml_feature_instances())
+
+    @property
+    def path_lock_disabled(self):
+        return self.path.with_name(self.path.name + "_disabled")
 
     @property
     def title(self):
@@ -217,11 +227,16 @@ class Extension:
         return pf_instances
 
     def set_enabled(self, enabled):
-        """Set this extension to enabled (True) or disabled (False)"""
+        """Set this extension to enabled (True) or disabled (False)
+
+        The extension is also loaded (True) or unloaded (False).
+        """
         if enabled:
             self.path_lock_disabled.unlink(missing_ok=True)
+            self.load()
         else:
             self.path_lock_disabled.touch()
+            self.unload()
 
     def load(self):
         """Load the extension if it is enabled and not loaded"""
