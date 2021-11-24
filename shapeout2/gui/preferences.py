@@ -158,7 +158,8 @@ class Preferences(QtWidgets.QDialog):
     @QtCore.pyqtSlot(bool)
     def on_ext_enabled(self, enabled):
         """Enable or disable an extension (signal from checkbox widget)"""
-        ehash = self.listWidget_ext.currentItem().data(100)
+        item = self.listWidget_ext.currentItem()
+        ehash = item.data(100)
         self.extensions.extension_set_enabled(ehash, enabled)
         self.reload_ext()
 
@@ -187,7 +188,9 @@ class Preferences(QtWidgets.QDialog):
     def on_ext_modified(self, item):
         """Enable or disable an extension (signal from listWidget)"""
         ehash = item.data(100)
-        self.extensions.extension_set_enabled(ehash, bool(item.checkState()))
+        enabled = bool(item.checkState())
+        self.extensions.extension_set_enabled(ehash, enabled)
+        self.listWidget_ext.setCurrentItem(item)
         self.reload_ext()
 
     @QtCore.pyqtSlot()
@@ -200,7 +203,10 @@ class Preferences(QtWidgets.QDialog):
             self.checkBox_ext_enabled.blockSignals(True)
             self.checkBox_ext_enabled.setChecked(ext.enabled)
             self.checkBox_ext_enabled.blockSignals(False)
+            if ext.enabled:
+                ext.load()
             self.label_ext_name.setText(ext.title)
+            item.setText(ext.title)
             self.label_ext_description.setText(ext.description)
 
     @QtCore.pyqtSlot()

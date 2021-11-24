@@ -137,7 +137,6 @@ class Extension:
             self.path.name + "_disabled")
 
     @property
-    @functools.lru_cache()
     def description(self):
         """Description of the extension"""
         description = "No description provided."
@@ -166,10 +165,12 @@ class Extension:
     @property
     def loaded(self):
         """Whether or not the extension is currently loaded"""
-        return bool(self.get_plugin_feature_instances())
+        if self.type == "feat_anc_plugin":
+            return bool(self.get_plugin_feature_instances())
+        elif self.type == "feat_anc_ml":
+            return bool(self.get_ml_feature_instances())
 
     @property
-    @functools.lru_cache()
     def title(self):
         """Descriptive title including version of the extension"""
         title = self.path.name  # fallback
@@ -178,12 +179,12 @@ class Extension:
                 pfinst = self.get_plugin_feature_instances()[0]
                 info = pfinst.plugin_feature_info
                 title = f"{info['description']} " \
-                        + f"({info['version']}/{info['identifier'][:5]})"
+                        + f"({info['version']}-{info['identifier'][:4]})"
             elif self.type == "feat_anc_ml":
                 mlinst = self.get_ml_feature_instances()[0]
                 info = mlinst.ml_feature_info
                 title = f"{info['description']} " \
-                        + f"({info['date']}/{info['identifier'][:5]})"
+                        + f"({info['date']} - {info['identifier'][:4]})"
         return title
 
     @property
