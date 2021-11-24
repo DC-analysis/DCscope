@@ -25,7 +25,7 @@ setup(
     description=description,
     long_description=open('README.rst').read() if exists('README.rst') else '',
     install_requires=["fcswrite>=0.5.1",
-                      "dclab[dcor,lme4]>=0.38.0",
+                      "dclab[dcor,lme4]>=0.39.0",
                       "h5py>=2.8.0",
                       "numpy>=1.9.0",
                       "pyqt5",
