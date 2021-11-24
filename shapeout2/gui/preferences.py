@@ -1,3 +1,4 @@
+import os.path as os_path
 import pathlib
 import pkg_resources
 import platform
@@ -5,8 +6,10 @@ import platform
 from dclab.lme4.rlibs import rpy2, MockRPackage
 from dclab.lme4 import rsetup
 from PyQt5 import uic, QtCore, QtWidgets
+from PyQt5.QtCore import QStandardPaths
 
 from .widgets import show_wait_cursor
+from ..extensions import ExtensionManager, SUPPORTED_FORMATS
 
 RPY2_AVAILABLE = not isinstance(rpy2, MockRPackage)
 
@@ -41,19 +44,36 @@ class Preferences(QtWidgets.QDialog):
             ["dcor/use ssl", self.dcor_use_ssl, 1],
             ["lme4/r path", self.lme4_rpath, rdefault],
         ]
+
+        # extensions
+        store_path = os_path.join(
+            QStandardPaths.writableLocation(
+                QStandardPaths.AppLocalDataLocation), "extensions")
+        self.extensions = ExtensionManager(store_path)
+
         self.reload()
 
         # signals
-        btn_apply = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
-        btn_apply.clicked.connect(self.on_apply)
-        btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
-        btn_ok.clicked.connect(self.on_apply)
-        btn_restore = self.buttonBox.button(
+        self.btn_apply = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Apply)
+        self.btn_apply.clicked.connect(self.on_settings_apply)
+        self.btn_cancel = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Cancel)
+        self.btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        self.btn_ok.clicked.connect(self.on_settings_apply)
+        self.btn_restore = self.buttonBox.button(
             QtWidgets.QDialogButtonBox.RestoreDefaults)
-        btn_restore.clicked.connect(self.on_restore)
+        self.btn_restore.clicked.connect(self.on_settings_restore)
+        # extension buttons
+        self.checkBox_ext_enabled.clicked.connect(self.on_ext_enabled)
+        self.pushButton_ext_load.clicked.connect(self.on_ext_load)
+        self.pushButton_ext_remove.clicked.connect(self.on_ext_remove)
+        self.listWidget_ext.currentRowChanged.connect(self.on_ext_select)
         # lme4 buttons
         self.pushButton_lme4_install.clicked.connect(self.on_lme4_install)
         self.pushButton_lme4_search.clicked.connect(self.on_lme4_search_r)
+        # tab changed
+        self.tabWidget.currentChanged.connect(self.on_tab_changed)
 
     def reload(self):
         """Read configuration or set default parameters"""
@@ -76,6 +96,19 @@ class Preferences(QtWidgets.QDialog):
         # peculiarities of developer mode
         devmode = bool(int(self.settings.value("advanced/developer mode", 0)))
         self.dcor_use_ssl.setVisible(devmode)  # show "use ssl" in dev mode
+
+        self.reload_ext()
+
+    def reload_ext(self):
+        # extensions
+        self.listWidget_ext.clear()
+        have_extensions = bool(self.extensions)
+        self.widget_ext_controls.setVisible(have_extensions)
+        if have_extensions:
+            for ii, ext in enumerate(self.extensions):
+                self.listWidget_ext.insertItem(ii, ext.name)
+            self.listWidget_ext.setCurrentRow(0)
+            self.on_ext_select()
 
     @show_wait_cursor
     def reload_lme4(self, install=False):
@@ -107,27 +140,39 @@ class Preferences(QtWidgets.QDialog):
             self.label_r_version.setText(r_version)
             self.label_lme4_installed.setText(lme4_st)
 
-    @QtCore.pyqtSlot()
-    def on_apply(self):
-        """Save current changes made in UI to settings and reload UI"""
-        for key, widget, default in self.config_pairs:
-            if isinstance(widget, QtWidgets.QCheckBox):
-                value = int(widget.isChecked())
-            elif isinstance(widget, QtWidgets.QLineEdit):
-                value = widget.text().strip()
-            elif widget is self.dcor_servers:
-                curtext = self.dcor_servers.currentText()
-                items = self.settings.value(key, default)
-                if curtext in items:
-                    items.remove(curtext)
-                items.insert(0, curtext)
-                value = items
-            else:
-                raise NotImplementedError("No rule for '{}'".format(key))
-            self.settings.setValue(key, value)
+    @QtCore.pyqtSlot(bool)
+    def on_ext_enabled(self, enabled):
+        index = self.listWidget_ext.currentRow()
+        self.extensions.extension_set_enabled(index, enabled)
 
-        # reload UI to give visual feedback
-        self.reload()
+    @QtCore.pyqtSlot()
+    def on_ext_load(self):
+        format_string = " ".join(f"*{su}" for su in SUPPORTED_FORMATS)
+        paths, _ = QtWidgets.QFileDialog.getOpenFileNames(
+            parent=self,
+            caption="Select an extension file",
+            directory=self.settings.value("paths/extension", ""),
+            filter=f"Supported extension files ({format_string})")
+        if paths:
+            for pp in paths:
+                self.extensions.import_extension_from_path(pp)
+        self.reload_ext()
+
+    @QtCore.pyqtSlot()
+    def on_ext_remove(self):
+        index = self.listWidget_ext.currentRow()
+        self.extensions.extension_remove(index)
+        self.reload_ext()
+
+    @QtCore.pyqtSlot()
+    def on_ext_select(self):
+        item = self.listWidget_ext.currentItem()
+        if item is not None:
+            index = self.listWidget_ext.currentRow()
+            is_enabled = self.extensions[index].enabled
+            self.checkBox_ext_enabled.blockSignals(True)
+            self.checkBox_ext_enabled.setChecked(is_enabled)
+            self.checkBox_ext_enabled.blockSignals(False)
 
     @QtCore.pyqtSlot()
     def on_lme4_install(self):
@@ -145,19 +190,47 @@ class Preferences(QtWidgets.QDialog):
             self.lme4_rpath.setText(path)
 
     @QtCore.pyqtSlot()
-    def on_restore(self):
+    def on_settings_apply(self):
+        """Save current changes made in UI to settings and reload UI"""
+        for key, widget, default in self.config_pairs:
+            if isinstance(widget, QtWidgets.QCheckBox):
+                value = int(widget.isChecked())
+                if widget == self.advanced_developer_mode:
+                    msg = QtWidgets.QMessageBox()
+                    msg.setIcon(QtWidgets.QMessageBox.Information)
+                    msg.setText("Please restart Shape-Out for the changes to "
+                                + "take effect.")
+                    msg.setWindowTitle("Restart Shape-Out")
+                    msg.exec_()
+            elif isinstance(widget, QtWidgets.QLineEdit):
+                value = widget.text().strip()
+            elif widget is self.dcor_servers:
+                curtext = self.dcor_servers.currentText()
+                items = self.settings.value(key, default)
+                if curtext in items:
+                    items.remove(curtext)
+                items.insert(0, curtext)
+                value = items
+            else:
+                raise NotImplementedError("No rule for '{}'".format(key))
+            self.settings.setValue(key, value)
+
+        # reload UI to give visual feedback
+        self.reload()
+
+    @QtCore.pyqtSlot()
+    def on_settings_restore(self):
         self.settings.clear()
         self.reload()
 
-    @QtCore.pyqtSlot(bool)
-    def on_boolean(self, b):
-        widget = self.sender()
-        key = self.get_key_from_widget(widget)
-        self.settings.setValue(key, int(b))
-        if widget == self.advanced_developer_mode:
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Information)
-            msg.setText("Please restart Shape-Out for the changes to take "
-                        + "effect.")
-            msg.setWindowTitle("Restart Shape-Out")
-            msg.exec_()
+    @QtCore.pyqtSlot()
+    def on_tab_changed(self):
+        if self.tabWidget.currentWidget() is self.tab_extensions:
+            # Managing extensions has nothing to do with other settings.
+            enabled = False
+        else:
+            enabled = True
+
+        self.btn_apply.setEnabled(enabled)
+        self.btn_cancel.setEnabled(enabled)
+        self.btn_restore.setEnabled(enabled)
