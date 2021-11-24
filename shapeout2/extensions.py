@@ -15,6 +15,16 @@ SUPPORTED_FORMATS = [
 
 class ExtensionManager:
     def __init__(self, store_path):
+        """Extension manager
+
+        This class can be used to maintain a set of extensions
+        (plugin features or machine-learning features) at a
+        specific location `store_path` on the file system.
+
+        All extensions are loaded during instantiation. It is
+        possible to disable individual extensions (without
+        deleting them) on-the-fly.
+        """
         self.store_path = pathlib.Path(store_path)
         self.store_path.mkdir(exist_ok=True, parents=True)
         self.extension_hash_dict = collections.OrderedDict()
@@ -31,6 +41,19 @@ class ExtensionManager:
         return len(self.extension_hash_dict)
 
     def get_extension_or_bust(self, ext):
+        """Return an Extension instance or raise ValueError
+
+        Parameter `ext` can be an instance of Extension, an
+        extension hash, or an index. If an Extension or a
+        hash is provided, this function checks whether the
+        extension is maintained by this manager and returns
+        the correct instance.
+
+        Parameters
+        ----------
+        ext: Extension
+            Extension instance
+        """
         if isinstance(ext, Extension):
             the_hash = ext.hash
         elif isinstance(ext, int):
@@ -43,6 +66,7 @@ class ExtensionManager:
             raise ValueError(f"Extension not in {self.store_path}: {the_hash}")
 
     def import_extension_from_path(self, path):
+        """Import an extension file to `self.store_path`"""
         ext = Extension(path)
         if ext.hash not in self.extension_hash_dict:
             new_name = f"ext_{ext.type}_{ext.hash}{ext.suffix}"
@@ -53,6 +77,10 @@ class ExtensionManager:
         return ext
 
     def load_extensions_from_store(self):
+        """Load all extensions from `self.store_path`
+
+        This function is called during initialization.
+        """
         # load all (enabled) extensions
         for pp in self.store_path.glob("ext_*"):
             if pp.suffix in SUPPORTED_FORMATS:
@@ -60,22 +88,48 @@ class ExtensionManager:
                 self.extension_load(ext)
 
     def extension_load(self, ext):
+        """Load a single extension
+
+        Parameters
+        ----------
+        ext: Extension
+            Extension instance
+        """
         ext.load()
         self.extension_hash_dict[ext.hash] = ext
 
     def extension_remove(self, ext):
+        """Remove an extension from `self.store_path` and unload it
+
+        Parameters
+        ----------
+        ext: Extension or str or int
+            Extension instance, its hash or its index in
+            ExtensionManager
+        """
         ext = self.get_extension_or_bust(ext)
         self.extension_hash_dict.pop(ext.hash)
-        # reinstantiate ext to get the path right
+        # re-instantiate ext to get the path right
         ext.destroy()
 
     def extension_set_enabled(self, ext, enabled):
+        """Enable or disable an extension
+
+        Parameters
+        ----------
+        ext: Extension or str or int
+            Extension instance, its hash or its index in
+            ExtensionManager
+        enabled: bool
+            Whether or not to enable the extension.
+        """
         ext = self.get_extension_or_bust(ext)
         ext.set_enabled(enabled)
 
 
 class Extension:
     def __init__(self, path):
+        """Helper class for managing individual extensions"""
         self.path = pathlib.Path(path)
         self.suffix = self.path.suffix
         self.path_lock_disabled = self.path.with_name(
@@ -84,6 +138,7 @@ class Extension:
     @property
     @functools.lru_cache()
     def description(self):
+        """Description of the extension"""
         description = "No description provided."
         if self.loaded:
             if self.type == "feat_anc_plugin":
@@ -94,20 +149,24 @@ class Extension:
 
     @property
     def enabled(self):
+        """Whether or not the extension is enabled"""
         return not self.path_lock_disabled.exists()
 
     @property
     @functools.lru_cache()
     def hash(self):
+        """MD5 hash of the extension"""
         return hashfile(self.path)
 
     @property
     def loaded(self):
+        """Whether or not the extension is currently loaded"""
         return bool(self.get_plugin_feature_instances())
 
     @property
     @functools.lru_cache()
     def title(self):
+        """Descriptive title including version of the extension"""
         title = self.path.name  # fallback
         if self.loaded:
             if self.type == "feat_anc_plugin":
@@ -119,12 +178,14 @@ class Extension:
     @property
     @functools.lru_cache()
     def type(self):
+        """Type of the extension (e.g. "feat_anc_plugin")"""
         if self.path.suffix == ".py":
             return "feat_anc_plugin"
         else:
             raise ValueError(f"Cannot determine extension type: {self.path}!")
 
     def get_plugin_feature_instances(self):
+        """Return a list of all PlugInFeature instances for this extension"""
         pf_instances = []
         for inst in plugin_feature.PlugInFeature.features:
             if (isinstance(inst, plugin_feature.PlugInFeature)
@@ -133,12 +194,14 @@ class Extension:
         return pf_instances
 
     def set_enabled(self, enabled):
+        """Set this extension to enabled (True) or disabled (False)"""
         if enabled:
             self.path_lock_disabled.unlink(missing_ok=True)
         else:
             self.path_lock_disabled.touch()
 
     def load(self):
+        """Load the extension if it is enabled and not loaded"""
         if not self.enabled or self.loaded:
             # do not load disabled extensions or extensions already loaded
             return
@@ -147,11 +210,13 @@ class Extension:
             plugin_feature.load_plugin_feature(self.path)
 
     def unload(self):
+        """Unload the extension"""
         if self.type == "feat_anc_plugin":
             for inst in self.get_plugin_feature_instances():
                 plugin_feature.remove_plugin_feature(inst)
 
     def destroy(self):
+        """Unload and remove the extension"""
         self.unload()
         self.path_lock_disabled.unlink(missing_ok=True)
         self.path.unlink(missing_ok=True)
