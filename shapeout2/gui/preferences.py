@@ -48,7 +48,7 @@ class Preferences(QtWidgets.QDialog):
         # extensions
         store_path = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppLocalDataLocation), "extensions")
+                QStandardPaths.AppDataLocation), "extensions")
         self.extensions = ExtensionManager(store_path)
 
         self.reload()
