@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_general">
       <attribute name="title">
@@ -218,6 +218,9 @@
        </item>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_6">
+         <property name="spacing">
+          <number>3</number>
+         </property>
          <item alignment="Qt::AlignTop">
           <widget class="QPushButton" name="pushButton_ext_load">
            <property name="text">
@@ -226,8 +229,15 @@
           </widget>
          </item>
          <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QWidget" name="widget_ext_controls" native="true">
-           <layout class="QVBoxLayout" name="verticalLayout_8">
+           <layout class="QVBoxLayout" name="verticalLayout_8" stretch="0,10000,0">
             <property name="leftMargin">
              <number>0</number>
             </property>
@@ -241,16 +251,15 @@
              <number>0</number>
             </property>
             <item>
-             <widget class="Line" name="line">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QLabel" name="label_ext_name">
               <property name="text">
                <string>TextLabel</string>
+              </property>
+              <property name="textFormat">
+               <enum>Qt::PlainText</enum>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -259,8 +268,11 @@
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>140</height>
+                <height>16777215</height>
                </size>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Plain</enum>
               </property>
               <property name="widgetResizable">
                <bool>true</bool>
@@ -271,12 +283,18 @@
                  <x>0</x>
                  <y>0</y>
                  <width>324</width>
-                 <height>138</height>
+                 <height>213</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
                 <item>
                  <widget class="QLabel" name="label_ext_description">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
                   <property name="text">
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Description that may span multiple lines in this scrolling panel.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
@@ -314,14 +332,14 @@
                 </property>
                </spacer>
               </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_ext_remove">
+                <property name="text">
+                 <string>Remove</string>
+                </property>
+               </widget>
+              </item>
              </layout>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_ext_remove">
-              <property name="text">
-               <string>Remove</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </widget>

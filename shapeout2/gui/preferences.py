@@ -68,7 +68,8 @@ class Preferences(QtWidgets.QDialog):
         self.checkBox_ext_enabled.clicked.connect(self.on_ext_enabled)
         self.pushButton_ext_load.clicked.connect(self.on_ext_load)
         self.pushButton_ext_remove.clicked.connect(self.on_ext_remove)
-        self.listWidget_ext.currentRowChanged.connect(self.on_ext_select)
+        self.listWidget_ext.currentRowChanged.connect(self.on_ext_selected)
+        self.listWidget_ext.itemChanged.connect(self.on_ext_modified)
         # lme4 buttons
         self.pushButton_lme4_install.clicked.connect(self.on_lme4_install)
         self.pushButton_lme4_search.clicked.connect(self.on_lme4_search_r)
@@ -100,15 +101,29 @@ class Preferences(QtWidgets.QDialog):
         self.reload_ext()
 
     def reload_ext(self):
+        """Reload the list of extensions"""
         # extensions
+        row = self.listWidget_ext.currentRow()
+        self.listWidget_ext.blockSignals(True)
         self.listWidget_ext.clear()
         have_extensions = bool(self.extensions)
         self.widget_ext_controls.setVisible(have_extensions)
         if have_extensions:
             for ii, ext in enumerate(self.extensions):
-                self.listWidget_ext.insertItem(ii, ext.name)
+                lwitem = QtWidgets.QListWidgetItem(ext.title,
+                                                   self.listWidget_ext)
+                lwitem.setFlags(QtCore.Qt.ItemIsEditable
+                                | QtCore.Qt.ItemIsSelectable
+                                | QtCore.Qt.ItemIsEnabled
+                                | QtCore.Qt.ItemIsUserCheckable)
+                lwitem.setCheckState(2 if ext.enabled else 0)
+                lwitem.setData(100, ext.hash)
             self.listWidget_ext.setCurrentRow(0)
-            self.on_ext_select()
+            if row + 1 > self.listWidget_ext.count():
+                row = 0
+            self.listWidget_ext.setCurrentRow(row)
+        self.listWidget_ext.blockSignals(False)
+        self.on_ext_selected()
 
     @show_wait_cursor
     def reload_lme4(self, install=False):
@@ -142,11 +157,14 @@ class Preferences(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot(bool)
     def on_ext_enabled(self, enabled):
-        index = self.listWidget_ext.currentRow()
-        self.extensions.extension_set_enabled(index, enabled)
+        """Enable or disable an extension (signal from checkbox widget)"""
+        ehash = self.listWidget_ext.currentItem().data(100)
+        self.extensions.extension_set_enabled(ehash, enabled)
+        self.reload_ext()
 
     @QtCore.pyqtSlot()
     def on_ext_load(self):
+        """Load an extension from the file system"""
         format_string = " ".join(f"*{su}" for su in SUPPORTED_FORMATS)
         paths, _ = QtWidgets.QFileDialog.getOpenFileNames(
             parent=self,
@@ -160,19 +178,30 @@ class Preferences(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot()
     def on_ext_remove(self):
-        index = self.listWidget_ext.currentRow()
-        self.extensions.extension_remove(index)
+        """Remove an extension"""
+        ehash = self.listWidget_ext.currentItem().data(100)
+        self.extensions.extension_remove(ehash)
+        self.reload_ext()
+
+    @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
+    def on_ext_modified(self, item):
+        """Enable or disable an extension (signal from listWidget)"""
+        ehash = item.data(100)
+        self.extensions.extension_set_enabled(ehash, bool(item.checkState()))
         self.reload_ext()
 
     @QtCore.pyqtSlot()
-    def on_ext_select(self):
+    def on_ext_selected(self):
+        """Display details for an extension (signal from listWidget)"""
         item = self.listWidget_ext.currentItem()
         if item is not None:
-            index = self.listWidget_ext.currentRow()
-            is_enabled = self.extensions[index].enabled
+            ehash = item.data(100)
+            ext = self.extensions[ehash]
             self.checkBox_ext_enabled.blockSignals(True)
-            self.checkBox_ext_enabled.setChecked(is_enabled)
+            self.checkBox_ext_enabled.setChecked(ext.enabled)
             self.checkBox_ext_enabled.blockSignals(False)
+            self.label_ext_name.setText(ext.title)
+            self.label_ext_description.setText(ext.description)
 
     @QtCore.pyqtSlot()
     def on_lme4_install(self):

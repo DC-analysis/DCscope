@@ -21,9 +21,7 @@ class ExtensionManager:
         self.load_extensions_from_store()
 
     def __getitem__(self, key):
-        if isinstance(key, int):
-            key = list(self.extension_hash_dict.keys())[key]
-        return self.extension_hash_dict[key]
+        return self.get_extension_or_bust(key)
 
     def __iter__(self):
         for ahash in self.extension_hash_dict:
@@ -35,6 +33,8 @@ class ExtensionManager:
     def get_extension_or_bust(self, ext):
         if isinstance(ext, Extension):
             the_hash = ext.hash
+        elif isinstance(ext, int):
+            the_hash = list(self.extension_hash_dict.keys())[ext]
         else:
             the_hash = ext
         if the_hash in self.extension_hash_dict:
@@ -80,8 +80,17 @@ class Extension:
         self.suffix = self.path.suffix
         self.path_lock_disabled = self.path.with_name(
             self.path.name + "_disabled")
-        # TODO: set this to the plugin name + version
-        self.name = self.path.name
+
+    @property
+    @functools.lru_cache()
+    def description(self):
+        description = "No description provided."
+        if self.loaded:
+            if self.type == "feat_anc_plugin":
+                pfinst = self.get_plugin_feature_instances()[0]
+                info = pfinst.plugin_feature_info
+                description = info['long description']
+        return description
 
     @property
     def enabled(self):
@@ -95,6 +104,17 @@ class Extension:
     @property
     def loaded(self):
         return bool(self.get_plugin_feature_instances())
+
+    @property
+    @functools.lru_cache()
+    def title(self):
+        title = self.path.name  # fallback
+        if self.loaded:
+            if self.type == "feat_anc_plugin":
+                pfinst = self.get_plugin_feature_instances()[0]
+                info = pfinst.plugin_feature_info
+                title = f"{info['description']} ({info['version']})"
+        return title
 
     @property
     @functools.lru_cache()
