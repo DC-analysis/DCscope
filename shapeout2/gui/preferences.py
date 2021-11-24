@@ -195,13 +195,16 @@ class Preferences(QtWidgets.QDialog):
         for key, widget, default in self.config_pairs:
             if isinstance(widget, QtWidgets.QCheckBox):
                 value = int(widget.isChecked())
-                if widget == self.advanced_developer_mode:
-                    msg = QtWidgets.QMessageBox()
-                    msg.setIcon(QtWidgets.QMessageBox.Information)
-                    msg.setText("Please restart Shape-Out for the changes to "
-                                + "take effect.")
-                    msg.setWindowTitle("Restart Shape-Out")
-                    msg.exec_()
+                if key == "advanced/developer mode":
+                    devmode = int(self.settings.value(
+                        "advanced/developer mode", 0))
+                    if devmode != value:
+                        msg = QtWidgets.QMessageBox()
+                        msg.setIcon(QtWidgets.QMessageBox.Information)
+                        msg.setText("Please restart Shape-Out for the changes "
+                                    + "to take effect.")
+                        msg.setWindowTitle("Restart Shape-Out")
+                        msg.exec_()
             elif isinstance(widget, QtWidgets.QLineEdit):
                 value = widget.text().strip()
             elif widget is self.dcor_servers:
