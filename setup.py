@@ -32,7 +32,7 @@ setup(
                       "pyqtgraph==0.12.3",
                       "requests",
                       "scipy>=0.13.0"],
-    python_requires='>=3.7, <4',
+    python_requires='>=3.8, <4',
     entry_points={"gui_scripts": ['shapeout2 = shapeout2.__main__:main']},
     keywords=["RT-DC", "deformability", "cytometry", "zellmechanik"],
     classifiers=['Operating System :: OS Independent',
