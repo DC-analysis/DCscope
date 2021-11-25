@@ -1,7 +1,7 @@
 2.9.0
  - feat: add support for extensions in the form of loading dclab
    plugin and machine-learning features (#85)
- - setup: bump dclab from 0.37.2 to 0.39.0
+ - setup: bump dclab from 0.37.2 to 0.39.1
 2.8.1
  - fix: wrong scale for viscosity in bulk emodulus computation (#104)
  - fix: save unused polygon filters in sessions (#101)
