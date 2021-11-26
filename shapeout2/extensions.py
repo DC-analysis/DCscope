@@ -87,11 +87,17 @@ class ExtensionManager:
 
         This function is called during initialization.
         """
+        failed = []
         # load all (enabled) extensions
         for pp in self.store_path.glob("ext_*"):
             if pp.suffix in SUPPORTED_FORMATS:
                 ext = Extension(pp)
-                self.extension_load(ext)
+                try:
+                    self.extension_load(ext)
+                except BaseException:
+                    failed.append(ext)
+        if failed:
+            raise ValueError(f"Could not load these extensions: {failed}")
 
     def extension_load(self, ext):
         """Load a single extension
@@ -101,8 +107,9 @@ class ExtensionManager:
         ext: Extension
             Extension instance
         """
-        ext.load()
+        # add to hash dict first in case it gets disabled
         self.extension_hash_dict[ext.hash] = ext
+        ext.load()
 
     def extension_remove(self, ext):
         """Remove an extension from `self.store_path` and unload it
@@ -232,11 +239,12 @@ class Extension:
         The extension is also loaded (True) or unloaded (False).
         """
         if enabled:
+            # set enabled so that `load` works
             self.path_lock_disabled.unlink(missing_ok=True)
             self.load()
         else:
-            self.path_lock_disabled.touch()
             self.unload()
+            self.path_lock_disabled.touch()
 
     def load(self):
         """Load the extension if it is enabled and not loaded"""
@@ -244,10 +252,16 @@ class Extension:
             # do not load disabled extensions or extensions already loaded
             return
 
-        if self.type == "feat_anc_plugin":
-            plugin_feature.load_plugin_feature(self.path)
-        if self.type == "feat_anc_ml":
-            ml_feature.load_ml_feature(self.path)
+        try:
+            if self.type == "feat_anc_plugin":
+                plugin_feature.load_plugin_feature(self.path)
+            if self.type == "feat_anc_ml":
+                ml_feature.load_ml_feature(self.path)
+        except BaseException:
+            # If loading the extension fails, disable it and only then
+            # raise the exception.
+            self.set_enabled(False)
+            raise
 
     def unload(self):
         """Unload the extension"""

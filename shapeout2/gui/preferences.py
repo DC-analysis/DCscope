@@ -1,5 +1,7 @@
 import os.path as os_path
 import pathlib
+import traceback
+
 import pkg_resources
 import platform
 
@@ -12,6 +14,25 @@ from .widgets import show_wait_cursor
 from ..extensions import ExtensionManager, SUPPORTED_FORMATS
 
 RPY2_AVAILABLE = not isinstance(rpy2, MockRPackage)
+
+
+class ExtensionErrorWrapper:
+    def __init__(self, ehash):
+        self.ehash = ehash
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, trc):
+        if exc_type is not None:
+            QtWidgets.QMessageBox.warning(
+                None,
+                f"Loading extension {self.ehash} failed!",
+                f"It was not possible to load the extension {self.ehash}! "
+                + "You might have to install additional software:\n\n"
+                + traceback.format_exc(),
+                )
+            return True  # do not raise the exception
 
 
 class Preferences(QtWidgets.QDialog):
@@ -161,7 +182,8 @@ class Preferences(QtWidgets.QDialog):
         """Enable or disable an extension (signal from checkbox widget)"""
         item = self.listWidget_ext.currentItem()
         ehash = item.data(100)
-        self.extensions.extension_set_enabled(ehash, enabled)
+        with ExtensionErrorWrapper(ehash):
+            self.extensions.extension_set_enabled(ehash, enabled)
         self.reload_ext()
         self.feature_changed.emit()
 
@@ -176,9 +198,10 @@ class Preferences(QtWidgets.QDialog):
             filter=f"Supported extension files ({format_string})")
         if paths:
             for pp in paths:
-                self.extensions.import_extension_from_path(pp)
-        self.reload_ext()
-        self.feature_changed.emit()
+                with ExtensionErrorWrapper(pp):
+                    self.extensions.import_extension_from_path(pp)
+            self.reload_ext()
+            self.feature_changed.emit()
 
     @QtCore.pyqtSlot()
     def on_ext_remove(self):
@@ -193,7 +216,8 @@ class Preferences(QtWidgets.QDialog):
         """Enable or disable an extension (signal from listWidget)"""
         ehash = item.data(100)
         enabled = bool(item.checkState())
-        self.extensions.extension_set_enabled(ehash, enabled)
+        with ExtensionErrorWrapper(ehash):
+            self.extensions.extension_set_enabled(ehash, enabled)
         self.listWidget_ext.setCurrentItem(item)
         self.reload_ext()
         self.feature_changed.emit()
@@ -208,7 +232,7 @@ class Preferences(QtWidgets.QDialog):
             self.checkBox_ext_enabled.blockSignals(True)
             self.checkBox_ext_enabled.setChecked(ext.enabled)
             self.checkBox_ext_enabled.blockSignals(False)
-            if ext.enabled:
+            with ExtensionErrorWrapper(ehash):
                 ext.load()
             self.label_ext_name.setText(ext.title)
             item.setText(ext.title)

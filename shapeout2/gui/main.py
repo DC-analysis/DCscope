@@ -86,7 +86,15 @@ class ShapeOut2(QtWidgets.QMainWindow):
         store_path = os_path.join(
             QStandardPaths.writableLocation(
                 QStandardPaths.AppLocalDataLocation), "extensions")
-        self.extensions = ExtensionManager(store_path)
+        try:
+            self.extensions = ExtensionManager(store_path)
+        except BaseException:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Extensions automatically disabled",
+                "Some extensions could not be loaded and were disabled:\n\n"
+                + traceback.format_exc(),
+                )
         # GUI
         self.setWindowTitle("Shape-Out {}".format(__version__))
         # Disable native menu bar (e.g. on Mac)
