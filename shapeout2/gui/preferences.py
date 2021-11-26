@@ -17,6 +17,7 @@ RPY2_AVAILABLE = not isinstance(rpy2, MockRPackage)
 class Preferences(QtWidgets.QDialog):
     """Implements the plotting pipeline using pyqtgraph"""
     instances = {}
+    feature_changed = QtCore.pyqtSignal()
 
     def __init__(self, parent, *args, **kwargs):
         QtWidgets.QWidget.__init__(self, parent=parent, *args, **kwargs)
@@ -162,6 +163,7 @@ class Preferences(QtWidgets.QDialog):
         ehash = item.data(100)
         self.extensions.extension_set_enabled(ehash, enabled)
         self.reload_ext()
+        self.feature_changed.emit()
 
     @QtCore.pyqtSlot()
     def on_ext_load(self):
@@ -176,6 +178,7 @@ class Preferences(QtWidgets.QDialog):
             for pp in paths:
                 self.extensions.import_extension_from_path(pp)
         self.reload_ext()
+        self.feature_changed.emit()
 
     @QtCore.pyqtSlot()
     def on_ext_remove(self):
@@ -183,6 +186,7 @@ class Preferences(QtWidgets.QDialog):
         ehash = self.listWidget_ext.currentItem().data(100)
         self.extensions.extension_remove(ehash)
         self.reload_ext()
+        self.feature_changed.emit()
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def on_ext_modified(self, item):
@@ -192,6 +196,7 @@ class Preferences(QtWidgets.QDialog):
         self.extensions.extension_set_enabled(ehash, enabled)
         self.listWidget_ext.setCurrentItem(item)
         self.reload_ext()
+        self.feature_changed.emit()
 
     @QtCore.pyqtSlot()
     def on_ext_selected(self):

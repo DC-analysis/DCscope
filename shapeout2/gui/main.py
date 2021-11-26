@@ -685,6 +685,8 @@ class ShapeOut2(QtWidgets.QMainWindow):
     def on_action_preferences(self):
         """Show the DCOR import dialog"""
         dlg = preferences.Preferences(self)
+        dlg.feature_changed.connect(self.plots_changed)
+        dlg.feature_changed.connect(self.on_quickview_refresh)
         dlg.exec()
 
     @QtCore.pyqtSlot()
