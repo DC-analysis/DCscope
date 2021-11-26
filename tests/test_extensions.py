@@ -99,27 +99,25 @@ def test_em_load_from_store():
     assert 0 not in em2, "sanity check"
 
 
-def test_ex_plugin_description():
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
+                                       "ext_feat_anc_plugin_ca.py"])
+def test_ex_all_enabled(path_name):
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    shutil.copy2(data_path / "ext_feat_anc_plugin_ca.py", tmpd / "test.py")
-    ex = extensions.Extension(tmpd / "test.py")
-    ex.load()
-    assert "longer description" in ex.description
-
-
-def test_ex_plugin_enabled():
-    tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    shutil.copy2(data_path / "ext_feat_anc_plugin_ca.py", tmpd / "test.py")
-    ex = extensions.Extension(tmpd / "test.py")
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
     assert ex.enabled
     ex.set_enabled(False)
     assert not ex.enabled
 
 
-def test_ex_plugin_loaded():
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
+                                       "ext_feat_anc_plugin_ca.py"])
+def test_ex_all_loaded(path_name):
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    shutil.copy2(data_path / "ext_feat_anc_plugin_ca.py", tmpd / "test.py")
-    ex = extensions.Extension(tmpd / "test.py")
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
     assert not ex.loaded
     ex.load()
     assert ex.loaded
@@ -134,10 +132,13 @@ def test_ex_plugin_loaded():
     assert not ex.path_lock_disabled.exists()
 
 
-def test_ex_plugin_loaded_2():
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
+                                       "ext_feat_anc_plugin_ca.py"])
+def test_ex_all_loaded_2(path_name):
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    shutil.copy2(data_path / "ext_feat_anc_plugin_ca.py", tmpd / "test.py")
-    ex = extensions.Extension(tmpd / "test.py")
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
     assert not ex.loaded
     ex.load()
     ex.set_enabled(False)
@@ -148,17 +149,53 @@ def test_ex_plugin_loaded_2():
     assert ex.enabled
 
 
-def test_ex_plugin_repr():
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
+                                       "ext_feat_anc_plugin_ca.py"])
+def test_ex_all_repr(path_name):
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    shutil.copy2(data_path / "ext_feat_anc_plugin_ca.py", tmpd / "test.py")
-    ex = extensions.Extension(tmpd / "test.py")
-    assert "test.py" in repr(ex)
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
+    assert path_name in repr(ex)
+
+
+def test_ex_ml_description():
+    path_name = "ext_feat_anc_ml_tf_rbc.modc"
+    tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
+    ex.load()
+    assert "I don't know what I am doing" in ex.description
+
+
+def test_ex_ml_title():
+    path_name = "ext_feat_anc_ml_tf_rbc.modc"
+    tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
+    ex.load()
+    assert "2021-11-26 02:07" in ex.title
+    assert "Naive red blood cell score" in ex.title
+
+
+def test_ex_plugin_description():
+    path_name = "ext_feat_anc_plugin_ca.py"
+    tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
+    ex.load()
+    assert "longer description" in ex.description
 
 
 def test_ex_plugin_title():
+    path_name = "ext_feat_anc_plugin_ca.py"
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    shutil.copy2(data_path / "ext_feat_anc_plugin_ca.py", tmpd / "test.py")
-    ex = extensions.Extension(tmpd / "test.py")
+    path_used = tmpd / path_name
+    shutil.copy2(data_path / path_name, path_used)
+    ex = extensions.Extension(path_used)
     ex.load()
     assert "0.1.0" in ex.title
     assert "some circularity" in ex.title
