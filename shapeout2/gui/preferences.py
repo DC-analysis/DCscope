@@ -233,7 +233,8 @@ class Preferences(QtWidgets.QDialog):
             self.checkBox_ext_enabled.setChecked(ext.enabled)
             self.checkBox_ext_enabled.blockSignals(False)
             with ExtensionErrorWrapper(ehash):
-                ext.load()
+                if ext.enabled:  # only load the extension if enabled
+                    ext.load()
             self.label_ext_name.setText(ext.title)
             item.setText(ext.title)
             self.label_ext_description.setText(ext.description)
