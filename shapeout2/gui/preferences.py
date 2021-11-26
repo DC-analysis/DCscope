@@ -119,7 +119,7 @@ class Preferences(QtWidgets.QDialog):
                 lwitem.setCheckState(2 if ext.enabled else 0)
                 lwitem.setData(100, ext.hash)
             self.listWidget_ext.setCurrentRow(0)
-            if row + 1 > self.listWidget_ext.count():
+            if row + 1 > self.listWidget_ext.count() or row < 0:
                 row = 0
             self.listWidget_ext.setCurrentRow(row)
         self.listWidget_ext.blockSignals(False)
