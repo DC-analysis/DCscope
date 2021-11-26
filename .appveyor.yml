@@ -59,8 +59,6 @@ after_test:
   - python setup.py bdist_wheel
   - python setup.py sdist
   - ps: "ls dist"
-  # Install pyinstaller (includes dependency for pywin32)
-  - appveyor-retry pip install pyinstaller==4.1
   # Run pyinstaller
   - cd build-recipes
   - pyinstaller -y --additional-hooks-dir . --log-level=WARN win_ShapeOut2.spec
