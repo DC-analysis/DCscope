@@ -224,7 +224,7 @@
          <item alignment="Qt::AlignTop">
           <widget class="QPushButton" name="pushButton_ext_load">
            <property name="text">
-            <string>Load new...</string>
+            <string>Add extension...</string>
            </property>
           </widget>
          </item>

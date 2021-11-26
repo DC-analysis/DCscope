@@ -1,4 +1,4 @@
-"""Screenshots for quick guide emodulus"""
+"""Screenshots for quick guide statistics"""
 import sys
 
 from PyQt5 import QtCore
