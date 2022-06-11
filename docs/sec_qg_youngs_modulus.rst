@@ -75,6 +75,12 @@ shear-thinning :cite:`Herold2017`).
 Click *Apply* for any changes to take effect. The Young's modulus is then
 available for the selected dataset.
 
+.. note::
+
+    In order to prevent users from doing a wrong analysis, Shape-Out does not
+    allow users to change the buffer in the *Dataset* tab if CellCarrier,
+    CellCarrier B or water/PBS were selected in Shape-In. Therefore, the
+    analysis of the Young's modulus cannot be re-done for a different buffer.
 
 
 Bulk actions
@@ -87,7 +93,6 @@ individual datasets. Only valid options are adopted. For instance,
 you will not be able to change the medium for a dataset if a medium is
 already given in its meta data. To verify the options set, you can always
 check the current setting via the *Analysis View* (see above).
-
 
 
 Validity
