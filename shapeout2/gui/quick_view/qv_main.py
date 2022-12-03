@@ -498,7 +498,7 @@ class QuickView(QtWidgets.QWidget):
 
         if not show_poly:
             self.on_poly_done()
-        # set size
+
         self.update()
 
     @show_wait_cursor
