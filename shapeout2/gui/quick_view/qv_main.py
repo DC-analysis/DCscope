@@ -500,14 +500,6 @@ class QuickView(QtWidgets.QWidget):
             self.on_poly_done()
         # set size
         self.update()
-        ws = self.sizeHint()
-        mdiwin = self.parent()
-        geom = mdiwin.geometry()
-        geom.setWidth(ws.width())
-        geom.setHeight(ws.height())
-        mdiwin.setGeometry(geom)
-        mdiwin.adjustSize()
-        mdiwin.update()
 
     @show_wait_cursor
     @QtCore.pyqtSlot()
