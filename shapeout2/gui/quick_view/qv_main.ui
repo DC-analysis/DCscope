@@ -12,7 +12,7 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>500</width>
+    <width>600</width>
     <height>0</height>
    </size>
   </property>
@@ -32,7 +32,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout_7">
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_14">
@@ -49,8 +49,8 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>200</width>
-             <height>200</height>
+             <width>300</width>
+             <height>300</height>
             </size>
            </property>
           </widget>
@@ -191,7 +191,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
         <widget class="QWidget" name="widget_settings" native="true">
