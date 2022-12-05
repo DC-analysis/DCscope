@@ -206,10 +206,6 @@ class QuickView(QtWidgets.QWidget):
         # Initially, only show the info about how QuickView works
         self.widget_tool.setEnabled(False)
         self.widget_scatter.hide()
-        # Hide settings/events by default
-        self.widget_event.hide()
-        self.widget_settings.hide()
-        self.widget_poly.hide()
         # show the how-to label
         self.label_howto.show()
         # hide the no events label
@@ -474,20 +470,25 @@ class QuickView(QtWidgets.QWidget):
             pass
         else:
             # keep everything as-is but update the sizes
-            show_event = self.widget_event.isVisible()
-            show_settings = self.widget_settings.isVisible()
-            show_poly = self.widget_poly.isVisible()
+            show_event = self.stackedWidget.currentWidget() is self.page_event
+            show_settings = self.stackedWidget.currentWidget() \
+                is self.page_settings
+            show_poly = self.stackedWidget.currentWidget() is self.page_poly
 
         # toolbutton checked
         self.toolButton_event.setChecked(show_event)
         self.toolButton_poly.setChecked(show_poly)
         self.toolButton_settings.setChecked(show_settings)
 
-        # widget visibility
-        self.widget_event.setVisible(show_event)
+        # stack widget visibility
+        if show_event:
+            self.stackedWidget.setCurrentWidget(self.page_event)
+        elif show_settings:
+            self.stackedWidget.setCurrentWidget(self.page_settings)
+        elif show_poly:
+            self.stackedWidget.setCurrentWidget(self.page_poly)
+
         self.widget_scatter.select.setVisible(show_event)  # point in scatter
-        self.widget_poly.setVisible(show_poly)
-        self.widget_settings.setVisible(show_settings)
 
         if show_event:
             # update event plot (maybe axes changed)
