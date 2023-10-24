@@ -300,6 +300,53 @@ class QuickView(QtWidgets.QWidget):
                 cellimg = cellimg[idminx:idmaxx, idminy:idmaxy]
         return cellimg, imkw
 
+
+    def get_event_pha(self, ds, event):
+        state = self.__getstate__()
+        imkw = self.imkw.copy()
+        cellpha = ds["qpi_pha"][event]
+        # convert from f32 to int8
+        # todo: test this separately with example data
+        # cellpha = (cellpha - cellpha.min()) / (cellpha.max() - cellpha.min())
+        # cellpha = cellpha * 255
+        # cellpha = cellpha.astype(np.int8)
+
+        # convert to RGB
+        cellpha = cellpha.reshape(
+            cellpha.shape[0], cellpha.shape[1], 1)
+        cellpha = np.repeat(cellpha, 3, axis=2)
+        # clip and convert to int
+        # cellpha = np.clip(cellpha, 0, 255)
+        # cellpha = np.require(cellpha, np.uint8, 'C')
+
+        # Only load contour data if there is an image column.
+        # We don't know how big the images should be so we
+        # might run into trouble displaying random contours.
+        if "mask" in ds and len(ds["mask"]) > event:
+            mask = ds["mask"][event]
+            if state["event"]["image contour"]:
+                # Compute contour image from mask. If you are wondering
+                # whether this is kosher, please take a look at issue #76:
+                # https://github.com/DC-analysis/dclab/issues/76
+                cont = mask ^ binary_erosion(mask)
+                # set red contour pixel values in original image
+                cellpha[cont, 0] = int(255*.7)
+                cellpha[cont, 1] = 0
+                cellpha[cont, 2] = 0
+            if state["event"]["image zoom"]:
+                xv, yv = np.where(mask)
+                idminx = xv.min() - 5
+                idminy = yv.min() - 5
+                idmaxx = xv.max() + 5
+                idmaxy = yv.max() + 5
+                idminx = idminx if idminx >= 0 else 0
+                idminy = idminy if idminy >= 0 else 0
+                shx, shy = mask.shape
+                idmaxx = idmaxx if idmaxx < shx else shx
+                idmaxy = idmaxy if idmaxy < shy else shy
+                cellpha = cellpha[idminx:idmaxx, idminy:idmaxy]
+        return cellpha, imkw
+
     def get_statistics(self):
         if self.rtdc_ds is not None:
             features = [self.comboBox_x.currentData(),
@@ -609,6 +656,10 @@ class QuickView(QtWidgets.QWidget):
             if "image" in ds:
                 cellimg, imkw = self.get_event_image(ds, event)
                 self.imageView_image.setImage(cellimg, **imkw)
+                self.groupBox_image.show()
+            if "qpi_pha" in ds:
+                cellpha, imkw = self.get_event_pha(ds, event)
+                self.imageView_image_pha.setImage(cellpha, **imkw)
                 self.groupBox_image.show()
             else:
                 self.groupBox_image.hide()

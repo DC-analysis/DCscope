@@ -203,7 +203,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_settings">
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -714,17 +714,53 @@
                    </layout>
                   </item>
                   <item>
-                   <widget class="SimpleImageView" name="imageView_image">
-                    <property name="minimumSize">
-                     <size>
-                      <width>300</width>
-                      <height>100</height>
-                     </size>
+                   <layout class="QVBoxLayout" name="verticalLayout_11">
+                    <property name="sizeConstraint">
+                     <enum>QLayout::SetNoConstraint</enum>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color:transparent</string>
+                    <property name="bottomMargin">
+                     <number>0</number>
                     </property>
-                   </widget>
+                    <item>
+                     <widget class="SimpleImageView" name="imageView_image">
+                      <property name="minimumSize">
+                       <size>
+                        <width>300</width>
+                        <height>50</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background-color:transparent</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="SimpleImageView" name="imageView_image_pha">
+                      <property name="minimumSize">
+                       <size>
+                        <width>300</width>
+                        <height>50</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background-color:transparent</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="SimpleImageView" name="imageView_image_amp">
+                      <property name="minimumSize">
+                       <size>
+                        <width>300</width>
+                        <height>50</height>
+                       </size>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">background-color:transparent</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </item>
                  </layout>
                 </widget>
