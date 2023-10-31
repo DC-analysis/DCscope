@@ -201,7 +201,7 @@ class QuickView(QtWidgets.QWidget):
             self.checkBox_image_contour.setChecked(event["image contour"])
             self.checkBox_image_zoom.setChecked(event["image zoom"])
             self.checkBox_image_background.setChecked(
-                    event["image background"])
+                event["image background"])
             self.spinBox_event.setValue(event["index"])
             self.checkBox_trace_raw.setChecked(event["trace raw"])
             self.checkBox_trace_legend.setChecked(event["trace legend"])
@@ -283,7 +283,7 @@ class QuickView(QtWidgets.QWidget):
                 # https://github.com/DC-analysis/dclab/issues/76
                 cont = mask ^ binary_erosion(mask)
                 # set red contour pixel values in original image
-                cellimg[cont, 0] = int(255*.7)
+                cellimg[cont, 0] = int(255 * .7)
                 cellimg[cont, 1] = 0
                 cellimg[cont, 2] = 0
             if state["event"]["image zoom"]:
@@ -300,24 +300,21 @@ class QuickView(QtWidgets.QWidget):
                 cellimg = cellimg[idminx:idmaxx, idminy:idmaxy]
         return cellimg, imkw
 
-
-    def get_event_pha(self, ds, event):
+    def get_event_qpi_feat(self, ds, event, qpi_feat="qpi_pha"):
         state = self.__getstate__()
         imkw = self.imkw.copy()
-        cellpha = ds["qpi_pha"][event]
-        # convert from f32 to int8
+        cellpha = ds[qpi_feat][event]
+        # convert from f32 to uint8
         # todo: test this separately with example data
-        # cellpha = (cellpha - cellpha.min()) / (cellpha.max() - cellpha.min())
-        # cellpha = cellpha * 255
-        # cellpha = cellpha.astype(np.int8)
-
+        cellpha = (cellpha - cellpha.min()) / (cellpha.max() - cellpha.min())
+        cellpha = cellpha * 255
         # convert to RGB
         cellpha = cellpha.reshape(
             cellpha.shape[0], cellpha.shape[1], 1)
         cellpha = np.repeat(cellpha, 3, axis=2)
         # clip and convert to int
-        # cellpha = np.clip(cellpha, 0, 255)
-        # cellpha = np.require(cellpha, np.uint8, 'C')
+        cellpha = np.clip(cellpha, 0, 255)
+        cellpha = np.require(cellpha, np.uint8, 'C')
 
         # Only load contour data if there is an image column.
         # We don't know how big the images should be so we
@@ -330,7 +327,7 @@ class QuickView(QtWidgets.QWidget):
                 # https://github.com/DC-analysis/dclab/issues/76
                 cont = mask ^ binary_erosion(mask)
                 # set red contour pixel values in original image
-                cellpha[cont, 0] = int(255*.7)
+                cellpha[cont, 0] = int(255 * .7)
                 cellpha[cont, 1] = 0
                 cellpha[cont, 2] = 0
             if state["event"]["image zoom"]:
@@ -393,11 +390,21 @@ class QuickView(QtWidgets.QWidget):
             if "image" in self.rtdc_ds:
                 try:
                     cellimg, imkw = self.get_event_image(self.rtdc_ds, event)
+                    self.imageView_image_poly.setImage(cellimg, **imkw)
+                    self.imageView_image_poly.show()
+                    cellpha, imkw = self.get_event_qpi_feat(self.rtdc_ds,
+                                                            event, "qpi_pha")
+                    self.imageView_image_poly_pha.setImage(cellpha, **imkw)
+                    self.imageView_image_poly_pha.show()
+                    cellamp, imkw = self.get_event_qpi_feat(self.rtdc_ds,
+                                                            event, "qpi_amp")
+                    self.imageView_image_poly_amp.setImage(cellamp, **imkw)
+                    self.imageView_image_poly_amp.show()
                 except IndexError:
                     # the plot got updated, and we still have the old data
                     cellimg, imkw = self.get_event_image(self.rtdc_ds, 0)
-                self.imageView_image_poly.setImage(cellimg, **imkw)
-                self.imageView_image_poly.show()
+                    self.imageView_image_poly.setImage(cellimg, **imkw)
+                    self.imageView_image_poly.show()
             else:
                 self.imageView_image_poly.hide()
 
@@ -542,7 +549,7 @@ class QuickView(QtWidgets.QWidget):
             # keep everything as-is but update the sizes
             show_event = self.stackedWidget.currentWidget() is self.page_event
             show_settings = self.stackedWidget.currentWidget() \
-                is self.page_settings
+                            is self.page_settings
             show_poly = self.stackedWidget.currentWidget() is self.page_poly
 
         # toolbutton checked
@@ -658,8 +665,12 @@ class QuickView(QtWidgets.QWidget):
                 self.imageView_image.setImage(cellimg, **imkw)
                 self.groupBox_image.show()
             if "qpi_pha" in ds:
-                cellpha, imkw = self.get_event_pha(ds, event)
+                cellpha, imkw = self.get_event_qpi_feat(ds, event, "qpi_pha")
                 self.imageView_image_pha.setImage(cellpha, **imkw)
+                self.groupBox_image.show()
+            if "qpi_amp" in ds:
+                cellamp, imkw = self.get_event_qpi_feat(ds, event, "qpi_amp")
+                self.imageView_image_amp.setImage(cellamp, **imkw)
                 self.groupBox_image.show()
             else:
                 self.groupBox_image.hide()
@@ -702,7 +713,7 @@ class QuickView(QtWidgets.QWidget):
                                 range_t[2] = flmax
                         # set legend name
                         ln = "{} {}".format(self.slot.fl_name_dict[
-                            "FL-{}".format(key[2])], key[4:])
+                                                "FL-{}".format(key[2])], key[4:])
                         self.legend_trace.addItem(self.trace_plots[key], ln)
                         self.legend_trace.update()
                     else:
