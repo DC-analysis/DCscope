@@ -367,22 +367,20 @@ class QuickView(QtWidgets.QWidget):
             self.imageView_image_poly_amp.hide()
 
             try:
-                for feat in ["image", "qpi_pha", "qpi_amp"]:
-                    if feat in ds:
-                        cellimg, imkw = self.get_event_image(
-                            ds, event, feat)
-                        if feat == "image":
-                            self.imageView_image_poly.setImage(
-                                cellimg, **imkw)
-                            self.imageView_image_poly.show()
-                        if feat == "qpi_pha":
-                            self.imageView_image_poly_pha.setImage(
-                                cellimg, **imkw)
-                            self.imageView_image_poly_pha.show()
-                        if feat == "qpi_amp":
-                            self.imageView_image_poly_amp.setImage(
-                                cellimg, **imkw)
-                            self.imageView_image_poly_amp.show()
+                # if we have qpi data, image might be a different shape
+                if "qpi_pha" in ds:
+                    cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
+                    self.imageView_image_poly_pha.setImage(cellimg, **imkw)
+                    self.imageView_image_poly_pha.show()
+                    if "qpi_amp" in ds:
+                        cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
+                        self.imageView_image_poly_amp.setImage(cellimg, **imkw)
+                        self.imageView_image_poly_amp.show()
+                elif "image" in ds:
+                    cellimg, imkw = self.get_event_image(ds, event, "image")
+                    self.imageView_image_poly.setImage(cellimg, **imkw)
+                    self.imageView_image_poly.show()
+
             except IndexError:
                 # the plot got updated, and we still have the old data
                 cellimg, imkw = self.get_event_image(self.rtdc_ds, 0, "image")
@@ -642,17 +640,26 @@ class QuickView(QtWidgets.QWidget):
             # update image
             state = self.__getstate__()
             self.groupBox_image.hide()
+            self.imageView_image.hide()
+            self.imageView_image_pha.hide()
+            self.imageView_image_amp.hide()
 
-            for feat in ["image", "qpi_pha", "qpi_amp"]:
-                if feat in ds:
-                    cellimg, imkw = self.get_event_image(ds, event, feat)
-                    if feat == "image":
-                        self.imageView_image.setImage(cellimg, **imkw)
-                    if feat == "qpi_pha":
-                        self.imageView_image_pha.setImage(cellimg, **imkw)
-                    if feat == "qpi_amp":
-                        self.imageView_image_amp.setImage(cellimg, **imkw)
-                    self.groupBox_image.show()
+            # if we have qpi data, image might be a different shape
+            if "qpi_pha" in ds:
+                cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
+                self.imageView_image_pha.setImage(cellimg, **imkw)
+                self.imageView_image_pha.show()
+                if "qpi_amp" in ds:
+                    cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
+                    self.imageView_image_amp.setImage(cellimg, **imkw)
+                    self.imageView_image_amp.show()
+            elif "image" in ds:
+                cellimg, imkw = self.get_event_image(ds, event, "image")
+                self.imageView_image.setImage(cellimg, **imkw)
+                self.imageView_image.show()
+
+            self.groupBox_image.show()
+
             if "trace" in ds:
                 # remove legend items
                 for item in reversed(self.legend_trace.items):
