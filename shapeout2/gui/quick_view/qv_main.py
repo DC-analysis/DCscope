@@ -268,11 +268,9 @@ class QuickView(QtWidgets.QWidget):
                 cellimg = (cellimg - vmin) / (vmax - vmin) * 255
         elif "qpi" in feat:
             if "qpi_pha" in feat:
-                imkw = dict(autoLevels=False,
-                            levels=(-3, 3))
+                imkw["levels"] = (-3, 3)
             elif "qpi_amp" in feat:
-                imkw = dict(autoLevels=False,
-                            levels=(0, 2))
+                imkw["levels"] = (0, 2)
         else:
             raise ValueError(f"Options for `feat` are 'image', "
                              f"'qpi_pha' and 'qpi_amp', got {feat}")
@@ -287,12 +285,12 @@ class QuickView(QtWidgets.QWidget):
             cellimg = np.clip(cellimg, 0, 255)
             cellimg = np.require(cellimg, np.uint8, 'C')
 
-        cellimg = self.display_contour(ds, event, state, cellimg)
+        cellimg = self.display_contour(ds, event, state, cellimg, imkw)
 
         return cellimg, imkw
 
     @staticmethod
-    def display_contour(ds, event, state, cellimg):
+    def display_contour(ds, event, state, cellimg, imkw):
         # Only load contour data if there is an image column.
         # We don't know how big the images should be so we
         # might run into trouble displaying random contours.
@@ -304,9 +302,12 @@ class QuickView(QtWidgets.QWidget):
                 # https://github.com/DC-analysis/dclab/issues/76
                 cont = mask ^ binary_erosion(mask)
                 # set red contour pixel values in original image
-                cellimg[cont, 0] = int(255 * .7)
-                cellimg[cont, 1] = 0
-                cellimg[cont, 2] = 0
+                red_pix = ((imkw["levels"][1] - imkw["levels"][0])
+                           * 0.7) - np.abs(imkw["levels"][0])
+                cellimg[cont, 0] = int(
+                    red_pix) if imkw["levels"][1] == 255 else red_pix
+                cellimg[cont, 1] = int(imkw["levels"][0])
+                cellimg[cont, 2] = int(imkw["levels"][0])
             if state["event"]["image zoom"]:
                 xv, yv = np.where(mask)
                 idminx = xv.min() - 5
