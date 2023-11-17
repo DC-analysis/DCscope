@@ -267,10 +267,12 @@ class QuickView(QtWidgets.QWidget):
                 vmin, vmax = cellimg.min(), cellimg.max()
                 cellimg = (cellimg - vmin) / (vmax - vmin) * 255
         elif "qpi" in feat:
-            # convert from f32 to uint8
-            cellimg = (cellimg - cellimg.min()) / (
-                    cellimg.max() - cellimg.min())
-            cellimg = cellimg * 255
+            if "qpi_pha" in feat:
+                imkw = dict(autoLevels=False,
+                            levels=(-3, 3))
+            elif "qpi_amp" in feat:
+                imkw = dict(autoLevels=False,
+                            levels=(0, 2))
         else:
             raise ValueError(f"Options for `feat` are 'image', "
                              f"'qpi_pha' and 'qpi_amp', got {feat}")
@@ -279,9 +281,11 @@ class QuickView(QtWidgets.QWidget):
         cellimg = cellimg.reshape(
             cellimg.shape[0], cellimg.shape[1], 1)
         cellimg = np.repeat(cellimg, 3, axis=2)
-        # clip and convert to int
-        cellimg = np.clip(cellimg, 0, 255)
-        cellimg = np.require(cellimg, np.uint8, 'C')
+
+        if feat == "image":
+            # clip and convert to int
+            cellimg = np.clip(cellimg, 0, 255)
+            cellimg = np.require(cellimg, np.uint8, 'C')
 
         cellimg = self.display_contour(ds, event, state, cellimg)
 
