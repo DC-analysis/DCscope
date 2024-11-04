@@ -133,8 +133,18 @@ class QuickView(QtWidgets.QWidget):
                          levels=(0, 255),
                          )
 
-        self.cmap_pha = pg.colormap.get('CET-D1A')  # colorcet coolwarm
-        self.cmap_amp = pg.colormap.get('CET-L1')  # colorcet Greys
+        self.img_info = {
+            "image": {"view_event": self.imageView_image,
+                      "view_poly": self.imageView_image_poly,
+                      "cmap": pg.colormap.get('CET-L1')},
+            "qpi_pha": {"view_event": self.imageView_image_pha,
+                        "view_poly": self.imageView_image_poly_pha,
+                        "cmap": pg.colormap.get('CET-D1A')},
+            "qpi_amp": {
+                "view_event": self.imageView_image_amp,
+                "view_poly": self.imageView_image_poly_amp,
+                "cmap": pg.colormap.get('CET-L1')},
+        }
 
         # set initial empty dataset
         self._rtdc_ds = None
@@ -365,6 +375,11 @@ class QuickView(QtWidgets.QWidget):
             ds_idx = np.where(plotted)[0][point.index()]
             self.show_event(ds_idx)
 
+    def display_img(self, feat, view, cellimg, **imkw):
+        self.img_info[feat][view].setImage(cellimg, **imkw)
+        self.img_info[feat][view].setColorMap(self.img_info[feat]["cmap"])
+        self.img_info[feat][view].show()
+
     def on_event_scatter_hover(self, pos):
         """Update the image view in the polygon widget """
         if self.rtdc_ds is not None and self.toolButton_poly.isChecked():
@@ -376,33 +391,27 @@ class QuickView(QtWidgets.QWidget):
             # get corrected index
             event = np.where(plotted)[0][point.index()]
 
-            self.imageView_image_poly.hide()
-            self.imageView_image_poly_pha.hide()
-            self.imageView_image_poly_amp.hide()
+            view = "view_poly"
+            for key in self.img_info.keys():
+                self.img_info[key][view].hide()
 
             try:
                 # if we have qpi data, image might be a different shape
                 if "qpi_pha" in ds:
                     cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
-                    self.imageView_image_poly_pha.setImage(cellimg, **imkw)
-                    self.imageView_image_poly_pha.setColorMap(self.cmap_pha)
-                    self.imageView_image_poly_pha.show()
+                    self.display_img("qpi_pha", view, cellimg, **imkw)
                     if "qpi_amp" in ds:
                         cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
-                        self.imageView_image_poly_amp.setImage(cellimg, **imkw)
-                        self.imageView_image_poly_amp.setColorMap(self.cmap_amp)
-                        # self.imageView_image_poly_amp.updateImage()
-                        self.imageView_image_poly_amp.show()
+                        self.display_img("qpi_amp", view, cellimg, **imkw)
                 elif "image" in ds:
                     cellimg, imkw = self.get_event_image(ds, event, "image")
-                    self.imageView_image_poly.setImage(cellimg, **imkw)
-                    self.imageView_image_poly.show()
+                    self.display_img("image", view, cellimg, **imkw)
 
             except IndexError:
                 # the plot got updated, and we still have the old data
                 cellimg, imkw = self.get_event_image(self.rtdc_ds, 0, "image")
                 self.imageView_image_poly.setImage(cellimg, **imkw)
-                self.imageView_image_poly.show()
+                self.display_img("image", view, cellimg, **imkw)
 
     def on_event_scatter_spin(self, event):
         """Sping control for event selection changed"""
@@ -657,25 +666,21 @@ class QuickView(QtWidgets.QWidget):
             # update image
             state = self.__getstate__()
             self.groupBox_image.hide()
-            self.imageView_image.hide()
-            self.imageView_image_pha.hide()
-            self.imageView_image_amp.hide()
+
+            view = "view_event"
+            for key in self.img_info.keys():
+                self.img_info[key][view].hide()
 
             # if we have qpi data, image might be a different shape
             if "qpi_pha" in ds:
                 cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
-                self.imageView_image_pha.setImage(cellimg, **imkw)
-                self.imageView_image_pha.setColorMap(self.cmap_pha)
-                self.imageView_image_pha.show()
+                self.display_img("qpi_pha", view, cellimg, **imkw)
                 if "qpi_amp" in ds:
                     cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
-                    self.imageView_image_amp.setImage(cellimg, **imkw)
-                    self.imageView_image_amp.setColorMap(self.cmap_amp)
-                    self.imageView_image_amp.show()
+                    self.display_img("qpi_amp", view, cellimg, **imkw)
             elif "image" in ds:
                 cellimg, imkw = self.get_event_image(ds, event, "image")
-                self.imageView_image.setImage(cellimg, **imkw)
-                self.imageView_image.show()
+                self.display_img("image", view, cellimg, **imkw)
 
             self.groupBox_image.show()
 
