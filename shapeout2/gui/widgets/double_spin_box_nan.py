@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5 import QtWidgets, QtGui
+from PyQt6 import QtWidgets, QtGui
 
 
 class DoubleSpinBoxNan(QtWidgets.QDoubleSpinBox):
@@ -38,10 +38,10 @@ class NanFloatValidator(QtGui.QValidator):
         if string in ["n", "na", "nan"]:
             text = "nan"
         if valid_nanfloat_string(string):
-            return self.Acceptable, text, position
+            return self.State.Acceptable, text, position
         elif string == "":
-            return self.Intermediate, text, position
-        return self.Invalid, text, position
+            return self.State.Intermediate, text, position
+        return self.State.Invalid, text, position
 
     def fixup(self, text):
         try:

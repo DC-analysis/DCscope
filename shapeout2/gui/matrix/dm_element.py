@@ -1,6 +1,6 @@
 import pkg_resources
 
-from PyQt5 import uic, QtWidgets, QtCore
+from PyQt6 import uic, QtWidgets, QtCore
 
 
 class MatrixElement(QtWidgets.QWidget):
@@ -43,7 +43,7 @@ class MatrixElement(QtWidgets.QWidget):
     def mousePressEvent(self, event):
         # toggle selection
         if not self.invalid:
-            if event.modifiers() == QtCore.Qt.ShiftModifier:
+            if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
                 quickview = not self.has_quickview()
             else:
                 self.active = not self.active

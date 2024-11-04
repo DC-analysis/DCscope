@@ -1,7 +1,7 @@
 import pathlib
 import pkg_resources
 
-from PyQt5 import uic, QtWidgets
+from PyQt6 import uic, QtWidgets
 
 import dclab
 

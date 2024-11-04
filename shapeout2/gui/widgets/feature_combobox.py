@@ -1,5 +1,5 @@
 import dclab
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 
 #: These are features only visible in developer mode
@@ -38,7 +38,7 @@ class FeatureComboBox(QtWidgets.QComboBox):
         self.hidden_feats = HIDDEN_FEATURES if not devmode else []
 
         # where the data at
-        self.data_role = QtCore.Qt.UserRole
+        self.data_role = QtCore.Qt.ItemDataRole.UserRole
 
         # Set background color to white
         pal = self.palette()

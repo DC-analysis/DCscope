@@ -3,7 +3,7 @@ import pkg_resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ... import meta_tool
 
@@ -48,7 +48,7 @@ class MetaPanel(QtWidgets.QWidget):
 
     def update_info_box(self, group_box, config, section):
         """Populate an individual group box with keyword-value pairs"""
-        group_box.layout().setAlignment(QtCore.Qt.AlignTop)
+        group_box.layout().setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         # cleanup
         for ii in reversed(range(group_box.layout().count())):
             item = group_box.layout().itemAt(ii).widget()
@@ -61,16 +61,16 @@ class MetaPanel(QtWidgets.QWidget):
                 k, v, t = format_config_key_value(section, key, value)
                 widget = QtWidgets.QWidget()
                 hbox = QtWidgets.QHBoxLayout()
-                hbox.setAlignment(QtCore.Qt.AlignLeft)
+                hbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
                 hbox.setContentsMargins(0, 0, 0, 0)
                 ldescr = QtWidgets.QLabel(k + ": ")
                 ldescr.setToolTip(f"{section}:{key}")
-                ldescr.setAlignment(QtCore.Qt.AlignTop)
+                ldescr.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
                 hbox.addWidget(ldescr)
                 lvalue = QtWidgets.QLabel(v)
                 if t:
                     lvalue.setToolTip(t)
-                lvalue.setAlignment(QtCore.Qt.AlignBottom)
+                lvalue.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom)
                 hbox.addWidget(lvalue)
                 widget.setLayout(hbox)
                 group_box.layout().addWidget(widget)

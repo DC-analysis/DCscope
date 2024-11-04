@@ -3,7 +3,7 @@ import pkg_resources
 import dclab
 from dclab.features.emodulus.viscosity import KNOWN_MEDIA, SAME_MEDIA
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from shapeout2.gui.analysis.ana_slot import SlotPanel
 from shapeout2.gui.widgets import show_wait_cursor
@@ -65,7 +65,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         self.comboBox_lut.setCurrentIndex(idx)
 
         # buttons
-        btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        btn_ok = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
         btn_ok.clicked.connect(self.on_ok)
 
     @QtCore.pyqtSlot()

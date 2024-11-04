@@ -1,6 +1,6 @@
 import pkg_resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 
 class DlgSlotReorder(QtWidgets.QDialog):
@@ -18,7 +18,8 @@ class DlgSlotReorder(QtWidgets.QDialog):
 
         self.toolButton_down.clicked.connect(self.on_move_item)
         self.toolButton_up.clicked.connect(self.on_move_item)
-        btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        btn_ok = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
         btn_ok.clicked.connect(self.on_ok)
 
     @QtCore.pyqtSlot()

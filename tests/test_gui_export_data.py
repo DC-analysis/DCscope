@@ -5,7 +5,7 @@ from unittest import mock
 
 import dclab
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 import pytest
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import export
@@ -43,7 +43,7 @@ def test_export_datasets_rtdc(qtbot):
     # Everything is set-up already (.rtdc export, innate features
     # selected). Click OK.
     buttons = dlg.buttonBox.buttons()
-    qtbot.mouseClick(buttons[0], QtCore.Qt.LeftButton)
+    qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have three .rtdc files
     assert len(list(pathlib.Path(tmpd).glob("*.rtdc"))) == 3
@@ -70,7 +70,7 @@ def test_export_datasets_rtdc_no_override(qtbot):
         # selected).
         # Click OK.
         buttons = dlg.buttonBox.buttons()
-        qtbot.mouseClick(buttons[0], QtCore.Qt.LeftButton)
+        qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have six .rtdc files, because we exported twice
     assert len(list(pathlib.Path(tmpd).glob("*.rtdc"))) == 6
@@ -89,7 +89,7 @@ def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot):
     # set metadata for Young's modulus only in one slot
     wsl = mw.widget_ana_view.widget_slot
     wsl.doubleSpinBox_temp.setValue(23)
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # make sure that worked
     ds0 = mw.pipeline.slots[0].get_dataset()
     assert "emodulus" in ds0
@@ -103,13 +103,13 @@ def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot):
         dlg = export.ExportData(mw, pipeline=mw.pipeline)
         # select all features
         qtbot.mouseClick(dlg.bulklist_features.toolButton_all,
-                         QtCore.Qt.LeftButton)
+                         QtCore.Qt.MouseButton.LeftButton)
 
         # Everything is set-up already
         # (.rtdc export, innate features selected).
         # Click OK.
         buttons = dlg.buttonBox.buttons()
-        qtbot.mouseClick(buttons[0], QtCore.Qt.LeftButton)
+        qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
         # make sure that we got two warning messages
         assert mwarn.call_count == 2
@@ -150,7 +150,7 @@ def test_export_datasets_rtdc_logs(qtbot):
     # Everything is set-up already (.rtdc export, innate features selected).
     # Click OK.
     buttons = dlg.buttonBox.buttons()
-    qtbot.mouseClick(buttons[0], QtCore.Qt.LeftButton)
+    qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have one .rtdc file
     exported = list(pathlib.Path(tmpd).glob("*.rtdc"))
@@ -197,7 +197,7 @@ def test_export_datasets_basin_based(qtbot, strategy):
     # Everything is set up already (.rtdc export, innate features selected).
     # Click OK.
     buttons = dlg.buttonBox.buttons()
-    qtbot.mouseClick(buttons[0], QtCore.Qt.LeftButton)
+    qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have one .rtdc file
     exported = list(pathlib.Path(tmpd).glob("*.rtdc"))

@@ -2,7 +2,7 @@ dclab>=0.58.2
 h5py
 matplotlib
 numpy
-pyqt5
+PyQt6
 scipy
 sphinx
 sphinxcontrib.bibtex

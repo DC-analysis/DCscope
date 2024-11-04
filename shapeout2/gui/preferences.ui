@@ -21,7 +21,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_general">
       <attribute name="title">
@@ -38,7 +38,7 @@
        <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -70,7 +70,7 @@
             <string/>
            </property>
            <property name="echoMode">
-            <enum>QLineEdit::PasswordEchoOnEdit</enum>
+            <enum>QLineEdit::EchoMode::PasswordEchoOnEdit</enum>
            </property>
            <property name="placeholderText">
             <string>optional (to access private data)</string>
@@ -129,7 +129,7 @@
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://dc.readthedocs.io/en/latest/sec_self_hosting/operations.html#creating-an-encrypted-access-token&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;What are encrypted tokens?&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="textFormat">
-            <enum>Qt::RichText</enum>
+            <enum>Qt::TextFormat::RichText</enum>
            </property>
            <property name="openExternalLinks">
             <bool>true</bool>
@@ -141,7 +141,7 @@
        <item>
         <spacer name="verticalSpacer_3">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -217,7 +217,7 @@
        <item>
         <spacer name="verticalSpacer_4">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -237,7 +237,7 @@
        <item>
         <widget class="QListWidget" name="listWidget_ext">
          <property name="sizeAdjustPolicy">
-          <enum>QAbstractScrollArea::AdjustToContents</enum>
+          <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
          </property>
          <property name="showDropIndicator" stdset="0">
           <bool>false</bool>
@@ -246,10 +246,10 @@
           <bool>true</bool>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+          <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
          </property>
          <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
+          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
          </property>
         </widget>
        </item>
@@ -258,7 +258,7 @@
          <property name="spacing">
           <number>3</number>
          </property>
-         <item alignment="Qt::AlignTop">
+         <item alignment="Qt::AlignmentFlag::Qt::AlignmentFlag::AlignTop">
           <widget class="QPushButton" name="pushButton_ext_load">
            <property name="text">
             <string>Add extension...</string>
@@ -268,7 +268,7 @@
          <item>
           <widget class="Line" name="line">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
           </widget>
          </item>
@@ -293,7 +293,7 @@
                <string>TextLabel</string>
               </property>
               <property name="textFormat">
-               <enum>Qt::PlainText</enum>
+               <enum>Qt::TextFormat::PlainText</enum>
               </property>
               <property name="wordWrap">
                <bool>true</bool>
@@ -309,7 +309,7 @@
                </size>
               </property>
               <property name="frameShadow">
-               <enum>QFrame::Plain</enum>
+               <enum>QFrame::Shadow::Plain</enum>
               </property>
               <property name="widgetResizable">
                <bool>true</bool>
@@ -320,7 +320,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>324</width>
-                 <height>221</height>
+                 <height>226</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -336,7 +336,7 @@
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Description that may span multiple lines in this scrolling panel.&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="alignment">
-                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                   <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
                   </property>
                   <property name="wordWrap">
                    <bool>true</bool>
@@ -359,7 +359,7 @@
               <item>
                <spacer name="horizontalSpacer">
                 <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
+                 <enum>Qt::Orientation::Horizontal</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -400,7 +400,7 @@
        <item>
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -417,10 +417,10 @@
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok|QDialogButtonBox::RestoreDefaults</set>
+      <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok|QDialogButtonBox::StandardButton::RestoreDefaults</set>
      </property>
      <property name="centerButtons">
       <bool>false</bool>

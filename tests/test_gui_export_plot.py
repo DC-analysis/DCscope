@@ -4,7 +4,7 @@ import pathlib
 import shutil
 import tempfile
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 import pytest
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import export

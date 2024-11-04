@@ -1,8 +1,8 @@
 """Screenshots for quick guide statistics"""
 import sys
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import export
 
@@ -23,7 +23,7 @@ mw.reload_pipeline()
 dlg = export.ExportData(mw, pipeline=mw.pipeline)
 dlg.lineEdit_path.setText("/home/user/Shape-Out-Exports")
 dlg.show()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_export_data.png")
 
 mw.close()

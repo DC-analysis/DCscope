@@ -4,7 +4,7 @@ import urllib.parse
 import webbrowser
 
 import dclab
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 import requests
 
 from ..widgets import show_wait_cursor, run_async
@@ -42,18 +42,21 @@ class DCORLoader(QtWidgets.QDialog):
         self.search_item_retrieved.connect(self.on_search_add_result)
 
         # button signals
-        btn_close = self.buttonBox.button(QtWidgets.QDialogButtonBox.Close)
+        btn_close = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this window")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_open = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        btn_open = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_open.clicked.connect(self.on_open)
         btn_open.setToolTip("Add selected resources to current session")
         btn_open.setText("Add to session")
         plusicon = QtGui.QIcon.fromTheme("list-add")
         btn_open.setIcon(plusicon)
-        btn_help = self.buttonBox.button(QtWidgets.QDialogButtonBox.Help)
+        btn_help = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Help)
         btn_help.clicked.connect(self.on_help)
         btn_help.setToolTip("View DCOR Quick Guide online")
         helpicon = QtGui.QIcon.fromTheme("documentinfo")
@@ -195,14 +198,14 @@ class DCORLoader(QtWidgets.QDialog):
             msg.setIcon(QtWidgets.QMessageBox.Information)
             msg.setText("Search found invalid data: {}".format(failed))
             msg.setWindowTitle("Dataset validation")
-            msg.exec_()
+            msg.exec()
 
         if error:
             msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
             msg.setText(error)
             msg.setWindowTitle("DCOR access error!")
-            msg.exec_()
+            msg.exec()
 
     def perform_search(self, search_string, search_type, search_id,
                        api_base_url, api_headers):

@@ -3,7 +3,7 @@ import pkg_resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ...pipeline import Plot
 from ...pipeline.plot import STATE_OPTIONS

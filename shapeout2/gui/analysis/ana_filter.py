@@ -1,7 +1,7 @@
 import copy
 import pkg_resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 import dclab
 
@@ -111,7 +111,7 @@ class FilterPanel(QtWidgets.QWidget):
         """
         feats, labs = self.get_features_labels()
 
-        self.verticalLayout_box.setAlignment(QtCore.Qt.AlignTop)
+        self.verticalLayout_box.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         for lab, feat in sorted(zip(labs, feats)):
             integer = True if feat in idiom.INTEGER_FEATURES else False
@@ -293,7 +293,7 @@ class FilterPanel(QtWidgets.QWidget):
 
     def update_polygon_filters(self, update_state=True):
         """Update the layout containing the polygon filters"""
-        self.verticalLayout_poly.setAlignment(QtCore.Qt.AlignTop)
+        self.verticalLayout_poly.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         # clear layout
         for ii in reversed(range(self.verticalLayout_poly.count())):
             item = self.verticalLayout_poly.itemAt(ii).widget()
@@ -305,7 +305,7 @@ class FilterPanel(QtWidgets.QWidget):
             for pf in dclab.PolygonFilter.instances:
                 widget = QtWidgets.QWidget()
                 hbox = QtWidgets.QHBoxLayout()
-                hbox.setAlignment(QtCore.Qt.AlignLeft)
+                hbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
                 hbox.setContentsMargins(0, 0, 0, 0)
                 chb = QtWidgets.QCheckBox()
                 hbox.addWidget(chb)

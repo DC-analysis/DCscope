@@ -12,8 +12,9 @@ import h5py
 import numpy
 import scipy
 
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import QStandardPaths
+from PyQt6.QtWidgets import QMessageBox
 import pyqtgraph as pg
 
 from . import analysis
@@ -33,13 +34,11 @@ from .. import session
 
 from .._version import version
 
-
 # global plotting configuration parameters
 pg.setConfigOption("background", None)
 pg.setConfigOption("foreground", "k")
 pg.setConfigOption("antialias", True)
 pg.setConfigOption("imageAxisOrder", "row-major")
-
 
 # set Qt icon theme search path
 QtGui.QIcon.setThemeSearchPaths([
@@ -71,14 +70,14 @@ class ShapeOut2(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationName("Zellmechanik-Dresden")
         QtCore.QCoreApplication.setOrganizationDomain("zellmechanik.com")
         QtCore.QCoreApplication.setApplicationName("shapeout2")
-        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
         #: Shape-Out settings
         self.settings = QtCore.QSettings()
-        self.settings.setIniCodec("utf-8")
         # Register custom DCOR CA bundle directory with dclab
         ca_path = pathlib.Path(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation)) / "certificates"
+                QStandardPaths.StandardLocation.AppDataLocation)
+        ) / "certificates"
         ca_path.mkdir(exist_ok=True, parents=True)
         dclab.rtdc_dataset.fmt_dcor.DCOR_CERTS_SEARCH_PATHS.append(ca_path)
         # Register user-defined DCOR API Key in case the user wants to
@@ -90,7 +89,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         #: Extensions
         store_path = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation), "extensions")
+                QStandardPaths.StandardLocation.AppDataLocation), "extensions")
         try:
             self.extensions = ExtensionManager(store_path)
         except BaseException:
@@ -199,8 +198,8 @@ class ShapeOut2(QtWidgets.QMainWindow):
         # if "--version" was specified, print the version and exit
         if "--version" in arguments:
             print(version)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             sys.exit(0)
         else:
             # deal with any other arguments that might have been passed
@@ -559,12 +558,13 @@ class ShapeOut2(QtWidgets.QMainWindow):
 
             ghrepo = "ZELLMECHANIK-DRESDEN/ShapeOut2"
 
-            QtCore.QMetaObject.invokeMethod(self._update_worker,
-                                            'processUpdate',
-                                            QtCore.Qt.QueuedConnection,
-                                            QtCore.Q_ARG(str, version),
-                                            QtCore.Q_ARG(str, ghrepo),
-                                            )
+            QtCore.QMetaObject.invokeMethod(
+                self._update_worker,
+                'processUpdate',
+                QtCore.Qt.ConnectionType.QueuedConnection,
+                QtCore.Q_ARG(str, version),
+                QtCore.Q_ARG(str, ghrepo),
+            )
 
     @QtCore.pyqtSlot(dict)
     def on_action_check_update_finished(self, mdict):
@@ -579,7 +579,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         dlb = mdict["binary url"]
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Shape-Out {} available!".format(ver))
-        msg.setTextFormat(QtCore.Qt.RichText)
+        msg.setTextFormat(QtCore.Qt.TextFormat.RichText)
         text = "You can install Shape-Out {} ".format(ver)
         if dlb is not None:
             text += 'from a <a href="{}">direct download</a>. '.format(dlb)
@@ -587,7 +587,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             text += 'by running `pip install --upgrade shapeout2`. '
         text += 'Visit the <a href="{}">official release page</a>!'.format(web)
         msg.setText(text)
-        msg.exec_()
+        msg.exec()
 
     @QtCore.pyqtSlot()
     def on_action_compute_emodulus(self):
@@ -619,9 +619,9 @@ class ShapeOut2(QtWidgets.QMainWindow):
         if bool(int(self.settings.value("advanced/user confirm clear", "1"))):
             button_reply = QtWidgets.QMessageBox.question(
                 self, 'Clear Session', "All progress will be lost. Continue?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No)
-            yes = button_reply == QtWidgets.QMessageBox.Yes
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No)
+            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         else:
             yes = True
         if yes:
@@ -637,9 +637,9 @@ class ShapeOut2(QtWidgets.QMainWindow):
             button_reply = QtWidgets.QMessageBox.question(
                 self, 'Clear Datasets',
                 "Remove all datasets from this session?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No)
-            yes = button_reply == QtWidgets.QMessageBox.Yes
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No)
+            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         else:
             yes = True
         if yes:
@@ -769,7 +769,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             path, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self, 'Open session', '', 'Shape-Out 2 session (*.so2)',
                 'Shape-Out 2 session (*.so2)',
-                QtWidgets.QFileDialog.DontUseNativeDialog)
+                QtWidgets.QFileDialog.Option.DontUseNativeDialog)
         if path:
             search_paths = []
             while True:
@@ -779,13 +779,13 @@ class ShapeOut2(QtWidgets.QMainWindow):
                 except session.DataFileNotFoundError as e:
                     missds = "\r".join([str(pp) for pp in e.missing_paths])
                     msg = QtWidgets.QMessageBox()
-                    msg.setIcon(QtWidgets.QMessageBox.Warning)
+                    msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
                     msg.setText("Some datasets were not found! "
                                 + "Please specify a search location.")
                     msg.setWindowTitle(
                         "Missing {} dataset(s)".format(len(e.missing_paths)))
                     msg.setDetailedText("Missing files: \n\n" + missds)
-                    msg.exec_()
+                    msg.exec()
                     spath = QtWidgets.QFileDialog.getExistingDirectory(
                         self, 'Data search path')
                     if spath:
@@ -840,7 +840,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         sw_text += "Modules:\n"
         for lib in libs:
             sw_text += f"- {lib.__name__} {lib.__version__}\n"
-        sw_text += f"- PyQt5 {QtCore.QT_VERSION_STR}\n"  # Extrawurst
+        sw_text += f"- PyQt6 {QtCore.QT_VERSION_STR}\n"  # Extrawurst
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
         if hasattr(sys, 'frozen'):
             sw_text += "\nThis executable has been created using PyInstaller."
@@ -870,10 +870,10 @@ class ShapeOut2(QtWidgets.QMainWindow):
     def on_new_polygon_filter(self):
         if not self.pipeline.slots:
             msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
             msg.setText("A dataset is required for creating a polygon filter!")
             msg.setWindowTitle("No dataset loaded")
-            msg.exec_()
+            msg.exec()
         else:
             slot_index, _ = self.block_matrix.get_quickview_indices()
             if slot_index is None:
@@ -1002,16 +1002,16 @@ def excepthook(etype, value, trace):
     exception = "".join([vinfo]+tmp)
 
     errorbox = QtWidgets.QMessageBox()
-    errorbox.setIcon(QtWidgets.QMessageBox.Critical)
+    errorbox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     errorbox.addButton(QtWidgets.QPushButton('Close'),
-                       QtWidgets.QMessageBox.YesRole)
+                       QtWidgets.QMessageBox.ButtonRole.YesRole)
     errorbox.addButton(QtWidgets.QPushButton(
-        'Copy text && Close'), QtWidgets.QMessageBox.NoRole)
+        'Copy text && Close'), QtWidgets.QMessageBox.ButtonRole.NoRole)
     errorbox.setText(exception)
-    ret = errorbox.exec_()
+    ret = errorbox.exec()
     if ret == 1:
         cb = QtWidgets.QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard)
+        cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(exception)
 
 

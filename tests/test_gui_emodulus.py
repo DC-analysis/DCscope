@@ -2,7 +2,7 @@
 import pathlib
 import tempfile
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 import dclab
 import h5py
@@ -140,7 +140,7 @@ def test_simple(qtbot):
 
     # scenario C (switch to config)
     wsl.comboBox_temp.setCurrentIndex(wsl.comboBox_temp.findData("config"))
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     ds2 = mw.pipeline.slots[0].get_dataset()
     assert np.allclose(ds2["emodulus"], emodC, atol=0, rtol=1e-12,
                        equal_nan=True)
@@ -148,7 +148,7 @@ def test_simple(qtbot):
     # scenario C (switch to manual)
     wsl.comboBox_temp.setCurrentIndex(wsl.comboBox_temp.findData("manual"))
     wsl.doubleSpinBox_temp.setValue(22.5)
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     ds3 = mw.pipeline.slots[0].get_dataset()
     assert np.allclose(ds3["emodulus"], emodC, atol=0, rtol=1e-12,
                        equal_nan=True)
@@ -175,24 +175,25 @@ def test_switch_and_update_chip_region(qtbot):
     # select the first slot
     em1 = mw.block_matrix.get_widget(slot_id=slot_id1)
     em2 = mw.block_matrix.get_widget(slot_id=slot_id2)
-    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     # set temperature manually
     idm = wsl.comboBox_temp.findData("manual")
     wsl.comboBox_temp.setCurrentIndex(idm)
     assert wsl.comboBox_temp.currentData() == "manual"
     wsl.doubleSpinBox_temp.setValue(20.0)
     assert wsl.doubleSpinBox_temp.value() == 20
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
     # check whether that worked
     assert wsl.get_dataset(
     ).config["calculation"]["emodulus temperature"] == 20
 
     # switch to the second (reservoir) measurement
-    qtbot.mouseClick(em2.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em2.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     assert not wsl.groupBox_emod.isVisible()
     # now switch back
-    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # This is the actual test
     assert wsl.doubleSpinBox_temp.value() == 20
@@ -218,27 +219,28 @@ def test_switch_and_update_medium(qtbot):
     # select the first slot
     em1 = mw.block_matrix.get_widget(slot_id=slot_id1)
     em2 = mw.block_matrix.get_widget(slot_id=slot_id2)
-    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     # set temperature manually
     idm = wsl.comboBox_temp.findData("manual")
     wsl.comboBox_temp.setCurrentIndex(idm)
     assert wsl.comboBox_temp.currentData() == "manual"
     wsl.doubleSpinBox_temp.setValue(20.0)
     assert wsl.doubleSpinBox_temp.value() == 20
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
     # check whether that worked
     assert wsl.get_dataset(
     ).config["calculation"]["emodulus temperature"] == 20
 
     # switch to the second (user-defined medium) measurement
-    qtbot.mouseClick(em2.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em2.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     assert wsl.comboBox_medium.currentData() == "UserDefined"
     assert not wsl.doubleSpinBox_visc.isReadOnly(), "Should be editable"
     assert wsl.doubleSpinBox_visc.isEnabled(), "Should be editable"
     assert not wsl.doubleSpinBox_temp.isEnabled(), "Should not be editable"
     # now switch back
-    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em1.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # This is the actual test
     assert wsl.doubleSpinBox_temp.value() == 20
@@ -290,8 +292,9 @@ def test_changeable_lut_selection(qtbot):
     # set lut manually
     idlut = wsl.comboBox_lut.findData("HE-2D-FEM-22")
     wsl.comboBox_lut.setCurrentIndex(idlut)
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
     # check LUT selection
     assert wsl.comboBox_lut.currentData() == "HE-2D-FEM-22"
@@ -305,8 +308,9 @@ def test_changeable_lut_selection(qtbot):
     # set different lut manually
     idlut = wsl.comboBox_lut.findData("HE-3D-FEM-22")
     wsl.comboBox_lut.setCurrentIndex(idlut)
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.LeftButton)
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
     # check new LUT selection
     assert wsl.comboBox_lut.currentData() == "HE-3D-FEM-22"

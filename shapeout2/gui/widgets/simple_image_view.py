@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 
 from .simple_plot_widget import SimpleViewBox
@@ -32,7 +32,7 @@ class SimpleImageView(pg.ImageView):
         height, width, _ = self.image.shape
 
         qImg = QtGui.QImage(img, width, height, width *
-                            3, QtGui.QImage.Format_RGB888)
+                            3, QtGui.QImage.Format.Format_RGB888)
         qImg.save(path)
 
 

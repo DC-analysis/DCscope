@@ -1,6 +1,6 @@
 import pkg_resources
 
-from PyQt5 import uic, QtGui, QtWidgets
+from PyQt6 import uic, QtGui, QtWidgets
 
 from ... import meta_tool
 

@@ -1,3 +1,5 @@
+2.19.0
+ - BREAKING CHANGE: migrate from pyqt5 to pyqt6
 2.18.2
  - enh: enable lut selection to plot isoelasticity lines (#71)
  - enh: replace findText with findData of comboBox_visc_model

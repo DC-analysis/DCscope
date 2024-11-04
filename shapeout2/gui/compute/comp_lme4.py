@@ -2,7 +2,7 @@ import pkg_resources
 import webbrowser
 
 from dclab import lme4
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 from .comp_lme4_dataset import LME4Dataset
 from .comp_lme4_results import Rlme4ResultsDialog
@@ -33,24 +33,27 @@ class ComputeSignificance(QtWidgets.QDialog):
             self.dataset_layout.addWidget(dw)
             self.datasets.append(dw)
         spacer = QtWidgets.QSpacerItem(20, 0,
-                                       QtWidgets.QSizePolicy.Minimum,
-                                       QtWidgets.QSizePolicy.Expanding)
+                                       QtWidgets.QSizePolicy.Policy.Minimum,
+                                       QtWidgets.QSizePolicy.Policy.Expanding)
         self.dataset_layout.addItem(spacer)
         self.update()
 
         # button signals
-        btn_close = self.buttonBox.button(QtWidgets.QDialogButtonBox.Close)
+        btn_close = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this dialog")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_openlme4 = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        btn_openlme4 = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_openlme4.clicked.connect(self.on_lme4)
         btn_openlme4.setToolTip("Perform lme4 analysis")
         btn_openlme4.setText("Run R-lme4")
         picon = QtGui.QIcon.fromTheme("rlang")
         btn_openlme4.setIcon(picon)
-        btn_help = self.buttonBox.button(QtWidgets.QDialogButtonBox.Help)
+        btn_help = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Help)
         btn_help.clicked.connect(self.on_help)
         btn_help.setToolTip("View R-lme4 Quick Guide online")
         helpicon = QtGui.QIcon.fromTheme("documentinfo")
@@ -80,7 +83,6 @@ class ComputeSignificance(QtWidgets.QDialog):
         self.setEnabled(False)
         # set R HOME from settings
         settings = QtCore.QSettings()
-        settings.setIniCodec("utf-8")
         r_path = settings.value("lme4/r path", "")
         if r_path:
             lme4.set_r_path(r_path)
@@ -98,7 +100,7 @@ class ComputeSignificance(QtWidgets.QDialog):
         if ret_dlg:
             return dlg
         else:
-            dlg.exec_()
+            dlg.exec()
 
     @QtCore.pyqtSlot()
     def on_close(self):

@@ -2,8 +2,8 @@
 import pathlib
 import sys
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import preferences
 
@@ -25,7 +25,7 @@ dlg = preferences.Preferences(mw)
 dlg.tabWidget.setCurrentIndex(3)
 
 dlg.show()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_extensions.png")
 
 mw.close()

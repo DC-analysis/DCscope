@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 DEFAULT_CSS = """
 QRangeSlider * {
@@ -45,7 +45,7 @@ class Ui_Form(object):
         self._splitter = QtWidgets.QSplitter(Form)
         self._splitter.setMinimumSize(QtCore.QSize(0, 0))
         self._splitter.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self._splitter.setOrientation(QtCore.Qt.Horizontal)
+        self._splitter.setOrientation(QtCore.Qt.Orientation.Horizontal)
         self._splitter.setObjectName("splitter")
         self._head = QtWidgets.QGroupBox(self._splitter)
         self._head.setTitle("")
@@ -98,7 +98,8 @@ class Head(Element):
     def drawText(self, event, qp):
         qp.setPen(self.textColor())
         qp.setFont(QtGui.QFont('Arial', 10))
-        qp.drawText(event.rect(), QtCore.Qt.AlignLeft, str(self.main.min()))
+        qp.drawText(event.rect(), QtCore.Qt.AlignmentFlag.AlignLeft,
+                    str(self.main.min()))
 
 
 class Tail(Element):
@@ -108,7 +109,8 @@ class Tail(Element):
     def drawText(self, event, qp):
         qp.setPen(self.textColor())
         qp.setFont(QtGui.QFont('Arial', 10))
-        qp.drawText(event.rect(), QtCore.Qt.AlignRight, str(self.main.max()))
+        qp.drawText(event.rect(), QtCore.Qt.AlignmentFlag.AlignRight,
+                    str(self.main.max()))
 
 
 class Handle(Element):
@@ -118,8 +120,10 @@ class Handle(Element):
     def drawText(self, event, qp):
         qp.setPen(self.textColor())
         qp.setFont(QtGui.QFont('Arial', 10))
-        qp.drawText(event.rect(), QtCore.Qt.AlignLeft, str(self.main.start()))
-        qp.drawText(event.rect(), QtCore.Qt.AlignRight, str(self.main.end()))
+        qp.drawText(event.rect(), QtCore.Qt.AlignmentFlag.AlignLeft,
+                    str(self.main.start()))
+        qp.drawText(event.rect(), QtCore.Qt.AlignmentFlag.AlignRight,
+                    str(self.main.end()))
 
 
 class QRangeSlider(QtWidgets.QWidget, Ui_Form):

@@ -1,7 +1,7 @@
 """Test of Quick View set functionalities"""
 import pathlib
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 import dclab
 import numpy as np
@@ -44,7 +44,8 @@ def test_clear_session_issue_25(qtbot):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
     # did that work?
     assert mw.toolButton_quick_view.isChecked()
 
@@ -73,7 +74,8 @@ def test_no_events_disable(qtbot):
     em2 = mw.block_matrix.get_widget(slot_id2, filt_id)
 
     # Now activate Quick View
-    qtbot.mouseClick(em1, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
 
     # Get Quick View instance
     qv = mw.widget_quick_view
@@ -82,7 +84,8 @@ def test_no_events_disable(qtbot):
     assert qv.label_noevents.isVisible()
 
     # Check the reverse
-    qtbot.mouseClick(em2, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
     assert not qv.label_noevents.isVisible()
 
 
@@ -106,24 +109,24 @@ def test_no_events_issue_37(qtbot):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)  # activate
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)  # activate
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
 
     # filter away all events
     fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     fv = mw.widget_ana_view.widget_filter
-    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     rc = fv._box_range_controls["area_um"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert rc.checkBox.isChecked()
-    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # set range
     rc.doubleSpinBox_min.setValue(0)
     rc.doubleSpinBox_max.setValue(1)
-    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -135,7 +138,8 @@ def test_no_events_issue_37(qtbot):
     em = mw.block_matrix.get_widget(slot_id, filt_id)
 
     # this raised the error
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
     mw.close()
 
 
@@ -173,20 +177,23 @@ def test_remove_dataset_h5py_error(qtbot):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)  # activate
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)  # activate
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
 
     # close Quick View
-    qtbot.mouseClick(mw.toolButton_quick_view, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(mw.toolButton_quick_view,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # now remove the dataset
     pw = mw.block_matrix.get_widget(slot_id=slot_id)
     pw.action_remove()
 
     # open Quick View
-    qtbot.mouseClick(mw.toolButton_quick_view, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(mw.toolButton_quick_view,
+                     QtCore.Qt.MouseButton.LeftButton)
     mw.close()
 
 
@@ -211,10 +218,11 @@ def test_translate_polygon_filter_issue_115(qtbot):
     # activate a dataslot
     slot_id = slot_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
 
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
 
     # did that work?
     assert mw.toolButton_quick_view.isChecked()
@@ -222,15 +230,16 @@ def test_translate_polygon_filter_issue_115(qtbot):
     # Add a polygon filter
     assert len(dclab.PolygonFilter.instances) == 0
     qv = mw.widget_quick_view
-    qtbot.mouseClick(qv.toolButton_poly, QtCore.Qt.LeftButton)
-    qtbot.mouseClick(qv.pushButton_poly_create, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.pushButton_poly_create,
+                     QtCore.Qt.MouseButton.LeftButton)
     # three positions (not sure how to do this with mouse clicks)
     points = [[22, 0.01],
               [30, 0.01],
               [30, 0.014],
               ]
     qv.widget_scatter.set_poly_points(points)
-    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert len(dclab.PolygonFilter.instances) == 1
     pf = dclab.PolygonFilter.instances[0]
@@ -238,12 +247,12 @@ def test_translate_polygon_filter_issue_115(qtbot):
 
     # Add the polygon filter to the first filter
     fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     fv = mw.widget_ana_view.widget_filter
     cb = fv._polygon_checkboxes[pf.unique_id]
-    qtbot.mouseClick(cb, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(cb, QtCore.Qt.MouseButton.LeftButton)
     assert cb.isChecked()
-    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -253,10 +262,11 @@ def test_translate_polygon_filter_issue_115(qtbot):
     qv.comboBox_poly.setCurrentIndex(1)
     # do this without mouse interaction in this test
     qv.widget_scatter.poly_line_roi.translate(1, -.002, snap=False)
-    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
     assert len(dclab.PolygonFilter.instances) == 1
     pf2 = dclab.PolygonFilter.instances[0]
-    QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 5000)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     points2 = [[23, 0.008],
                [31, 0.008],
                [31, 0.012],
@@ -291,10 +301,11 @@ def test_update_polygon_filter_issue_26(qtbot):
     # activate a dataslot
     slot_id = slot_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
 
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
 
     # did that work?
     assert mw.toolButton_quick_view.isChecked()
@@ -302,15 +313,16 @@ def test_update_polygon_filter_issue_26(qtbot):
     # Add a polygon filter
     assert len(dclab.PolygonFilter.instances) == 0
     qv = mw.widget_quick_view
-    qtbot.mouseClick(qv.toolButton_poly, QtCore.Qt.LeftButton)
-    qtbot.mouseClick(qv.pushButton_poly_create, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.pushButton_poly_create,
+                     QtCore.Qt.MouseButton.LeftButton)
     # three positions (not sure how to do this with mouse clicks)
     points = [[22, 0.01],
               [30, 0.01],
               [30, 0.014],
               ]
     qv.widget_scatter.set_poly_points(points)
-    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert len(dclab.PolygonFilter.instances) == 1
     pf = dclab.PolygonFilter.instances[0]
@@ -318,12 +330,12 @@ def test_update_polygon_filter_issue_26(qtbot):
 
     # Add the polygon filter to the first filter
     fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     fv = mw.widget_ana_view.widget_filter
     cb = fv._polygon_checkboxes[pf.unique_id]
-    qtbot.mouseClick(cb, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(cb, QtCore.Qt.MouseButton.LeftButton)
     assert cb.isChecked()
-    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -336,7 +348,7 @@ def test_update_polygon_filter_issue_26(qtbot):
                [30, 0.012],
                ]
     qv.widget_scatter.set_poly_points(points2)
-    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
     assert len(dclab.PolygonFilter.instances) == 1
     pf2 = dclab.PolygonFilter.instances[0]
     assert np.allclose(pf2.points, points2)
@@ -379,9 +391,10 @@ def test_subtract_background(qtbot):
     em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
 
     # Activate
-    qtbot.mouseClick(em1, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
     # Open QuickView-window
-    qtbot.mouseClick(em1, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
 
     # Check if QuickView-window is open
     assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
@@ -391,7 +404,7 @@ def test_subtract_background(qtbot):
 
     # Open event tool of QuickView
     event_tool = qv.toolButton_event
-    qtbot.mouseClick(event_tool, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
 
     # Test if checkbox is visible and checked by default
     assert qv.checkBox_image_background.isVisible(), "Checkbox is not visible"
@@ -404,9 +417,10 @@ def test_subtract_background(qtbot):
     em2 = mw.block_matrix.get_widget(slot_id2, filt_id)
 
     # Activate
-    qtbot.mouseClick(em2, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
     # Open dataset in QuickView
-    qtbot.mouseClick(em2, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
 
     qv2 = mw.widget_quick_view
 
@@ -435,10 +449,11 @@ def test_isoelasticity_lines_with_lut_selection(qtbot):
     # activate a dataslot
     slot_id = slot_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton, QtCore.Qt.ShiftModifier)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
 
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
 
     # did that work?
     assert mw.toolButton_quick_view.isChecked()
@@ -448,7 +463,7 @@ def test_isoelasticity_lines_with_lut_selection(qtbot):
 
     # Open plot (settings) tool of QuickView
     plot_tool = qv.toolButton_settings
-    qtbot.mouseClick(plot_tool, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(plot_tool, QtCore.Qt.MouseButton.LeftButton)
 
     # Test if checkbox is visible and checked by default
     assert qv.checkBox_isoelastics.isChecked(), "Checked by default"
@@ -458,7 +473,7 @@ def test_isoelasticity_lines_with_lut_selection(qtbot):
     # Try changing look-up table
     qv.comboBox_lut.setCurrentIndex(qv.comboBox_lut.findData("HE-2D-FEM-22"))
     # Apply changes by clicking on 'Apply'
-    qtbot.mouseClick(qv.toolButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(qv.toolButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # did that work?
     assert qv.comboBox_lut.currentData() == "HE-2D-FEM-22"

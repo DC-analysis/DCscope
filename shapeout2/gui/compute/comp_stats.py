@@ -5,7 +5,7 @@ import pkg_resources
 import time
 
 import dclab
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ..widgets import show_wait_cursor
 from ..widgets.feature_combobox import HIDDEN_FEATURES
@@ -100,7 +100,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                     break
                 prog.setValue(slot_index + 1)
                 QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.AllEvents, 300)
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         else:
             # from path
             inpath = pathlib.Path(self.path)
@@ -122,7 +122,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                 values.append(v)
                 prog.setValue(ii + 1)
                 QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.AllEvents, 300)
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         # Header
         header = ["Statistics Output",

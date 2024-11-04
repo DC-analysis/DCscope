@@ -1,7 +1,7 @@
 import pathlib
 import pkg_resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 import dclab
 
@@ -100,10 +100,11 @@ class ExportData(QtWidgets.QDialog):
         prog = QtWidgets.QProgressDialog("Exporting...", "Abort", 1,
                                          pend, self)
         prog.setWindowTitle("Data Export")
-        prog.setWindowModality(QtCore.Qt.WindowModal)
+        prog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         prog.setMinimumDuration(0)
         prog.setValue(0)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         slots_n_paths = self.get_export_filenames()
         prog.setMaximum(len(slots_n_paths))  # correct dialog maximum
@@ -147,8 +148,8 @@ class ExportData(QtWidgets.QDialog):
             if prog.wasCanceled():
                 break
             prog.setValue(slot_index + 1)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         prog.setValue(pend)
 
     def get_export_filenames(self):

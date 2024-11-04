@@ -7,7 +7,7 @@ from dclab.features.emodulus.viscosity import (
     ALIAS_MEDIA, KNOWN_MEDIA, TemperatureOutOfRangeWarning
 )
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ... import meta_tool
 from ...pipeline import Dataslot

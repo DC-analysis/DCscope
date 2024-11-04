@@ -1,7 +1,7 @@
 import pkg_resources
 
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 
 #: Precision for these features (``data``) should not go below this value.

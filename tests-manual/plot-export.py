@@ -3,8 +3,8 @@ from unittest import mock
 import pathlib
 import sys
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui import export
 from shapeout2.gui.main import ShapeOut2
 
@@ -18,10 +18,10 @@ mw = ShapeOut2()
 
 # load session
 mw.on_action_open(here / "plot-export.so2")
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
 # scatter-and-contour-export-png
-with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
+with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     gsfn.return_value = \
         (str(here / "plot-export_scatter-and-contour-export-png_actual.png"),
          ".png")
@@ -35,7 +35,7 @@ with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
 
 
 # scatter-long-title-export
-with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
+with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     gsfn.return_value = \
         (str(here / "plot-export_scatter-long-title-export-png_actual.png"),
          ".png")
@@ -49,7 +49,7 @@ with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
 
 
 # scatter-and-contour-export-svg
-with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
+with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     gsfn.return_value = \
         (str(here / "plot-export_scatter-and-contour-export-svg_actual.svg"),
          ".svg")
@@ -64,7 +64,7 @@ with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
 
 
 # log-large-points-export-png
-with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
+with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     gsfn.return_value = \
         (str(here / "plot-export_log-large-points-export-png_actual.png"),
          ".png")
@@ -78,7 +78,7 @@ with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
 
 
 # log-large-points-export-svg
-with mock.patch("PyQt5.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
+with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     gsfn.return_value = \
         (str(here / "plot-export_log-large-points-export-svg_actual.svg"),
          ".svg")

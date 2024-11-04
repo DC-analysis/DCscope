@@ -5,7 +5,7 @@ import tempfile
 import dclab
 import h5py
 import numpy as np
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 import pytest
 from shapeout2.gui.main import ShapeOut2
 from shapeout2 import pipeline, session
@@ -41,7 +41,7 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot):
 
     # activate analysis view
     pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     pv = mw.widget_ana_view.widget_plot
 
@@ -49,7 +49,7 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot):
     idx = pv.comboBox_division.findData("each")
     pv.comboBox_division.setCurrentIndex(idx)
     # Lead to zero-division error in "get_plot_col_row_count"
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
 
 def test_feature_bright_avg_not_present_issue_62(qtbot):
@@ -71,7 +71,7 @@ def test_feature_bright_avg_not_present_issue_62(qtbot):
     # and activate it
     pw = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
     # this raised "ValueError: 'bright_avg' is not in list" (issue #62)
-    qtbot.mouseClick(pw, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
 
 
 def test_handle_axis_selection_empty_plot(qtbot):
@@ -92,7 +92,7 @@ def test_handle_axis_selection_empty_plot(qtbot):
 
     # activate analysis view
     pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     pv = mw.widget_ana_view.widget_plot
 
@@ -134,24 +134,24 @@ def test_handle_empty_plots_issue_27(qtbot):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)  # activate
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)  # activate
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
 
     # filter away all events
     fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     fv = mw.widget_ana_view.widget_filter
-    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     rc = fv._box_range_controls["area_um"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert rc.checkBox.isChecked()
-    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # set range
     rc.doubleSpinBox_min.setValue(0)
     rc.doubleSpinBox_max.setValue(1)
-    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -162,7 +162,8 @@ def test_handle_empty_plots_issue_27(qtbot):
     pe = mw.block_matrix.get_widget(slot_id, plot_id)
     with pytest.warns(pipeline.core.EmptyDatasetWarning):
         # this now only throws a warning
-        qtbot.mouseClick(pe, QtCore.Qt.LeftButton)  # activate (raises #27)
+        # activate (raises #27)
+        qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
 
 
 @pytest.mark.filterwarnings(
@@ -194,7 +195,7 @@ def test_hue_feature_not_computed_if_not_selected(qtbot):
     plot_id = mw.add_plot()
     # and activate it
     pw = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
-    qtbot.mouseClick(pw, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
     # get the dataset
     ds = mw.pipeline.get_dataset(slot_index=0)
     # check whether the item has been plotted
@@ -223,7 +224,7 @@ def test_plot_ml_score(qtbot):
     plot_id = mw.add_plot()
     # and activate it
     pw = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
-    qtbot.mouseClick(pw, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
     # get the dataset
     ds = mw.pipeline.get_dataset(slot_index=0)
     # sanity check
@@ -234,7 +235,7 @@ def test_plot_ml_score(qtbot):
     idvoy = pv.comboBox_axis_x.findData("ml_score_voy")
     assert idvoy >= 0
     pv.comboBox_axis_x.setCurrentIndex(idvoy)
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     try:
         pathlib.Path(tmp).unlink()

@@ -6,7 +6,7 @@ import sys
 import traceback
 import urllib.request
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 
 class UpdateWorker(QtCore.QObject):
@@ -29,7 +29,7 @@ def check_for_update(version, ghrepo):
     thread.start()
 
     QtCore.QMetaObject.invokeMethod(obj, 'processUpdate',
-                                    QtCore.Qt.QueuedConnection,
+                                    QtCore.Qt.ConnectionType.QueuedConnection,
                                     QtCore.Q_ARG(str, version),
                                     QtCore.Q_ARG(str, ghrepo),
                                     )

@@ -1,6 +1,6 @@
 import copy
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ... import pipeline
 
@@ -77,7 +77,7 @@ class PlotMatrix(QtWidgets.QWidget):
             self.old_layout.deleteLater()
         # add new layout
         self.glo = QtWidgets.QGridLayout()
-        self.glo.setAlignment(QtCore.Qt.AlignLeft)
+        self.glo.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
         self.glo.setSpacing(2)
         self.glo.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.glo)
@@ -152,8 +152,8 @@ class PlotMatrix(QtWidgets.QWidget):
             height = self.data_matrix.sizeHint().height()
             self.setMinimumSize(width, height)
             self.setFixedSize(width, height)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             self.setMinimumSize(width, height)
             self.setFixedSize(width, height)
 

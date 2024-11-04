@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
@@ -226,7 +226,7 @@ class QuickViewViewBox(SimpleViewBox):
         self.right_click_actions["Mouse Mode"] = "Change Mouse mode"
 
     def mouseClickEvent(self, ev):
-        if ev.button() == QtCore.Qt.LeftButton:
+        if ev.button() == QtCore.Qt.MouseButton.LeftButton:
             pos = self.mapToView(ev.pos())
             if self.mode == "scatter":
                 self.set_scatter_point.emit(pos)

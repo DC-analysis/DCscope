@@ -3,7 +3,7 @@ import pkg_resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 
 class Rlme4ResultsDialog(QtWidgets.QDialog):
@@ -69,12 +69,14 @@ class Rlme4ResultsDialog(QtWidgets.QDialog):
         self.plainTextEdit.setPlainText("\n".join(summary))
 
         # button signals
-        btn_close = self.buttonBox.button(QtWidgets.QDialogButtonBox.Close)
+        btn_close = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this dialog")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_openlme4 = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        btn_openlme4 = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_openlme4.clicked.connect(self.on_save)
         btn_openlme4.setToolTip("Save report as text file")
         btn_openlme4.setText("Save report (.txt)")

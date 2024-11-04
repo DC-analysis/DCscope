@@ -1,7 +1,7 @@
 """https://stackoverflow.com/questions/39304951/"""
 from functools import wraps
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 
 class Runner(QtCore.QThread):

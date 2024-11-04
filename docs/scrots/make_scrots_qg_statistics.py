@@ -1,8 +1,8 @@
 """Screenshots for quick guide statistics"""
 import sys
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import compute
 
@@ -23,7 +23,7 @@ mw.reload_pipeline()
 dlg = compute.ComputeStatistics(mw, pipeline=mw.pipeline)
 dlg.bulklist_features.listWidget.item(1).setCheckState(2)
 dlg.show()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_statistics_init.png")
 
 dlg.path = "/some/other/path/to/data"
@@ -31,7 +31,7 @@ dlg.lineEdit_path.setText(dlg.path)
 dlg.comboBox.setCurrentIndex(1)
 dlg.comboBox_filter_ray.setCurrentIndex(1)
 dlg.bulklist_features.listWidget.item(4).setCheckState(2)
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_statistics_folder.png")
 
 mw.close()

@@ -6,7 +6,7 @@ import warnings
 import dclab
 from dclab import kde_contours
 import numpy as np
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph import exporters
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
@@ -264,7 +264,8 @@ class PipelinePlotItem(SimplePlotItem):
         win.nextRow()
         win.addLabel(labelx, col=1)
         # Update the UI (do it twice, otherwise the tick labels overlap)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         win.hide()
         # perform actual export
         suffix = file[-3:]
@@ -739,7 +740,7 @@ def set_viewbox(plot, range_x, range_y, scale_x="linear", scale_y="linear",
 
 
 linestyles = {
-    "solid": QtCore.Qt.SolidLine,
-    "dashed": QtCore.Qt.DashLine,
-    "dotted": QtCore.Qt.DotLine,
+    "solid": QtCore.Qt.PenStyle.SolidLine,
+    "dashed": QtCore.Qt.PenStyle.DashLine,
+    "dotted": QtCore.Qt.PenStyle.DotLine,
 }

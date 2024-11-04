@@ -1,7 +1,7 @@
 import pathlib
 import pkg_resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 import pyqtgraph.exporters as pge
 
 from ..pipeline_plot import PipelinePlot

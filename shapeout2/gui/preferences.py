@@ -7,8 +7,8 @@ import platform
 
 from dclab.rtdc_dataset.fmt_dcor import access_token
 from dclab.lme4 import rsetup
-from PyQt5 import uic, QtCore, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6.QtCore import QStandardPaths
 
 from .widgets import show_wait_cursor
 from ..extensions import ExtensionManager, SUPPORTED_FORMATS
@@ -65,21 +65,22 @@ class Preferences(QtWidgets.QDialog):
         # extensions
         store_path = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation), "extensions")
+                QStandardPaths.StandardLocation.AppDataLocation), "extensions")
         self.extensions = ExtensionManager(store_path)
 
         self.reload()
 
         # signals
         self.btn_apply = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Apply)
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         self.btn_apply.clicked.connect(self.on_settings_apply)
         self.btn_cancel = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Cancel)
-        self.btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel)
+        self.btn_ok = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.btn_ok.clicked.connect(self.on_settings_apply)
         self.btn_restore = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.RestoreDefaults)
+            QtWidgets.QDialogButtonBox.StandardButton.RestoreDefaults)
         self.btn_restore.clicked.connect(self.on_settings_restore)
         # DCOR
         self.pushButton_enc_token.clicked.connect(self.on_dcor_enc_token)
@@ -131,10 +132,10 @@ class Preferences(QtWidgets.QDialog):
             for ii, ext in enumerate(self.extensions):
                 lwitem = QtWidgets.QListWidgetItem(ext.title,
                                                    self.listWidget_ext)
-                lwitem.setFlags(QtCore.Qt.ItemIsEditable
-                                | QtCore.Qt.ItemIsSelectable
-                                | QtCore.Qt.ItemIsEnabled
-                                | QtCore.Qt.ItemIsUserCheckable)
+                lwitem.setFlags(QtCore.Qt.ItemFlag.ItemIsEditable
+                                | QtCore.Qt.ItemFlag.ItemIsSelectable
+                                | QtCore.Qt.ItemFlag.ItemIsEnabled
+                                | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
                 lwitem.setCheckState(2 if ext.enabled else 0)
                 lwitem.setData(100, ext.hash)
             self.listWidget_ext.setCurrentRow(0)
@@ -154,7 +155,8 @@ class Preferences(QtWidgets.QDialog):
         if r_libs_user is None or not pathlib.Path(r_libs_user).exists():
             r_libs_user = pathlib.Path(
                 QStandardPaths.writableLocation(
-                    QStandardPaths.AppLocalDataLocation)) / "r-libs"
+                    QStandardPaths.StandardLocation.AppLocalDataLocation)
+            ) / "r-libs"
             r_libs_user.mkdir(parents=True, exist_ok=True)
             r_libs_user = str(r_libs_user)
             self.settings.setValue("lme4/r libs user", r_libs_user)
@@ -210,7 +212,7 @@ class Preferences(QtWidgets.QDialog):
             self,
             "Password required",
             f"Please enter the encryption password for {path.name}!",
-            QtWidgets.QLineEdit.Password)
+            QtWidgets.QLineEdit.EchoMode.Password)
         pwd = pwd.strip()
         if not pwd or not cont:
             return
@@ -221,7 +223,8 @@ class Preferences(QtWidgets.QDialog):
         # write certificate to our global Shape-Out certs directory
         ca_path = pathlib.Path(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation)) / "certificates"
+                QStandardPaths.StandardLocation.AppDataLocation)
+        ) / "certificates"
         (ca_path / f"{host}.cert").write_bytes(cert)
         # store other metadata
         self.settings.setValue("dcor/api key", api_key)
@@ -321,11 +324,11 @@ class Preferences(QtWidgets.QDialog):
                         "advanced/developer mode", 0))
                     if devmode != value:
                         msg = QtWidgets.QMessageBox()
-                        msg.setIcon(QtWidgets.QMessageBox.Information)
+                        msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
                         msg.setText("Please restart Shape-Out for the changes "
                                     + "to take effect.")
                         msg.setWindowTitle("Restart Shape-Out")
-                        msg.exec_()
+                        msg.exec()
             elif isinstance(widget, QtWidgets.QLineEdit):
                 value = widget.text().strip()
             elif widget is self.dcor_servers:
