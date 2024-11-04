@@ -133,6 +133,9 @@ class QuickView(QtWidgets.QWidget):
                          levels=(0, 255),
                          )
 
+        self.cmap_pha = pg.colormap.get('CET-D1A')  # colorcet coolwarm
+        self.cmap_amp = pg.colormap.get('CET-L1')  # colorcet Greys
+
         # set initial empty dataset
         self._rtdc_ds = None
         self.slot = None
@@ -275,22 +278,22 @@ class QuickView(QtWidgets.QWidget):
             raise ValueError(f"Options for `feat` are 'image', "
                              f"'qpi_pha' and 'qpi_amp', got {feat}")
 
-        # convert to RGB
-        cellimg = cellimg.reshape(
-            cellimg.shape[0], cellimg.shape[1], 1)
-        cellimg = np.repeat(cellimg, 3, axis=2)
-
         if feat == "image":
+            # convert to RGB
+            cellimg = cellimg.reshape(
+                cellimg.shape[0], cellimg.shape[1], 1)
+            cellimg = np.repeat(cellimg, 3, axis=2)
+
             # clip and convert to int
             cellimg = np.clip(cellimg, 0, 255)
             cellimg = np.require(cellimg, np.uint8, 'C')
 
-        cellimg = self.display_contour(ds, event, state, cellimg, imkw)
+        cellimg = self.display_contour(ds, event, state, cellimg, feat, imkw)
 
         return cellimg, imkw
 
     @staticmethod
-    def display_contour(ds, event, state, cellimg, imkw):
+    def display_contour(ds, event, state, cellimg, feat, imkw):
         # Only load contour data if there is an image column.
         # We don't know how big the images should be so we
         # might run into trouble displaying random contours.
@@ -304,10 +307,16 @@ class QuickView(QtWidgets.QWidget):
                 # set red contour pixel values in original image
                 red_pix = ((imkw["levels"][1] - imkw["levels"][0])
                            * 0.7) - np.abs(imkw["levels"][0])
-                cellimg[cont, 0] = int(
-                    red_pix) if imkw["levels"][1] == 255 else red_pix
-                cellimg[cont, 1] = int(imkw["levels"][0])
-                cellimg[cont, 2] = int(imkw["levels"][0])
+                if feat == "image":
+                    cellimg[cont, 0] = int(
+                        red_pix) if imkw["levels"][1] == 255 else red_pix
+                    cellimg[cont, 1] = int(imkw["levels"][0])
+                    cellimg[cont, 2] = int(imkw["levels"][0])
+                else:
+                    # just 2D images (not RGB)
+                    cellimg[cont] = int(
+                        red_pix) if imkw["levels"][1] == 255 else red_pix
+
             if state["event"]["image zoom"]:
                 xv, yv = np.where(mask)
                 idminx = xv.min() - 5
@@ -376,10 +385,13 @@ class QuickView(QtWidgets.QWidget):
                 if "qpi_pha" in ds:
                     cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
                     self.imageView_image_poly_pha.setImage(cellimg, **imkw)
+                    self.imageView_image_poly_pha.setColorMap(self.cmap_pha)
                     self.imageView_image_poly_pha.show()
                     if "qpi_amp" in ds:
                         cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
                         self.imageView_image_poly_amp.setImage(cellimg, **imkw)
+                        self.imageView_image_poly_amp.setColorMap(self.cmap_amp)
+                        # self.imageView_image_poly_amp.updateImage()
                         self.imageView_image_poly_amp.show()
                 elif "image" in ds:
                     cellimg, imkw = self.get_event_image(ds, event, "image")
@@ -653,10 +665,12 @@ class QuickView(QtWidgets.QWidget):
             if "qpi_pha" in ds:
                 cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
                 self.imageView_image_pha.setImage(cellimg, **imkw)
+                self.imageView_image_pha.setColorMap(self.cmap_pha)
                 self.imageView_image_pha.show()
                 if "qpi_amp" in ds:
                     cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
                     self.imageView_image_amp.setImage(cellimg, **imkw)
+                    self.imageView_image_amp.setColorMap(self.cmap_amp)
                     self.imageView_image_amp.show()
             elif "image" in ds:
                 cellimg, imkw = self.get_event_image(ds, event, "image")
