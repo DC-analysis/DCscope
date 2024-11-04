@@ -1099,6 +1099,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>FeatureComboBox</class>
+   <extends>QComboBox</extends>
+   <header>shapeout2.gui.widgets</header>
+  </customwidget>
+  <customwidget>
    <class>SimplePlotWidget</class>
    <extends>QGraphicsView</extends>
    <header>shapeout2.gui.widgets</header>
@@ -1117,11 +1122,6 @@
   <customwidget>
    <class>KeyValueTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>shapeout2.gui.widgets</header>
-  </customwidget>
-  <customwidget>
-   <class>FeatureComboBox</class>
-   <extends>QComboBox</extends>
    <header>shapeout2.gui.widgets</header>
   </customwidget>
  </customwidgets>

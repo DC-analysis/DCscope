@@ -219,7 +219,7 @@
      <x>0</x>
      <y>0</y>
      <width>1058</width>
-     <height>31</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -506,7 +506,8 @@
   </action>
   <action name="action_export_filter_ray_dataset">
    <property name="icon">
-    <iconset theme="filter_ray"/>
+    <iconset theme="filter_ray">
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>Individual filter ray for each dataset (*.sof)</string>

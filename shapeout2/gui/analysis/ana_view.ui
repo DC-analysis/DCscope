@@ -20,17 +20,19 @@
    <string>Analysis View</string>
   </property>
   <property name="windowIcon">
-   <iconset theme="tools-wizard"/>
+   <iconset theme="tools-wizard">
+    <normaloff>.</normaloff>.</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>3</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="tab_meta">
       <attribute name="icon">
-       <iconset theme="documentinfo"/>
+       <iconset theme="documentinfo">
+        <normaloff>.</normaloff>.</iconset>
       </attribute>
       <attribute name="title">
        <string>Meta</string>
@@ -65,7 +67,8 @@
      </widget>
      <widget class="QWidget" name="tab_slot">
       <attribute name="icon">
-       <iconset theme="office-chart-ring"/>
+       <iconset theme="office-chart-ring">
+        <normaloff>.</normaloff>.</iconset>
       </attribute>
       <attribute name="title">
        <string>Dataset</string>
@@ -90,7 +93,8 @@
      </widget>
      <widget class="QWidget" name="tab_filter">
       <attribute name="icon">
-       <iconset theme="view-filter"/>
+       <iconset theme="view-filter">
+        <normaloff>.</normaloff>.</iconset>
       </attribute>
       <attribute name="title">
        <string>Filter</string>
@@ -118,7 +122,8 @@
      </widget>
      <widget class="QWidget" name="tab_plot">
       <attribute name="icon">
-       <iconset theme="draw-watercolor"/>
+       <iconset theme="draw-watercolor">
+        <normaloff>.</normaloff>.</iconset>
       </attribute>
       <attribute name="title">
        <string>Plot</string>
