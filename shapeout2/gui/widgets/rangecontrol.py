@@ -21,7 +21,8 @@ class RangeControl(QtWidgets.QWidget):
     def __init__(self, parent, label="feature", checkbox=True, integer=False,
                  data=None, *args, **kwargs):
         super(RangeControl, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.widgets") / "rangecontrol.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.widgets") / "rangecontrol.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

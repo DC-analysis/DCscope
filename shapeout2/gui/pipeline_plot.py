@@ -413,10 +413,10 @@ def add_label(text, anchor_parent, text_halign="center", text_valign="center",
         css += "color:{};".format(color)
     html = "<span style='{}'>{}</span>".format(css, text)
     label = QtWidgets.QGraphicsTextItem(
-                        "",
-                        # This is kind of hackish: set the parent to the right
-                        # axis so that it is always drawn there.
-                        parent=anchor_parent)
+        "",
+        # This is kind of hackish: set the parent to the right
+        # axis so that it is always drawn there.
+        parent=anchor_parent)
     label.setHtml(html)
 
     # move label

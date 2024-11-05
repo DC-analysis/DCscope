@@ -13,7 +13,8 @@ from ..widgets import ShowWaitCursor
 class ComputeSignificance(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeSignificance, self).__init__(parent, *args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.compute") / "comp_lme4.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.compute") / "comp_lme4.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

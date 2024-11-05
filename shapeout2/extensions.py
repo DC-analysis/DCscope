@@ -188,7 +188,7 @@ class Extension:
                 pfinst = self.get_plugin_feature_instances()[0]
                 info = pfinst.plugin_feature_info
                 title = f"{info['description']} " \
-                        + f"({info['version']}-{info['identifier'][:4]})"
+                    + f"({info['version']}-{info['identifier'][:4]})"
         return title
 
     @property

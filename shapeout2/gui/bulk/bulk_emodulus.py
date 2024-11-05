@@ -16,7 +16,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(BulkActionEmodulus, self).__init__(parent=parent,
                                                  *args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.bulk") / "bulk_emodulus.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.bulk") / "bulk_emodulus.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

@@ -11,7 +11,8 @@ from ... import meta_tool
 class MetaPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(MetaPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_meta.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_meta.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

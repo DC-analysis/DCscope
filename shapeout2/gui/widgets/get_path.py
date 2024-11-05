@@ -8,7 +8,7 @@ def get_directory(
         identifier: str,
         caption: str = "Select directory",
         force_dialog: bool = True,
-        ):
+):
     """Retrieve the path for a given identifier
 
     When called for the first time, a directory dialog is opened and

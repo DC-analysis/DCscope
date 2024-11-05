@@ -9,7 +9,8 @@ class KeyValueTableWidget(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         """A table widgets with two columns for key-value visualization"""
         super(KeyValueTableWidget, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.widgets") / "key_value_table_widget.css"
+        ref = importlib.resources.files(
+            "shapeout2.gui.widgets") / "key_value_table_widget.css"
         with importlib.resources.as_file(ref) as path_css:
             stylesheet = pathlib.Path(path_css).read_text()
         self.setStyleSheet(stylesheet)

@@ -23,7 +23,8 @@ class SlotPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(SlotPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_slot.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_slot.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

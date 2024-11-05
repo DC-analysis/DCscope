@@ -50,6 +50,7 @@ if theme_path.exists():
 else:
     warnings.warn("ShapeOut theme path not available")
 
+
 class ShapeOut2(QtWidgets.QMainWindow):
     plots_changed = QtCore.pyqtSignal()
 
@@ -95,7 +96,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         store_path = pathlib.Path(
             QStandardPaths.writableLocation(
                 QStandardPaths.StandardLocation.AppDataLocation)
-            ) / "extensions"
+        ) / "extensions"
         try:
             self.extensions = ExtensionManager(store_path)
         except BaseException:
@@ -104,7 +105,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
                 "Extensions automatically disabled",
                 "Some extensions could not be loaded and were disabled:\n\n"
                 + traceback.format_exc(),
-                )
+            )
         # GUI
         self.setWindowTitle(f"Shape-Out {version}")
         # Disable native menu bar (e.g. on Mac)
@@ -544,7 +545,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             f"Author: Paul Müller<br>"
             f"GitHub: <a href='https://github.com/{gh}'>{gh}</a><br>"
             f"Documentation: <a href='https://{rtd}'>{rtd}</a><br>"
-            )
+        )
         QtWidgets.QMessageBox.about(self, f"Shape-Out {version}", about_text)
 
     @QtCore.pyqtSlot()

@@ -29,7 +29,7 @@ class ExtensionErrorWrapper:
                 f"It was not possible to load the extension {self.ehash}! "
                 + "You might have to install additional software:\n\n"
                 + traceback.format_exc(),
-                )
+            )
             return True  # do not raise the exception
 
 

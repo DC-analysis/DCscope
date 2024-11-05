@@ -8,7 +8,8 @@ class DlgSlotReorder(QtWidgets.QDialog):
 
     def __init__(self, pipeline, *args, **kwargs):
         super(DlgSlotReorder, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.analysis") / "dlg_slot_reorder.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "dlg_slot_reorder.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

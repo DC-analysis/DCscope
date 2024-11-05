@@ -20,11 +20,13 @@ class QuickView(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(QuickView, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.quick_view") / "qv_main.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.quick_view") / "qv_main.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 
-        ref = importlib.resources.files("shapeout2.gui.quick_view") / "qv_style.css"
+        ref = importlib.resources.files(
+            "shapeout2.gui.quick_view") / "qv_style.css"
         with importlib.resources.as_file(ref) as path_css:
             stylesheet = pathlib.Path(path_css).read_text()
         self.groupBox_image.setStyleSheet(stylesheet)
@@ -221,7 +223,7 @@ class QuickView(QtWidgets.QWidget):
             self.checkBox_image_contour.setChecked(event["image contour"])
             self.checkBox_image_zoom.setChecked(event["image zoom"])
             self.checkBox_image_background.setChecked(
-                    event["image background"])
+                event["image background"])
             self.spinBox_event.setValue(event["index"])
             self.checkBox_trace_raw.setChecked(event["trace raw"])
             self.checkBox_trace_legend.setChecked(event["trace legend"])

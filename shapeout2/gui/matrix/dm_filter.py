@@ -13,7 +13,8 @@ class MatrixFilter(QtWidgets.QWidget):
 
     def __init__(self, identifier=None, state=None, *args, **kwargs):
         super(MatrixFilter, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.matrix") / "dm_filter.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.matrix") / "dm_filter.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

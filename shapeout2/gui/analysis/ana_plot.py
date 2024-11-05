@@ -24,7 +24,8 @@ class PlotPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(PlotPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_plot.ui"
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_plot.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 

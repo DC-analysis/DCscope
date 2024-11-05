@@ -1,5 +1,4 @@
 def main(splash=True):
-    import os
     import importlib.resources
     import sys
 
