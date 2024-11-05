@@ -16,7 +16,7 @@ class DCORLoader(QtWidgets.QDialog):
 
     def __init__(self, parent, *args, **kwargs):
         """Search and load DCOR data"""
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
+        super(DCORLoader, self).__init__(parent=parent, *args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.dcor", "dcor.ui")
         uic.loadUi(path_ui, self)

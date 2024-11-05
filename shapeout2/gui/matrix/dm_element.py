@@ -8,8 +8,8 @@ class MatrixElement(QtWidgets.QWidget):
     quickview_selected = QtCore.pyqtSignal()
     element_changed = QtCore.pyqtSignal()
 
-    def __init__(self):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self, *args, **kwargs):
+        super(MatrixElement, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.matrix", "dm_element.ui")
         uic.loadUi(path_ui, self)

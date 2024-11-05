@@ -14,7 +14,7 @@ from ..._version import version
 
 class ExportData(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
+        super(ExportData, self).__init__(parent=parent, *args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.export", "e2data.ui")
         uic.loadUi(path_ui, self)

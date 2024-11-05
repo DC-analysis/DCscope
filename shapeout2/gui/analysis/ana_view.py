@@ -10,7 +10,7 @@ class AnalysisView(QtWidgets.QWidget):
     pipeline_changed = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+        super(AnalysisView, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.analysis", "ana_view.ui")
         uic.loadUi(path_ui, self)

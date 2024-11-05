@@ -10,8 +10,8 @@ class MatrixPlot(QtWidgets.QWidget):
     option_action = QtCore.pyqtSignal(str)
     modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, identifier=None, state=None):
-        QtWidgets.QWidget.__init__(self)
+    def __init__(self, identifier=None, state=None, *args, **kwargs):
+        super(MatrixPlot, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.matrix", "pm_plot.ui")
         uic.loadUi(path_ui, self)

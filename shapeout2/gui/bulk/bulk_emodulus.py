@@ -14,7 +14,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     pipeline_changed = QtCore.pyqtSignal(dict)
 
     def __init__(self, parent, pipeline, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
+        super(BulkActionEmodulus, self).__init__(parent=parent,
+                                                 *args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.bulk", "bulk_emodulus.ui")
         uic.loadUi(path_ui, self)

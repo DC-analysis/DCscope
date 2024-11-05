@@ -8,7 +8,7 @@ class Runner(QtCore.QThread):
     """Runs a function in the background"""
 
     def __init__(self, target, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self._target = target
         self._args = args
         self._kwargs = kwargs

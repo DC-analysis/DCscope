@@ -66,8 +66,8 @@ class Ui_Form(object):
 
 
 class Element(QtWidgets.QGroupBox):
-    def __init__(self, parent, main):
-        super(Element, self).__init__(parent)
+    def __init__(self, parent, main, *args, **kwargs):
+        super(Element, self).__init__(parent, *args, **kwargs)
         self.main = main
 
     def setStyleSheet(self, style):
@@ -92,8 +92,8 @@ class Element(QtWidgets.QGroupBox):
 
 
 class Head(Element):
-    def __init__(self, parent, main):
-        super(Head, self).__init__(parent, main)
+    def __init__(self, parent, main, *args, **kwargs):
+        super(Head, self).__init__(parent, main, *args, **kwargs)
 
     def drawText(self, event, qp):
         qp.setPen(self.textColor())
@@ -103,8 +103,8 @@ class Head(Element):
 
 
 class Tail(Element):
-    def __init__(self, parent, main):
-        super(Tail, self).__init__(parent, main)
+    def __init__(self, parent, main, *args, **kwargs):
+        super(Tail, self).__init__(parent, main, *args, **kwargs)
 
     def drawText(self, event, qp):
         qp.setPen(self.textColor())
@@ -114,8 +114,8 @@ class Tail(Element):
 
 
 class Handle(Element):
-    def __init__(self, parent, main):
-        super(Handle, self).__init__(parent, main)
+    def __init__(self, parent, main, *args, **kwargs):
+        super(Handle, self).__init__(parent, main, *args, **kwargs)
 
     def drawText(self, event, qp):
         qp.setPen(self.textColor())
@@ -137,8 +137,8 @@ class QRangeSlider(QtWidgets.QWidget, Ui_Form):
     _SPLIT_START = 1
     _SPLIT_END = 2
 
-    def __init__(self, parent=None):
-        super(QRangeSlider, self).__init__(parent)
+    def __init__(self, parent=None, *args, **kwargs):
+        super(QRangeSlider, self).__init__(parent, *args, **kwargs)
         self.setupUi(self)
         self.setFixedHeight(21)
         self.setMouseTracking(False)

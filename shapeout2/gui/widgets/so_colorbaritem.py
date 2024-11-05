@@ -2,7 +2,7 @@ import pyqtgraph as pg
 
 
 class ShapeOutColorBarItem(pg.ColorBarItem):
-    def __init__(self, yoffset, height, label, colorMap, **kwargs):
+    def __init__(self, yoffset, height, label, colorMap, *args, **kwargs):
         """pg.ColorBarItem modified for Shape-Out
 
         - Added option to define height
@@ -18,7 +18,7 @@ class ShapeOutColorBarItem(pg.ColorBarItem):
             # meant to stay hidden indefinitely. Maybe in July 2022, when
             # pyqtgraph drops the "cmap" argument, it will just work...
             cmap=colorMap,
-            **kwargs)
+            *args, **kwargs)
 
         # show label on right side
         self.axis.setLabel(label)

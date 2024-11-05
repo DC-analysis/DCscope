@@ -10,7 +10,7 @@ from ... import meta_tool
 
 class MetaPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+        super(MetaPanel, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.analysis", "ana_meta.ui")
         uic.loadUi(path_ui, self)

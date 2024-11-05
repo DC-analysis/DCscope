@@ -57,7 +57,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
-        QtWidgets.QMainWindow.__init__(self)
+        super(ShapeOut2, self).__init__()
         path_ui = pkg_resources.resource_filename("shapeout2.gui", "main.ui")
         uic.loadUi(path_ui, self)
         # update check
@@ -188,7 +188,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             self.on_quickview_refresh)  # might be an active filter (#26)
         self.widget_quick_view.polygon_filter_modified.connect(
             self.plots_changed)  # might be an active filter (#26)
-        # This is important, because if meta data such as emodulus recipe
+        # This is important, because if metadata such as emodulus recipe
         # is changed, the QuickView must be updated as well.
         self.plots_changed.connect(self.widget_quick_view.plot)
         # plot signals
@@ -426,6 +426,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         self.block_matrix.update()
         return slot_ids
 
+    @QtCore.pyqtSlot()
     def add_filter(self):
         """Add a filter using tool buttons"""
         filt_id = self.pipeline.add_filter()
@@ -435,6 +436,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         self.block_matrix.update()
         return filt_id
 
+    @QtCore.pyqtSlot()
     def add_plot(self):
         plot_id = self.pipeline.add_plot()
         self.block_matrix.add_plot(identifier=plot_id)
@@ -445,6 +447,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         self.block_matrix.update()
         return plot_id
 
+    @QtCore.pyqtSlot()
     def add_plot_window(self, plot_id):
         """Create a plot window if necessary and show it"""
         if plot_id in self.subwindows_plots:
@@ -503,23 +506,24 @@ class ShapeOut2(QtWidgets.QMainWindow):
 
     def init_analysis_view(self):
         sub = widgets.MDISubWindowWOButtons(self)
-        self.widget_ana_view = analysis.AnalysisView()
-        self.subwindows["analysis_view"] = sub
+        self.widget_ana_view = analysis.AnalysisView(parent=self)
         sub.setWidget(self.widget_ana_view)
-        sub.hide()
-        self.mdiArea.addSubWindow(sub)
+        self.subwindows["analysis_view"] = sub
+        # signals
         self.toolButton_ana_view.clicked.connect(sub.setVisible)
         # applying a new filter triggers updating QuickView
         self.widget_ana_view.widget_filter.pushButton_apply.clicked.connect(
             self.on_quickview_refresh)
+        sub.hide()
+        self.mdiArea.addSubWindow(sub)
 
     def init_quick_view(self):
         sub = widgets.MDISubWindowWOButtons(self)
-        self.widget_quick_view = quick_view.QuickView()
+        self.widget_quick_view = quick_view.QuickView(parent=self)
         sub.setWidget(self.widget_quick_view)
-        self.toolButton_quick_view.clicked.connect(self.on_quickview)
         self.subwindows["quick_view"] = sub
         # signals
+        self.toolButton_quick_view.clicked.connect(self.on_quickview)
         self.block_matrix.quickviewed.connect(self.on_quickview_show_dataset)
         sub.hide()
         self.mdiArea.addSubWindow(sub)
@@ -980,6 +984,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         else:
             self.toolButton_dm.setChecked(True)
 
+    @QtCore.pyqtSlot()
     def reload_pipeline(self):
         """Convenience function for reloading the current pipeline"""
         self.adopt_pipeline(self.pipeline.__getstate__())
@@ -1009,6 +1014,7 @@ def excepthook(etype, value, trace):
         'Copy text && Close'), QtWidgets.QMessageBox.ButtonRole.NoRole)
     errorbox.setText(exception)
     ret = errorbox.exec()
+    print(exception)
     if ret == 1:
         cb = QtWidgets.QApplication.clipboard()
         cb.clear(mode=cb.Mode.Clipboard)

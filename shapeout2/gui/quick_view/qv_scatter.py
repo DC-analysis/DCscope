@@ -217,8 +217,8 @@ class QuickViewViewBox(SimpleViewBox):
     add_poly_vertex = QtCore.pyqtSignal(QtCore.QPointF)
     update_hover_pos = QtCore.pyqtSignal(QtCore.QPointF)
 
-    def __init__(self, *args, **kwds):
-        super(QuickViewViewBox, self).__init__(*args, **kwds)
+    def __init__(self, *args, **kwargs):
+        super(QuickViewViewBox, self).__init__(*args, **kwargs)
         self.mode = "scatter"
 
         #: allowed right-click menu options with new name

@@ -22,7 +22,7 @@ class SlotPanel(QtWidgets.QWidget):
     pipeline_changed = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+        super(SlotPanel, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.analysis", "ana_slot.ui")
         uic.loadUi(path_ui, self)

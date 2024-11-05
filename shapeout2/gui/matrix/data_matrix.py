@@ -16,8 +16,8 @@ class DataMatrix(QtWidgets.QWidget):
     filter_modify_clicked = QtCore.pyqtSignal(str)
     slot_modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        super(DataMatrix, self).__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super(DataMatrix, self).__init__(*args, **kwargs)
 
         self.glo = None
         self._reset_layout()

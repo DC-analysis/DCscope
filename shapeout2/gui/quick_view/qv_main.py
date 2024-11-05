@@ -19,7 +19,7 @@ class QuickView(QtWidgets.QWidget):
     polygon_filter_about_to_be_deleted = QtCore.pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+        super(QuickView, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.quick_view", "qv_main.ui")
         uic.loadUi(path_ui, self)

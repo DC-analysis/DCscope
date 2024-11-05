@@ -11,7 +11,7 @@ from ...util import get_valid_filename
 
 class ExportFilter(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, file_format, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
+        super(ExportFilter, self).__init__(parent=parent, *args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.export", "e2filter.ui")
         uic.loadUi(path_ui, self)

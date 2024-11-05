@@ -71,8 +71,8 @@ class SimplePlotWidget(pg.PlotWidget):
     - those of SimplePlotItem
     """
 
-    def __init__(self, parent=None, background='w', **kargs):
-        plot_item = SimplePlotItem(**kargs)
+    def __init__(self, parent=None, background='w', **item_kwargs):
+        plot_item = SimplePlotItem(**item_kwargs)
         super(SimplePlotWidget, self).__init__(parent,
                                                background=background,
                                                plotItem=plot_item)

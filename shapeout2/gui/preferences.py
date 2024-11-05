@@ -39,7 +39,7 @@ class Preferences(QtWidgets.QDialog):
     feature_changed = QtCore.pyqtSignal()
 
     def __init__(self, parent, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent=parent, *args, **kwargs)
+        super(Preferences, self).__init__(parent=parent, *args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui", "preferences.ui")
         uic.loadUi(path_ui, self)

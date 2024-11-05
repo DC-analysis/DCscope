@@ -12,8 +12,8 @@ class PlotMatrix(QtWidgets.QWidget):
     plot_modify_clicked = QtCore.pyqtSignal(str)
     matrix_changed = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
-        super(PlotMatrix, self).__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super(PlotMatrix, self).__init__(*args, **kwargs)
 
         self.glo = None
         self._reset_layout(init=True)

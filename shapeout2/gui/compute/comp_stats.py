@@ -17,7 +17,7 @@ STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
 
 class ComputeStatistics(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
+        super(ComputeStatistics, self).__init__(parent=parent, *args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.compute", "comp_stats.ui")
         uic.loadUi(path_ui, self)
