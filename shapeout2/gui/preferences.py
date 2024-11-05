@@ -309,9 +309,9 @@ class Preferences(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_lme4_search_r(self):
         if platform.system() == "Windows":
-            filters = "Executable (*.exe)"
+            filters = "R executable (R.exe)"
         else:
-            filters = ""
+            filters = "R executable (R)"
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Executable", ".", filters)
         if path:
