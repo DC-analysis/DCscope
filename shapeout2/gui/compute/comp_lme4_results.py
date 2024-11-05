@@ -1,5 +1,5 @@
 import pathlib
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
@@ -9,9 +9,9 @@ from PyQt6 import uic, QtCore, QtGui, QtWidgets
 class Rlme4ResultsDialog(QtWidgets.QDialog):
     def __init__(self, parent, rlme4_results, *args, **kwargs):
         super(Rlme4ResultsDialog, self).__init__(parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_lme4_results.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.compute") / "comp_lme4_results.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         res = rlme4_results
 

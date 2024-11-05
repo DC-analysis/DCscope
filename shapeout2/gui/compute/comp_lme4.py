@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 import webbrowser
 
 from dclab import lme4
@@ -13,9 +13,9 @@ from ..widgets import ShowWaitCursor
 class ComputeSignificance(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeSignificance, self).__init__(parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_lme4.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.compute") / "comp_lme4.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # set pipeline
         self.pipeline = pipeline

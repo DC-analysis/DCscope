@@ -1,9 +1,9 @@
-import os.path as os_path
 import pathlib
-import pkg_resources
+import importlib.resources
 import signal
 import sys
 import traceback
+import warnings
 import webbrowser
 
 import dclab
@@ -41,11 +41,14 @@ pg.setConfigOption("antialias", True)
 pg.setConfigOption("imageAxisOrder", "row-major")
 
 # set Qt icon theme search path
-QtGui.QIcon.setThemeSearchPaths([
-    os_path.join(pkg_resources.resource_filename("shapeout2", "img"),
-                 "icon-theme")])
-QtGui.QIcon.setThemeName(".")
-
+ref = importlib.resources.files("shapeout2.img") / "icon.png"
+with importlib.resources.as_file(ref) as icon_path:
+    theme_path = icon_path.with_name("icon-theme")
+if theme_path.exists():
+    QtGui.QIcon.setThemeSearchPaths([str(theme_path)])
+    QtGui.QIcon.setThemeName(".")
+else:
+    warnings.warn("ShapeOut theme path not available")
 
 class ShapeOut2(QtWidgets.QMainWindow):
     plots_changed = QtCore.pyqtSignal()
@@ -58,8 +61,10 @@ class ShapeOut2(QtWidgets.QMainWindow):
         and exit.
         """
         super(ShapeOut2, self).__init__()
-        path_ui = pkg_resources.resource_filename("shapeout2.gui", "main.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui") / "main.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # update check
         self._update_thread = None
         self._update_worker = None
@@ -87,9 +92,10 @@ class ShapeOut2(QtWidgets.QMainWindow):
         #: Analysis pipeline
         self.pipeline = pipeline.Pipeline()
         #: Extensions
-        store_path = os_path.join(
+        store_path = pathlib.Path(
             QStandardPaths.writableLocation(
-                QStandardPaths.StandardLocation.AppDataLocation), "extensions")
+                QStandardPaths.StandardLocation.AppDataLocation)
+            ) / "extensions"
         try:
             self.extensions = ExtensionManager(store_path)
         except BaseException:

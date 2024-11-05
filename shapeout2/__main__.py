@@ -1,6 +1,6 @@
 def main(splash=True):
     import os
-    import pkg_resources
+    import importlib.resources
     import sys
 
     from PyQt6.QtWidgets import QApplication
@@ -9,13 +9,13 @@ def main(splash=True):
     import pyqtgraph  # noqa: F401
 
     app = QApplication(sys.argv)
-    imdir = pkg_resources.resource_filename("shapeout2", "img")
 
     if splash:
         from PyQt6.QtWidgets import QSplashScreen
         from PyQt6.QtGui import QPixmap
-        splash_path = os.path.join(imdir, "splash.png")
-        splash_pix = QPixmap(splash_path)
+        ref = importlib.resources.files("shapeout2.img") / "splash.png"
+        with importlib.resources.as_file(ref) as splash_path:
+            splash_pix = QPixmap(str(splash_path))
         splash = QSplashScreen(splash_pix)
         splash.setMask(splash_pix.mask())
         splash.show()
@@ -26,8 +26,9 @@ def main(splash=True):
     from .gui import ShapeOut2
 
     # Set Application Icon
-    icon_path = os.path.join(imdir, "icon.png")
-    app.setWindowIcon(QtGui.QIcon(icon_path))
+    ref = importlib.resources.files("shapeout2.img") / "icon.png"
+    with importlib.resources.as_file(ref) as icon_path:
+        app.setWindowIcon(QtGui.QIcon(str(icon_path)))
 
     # Use dots as decimal separators
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.Language.C))

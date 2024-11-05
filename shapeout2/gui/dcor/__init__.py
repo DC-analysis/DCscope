@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 import traceback as tb
 import urllib.parse
 import webbrowser
@@ -17,9 +17,9 @@ class DCORLoader(QtWidgets.QDialog):
     def __init__(self, parent, *args, **kwargs):
         """Search and load DCOR data"""
         super(DCORLoader, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.dcor", "dcor.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.dcor") / "dcor.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.main_ui = parent
         self.search_results = []

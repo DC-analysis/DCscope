@@ -1,5 +1,5 @@
 import pathlib
-import pkg_resources
+import importlib.resources
 
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
@@ -9,9 +9,9 @@ class KeyValueTableWidget(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
         """A table widgets with two columns for key-value visualization"""
         super(KeyValueTableWidget, self).__init__(*args, **kwargs)
-        path_css = pkg_resources.resource_filename(
-            "shapeout2.gui.widgets", "key_value_table_widget.css")
-        stylesheet = pathlib.Path(path_css).read_text()
+        ref = importlib.resources.files("shapeout2.gui.widgets") / "key_value_table_widget.css"
+        with importlib.resources.as_file(ref) as path_css:
+            stylesheet = pathlib.Path(path_css).read_text()
         self.setStyleSheet(stylesheet)
         self.horizontalHeader().hide()
         self.verticalHeader().hide()

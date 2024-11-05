@@ -1,5 +1,5 @@
 import copy
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
@@ -29,9 +29,9 @@ class FilterPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(FilterPanel, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_filter.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_filter.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
         # current Shape-Out 2 pipeline
         self._pipeline = None
         self.setUpdatesEnabled(False)

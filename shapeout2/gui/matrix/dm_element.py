@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtWidgets, QtCore
 
@@ -10,9 +10,9 @@ class MatrixElement(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(MatrixElement, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.matrix", "dm_element.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.matrix") / "dm_element.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.active = False
         self.enabled = True

@@ -1,5 +1,5 @@
 import numbers
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
@@ -11,9 +11,9 @@ from ... import meta_tool
 class MetaPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(MetaPanel, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_meta.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_meta.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.comboBox_slots.currentIndexChanged.connect(self.update_content)
         self.pipeline_state = None

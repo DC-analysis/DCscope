@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
@@ -8,9 +8,9 @@ class BulkList(QtWidgets.QWidget):
     def __init__(self, parent, title=None, items=None, *args, **kwargs):
         """A checkable list with bulk (de-)selection button"""
         super(BulkList, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.widgets", "bulk_list.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.widgets") / "bulk_list.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         if title is not None:
             self.set_title(title)

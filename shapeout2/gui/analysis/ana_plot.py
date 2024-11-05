@@ -1,5 +1,5 @@
 import copy
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
@@ -24,9 +24,9 @@ class PlotPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(PlotPanel, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_plot.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_plot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # current Shape-Out 2 pipeline
         self._pipeline = None

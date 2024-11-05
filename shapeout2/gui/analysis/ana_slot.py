@@ -1,5 +1,5 @@
 import copy
-import pkg_resources
+import importlib.resources
 import warnings
 
 import dclab
@@ -23,9 +23,10 @@ class SlotPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(SlotPanel, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_slot.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.analysis") / "ana_slot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # current Shape-Out 2 pipeline
         self._pipeline = None
         # signals

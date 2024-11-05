@@ -1,5 +1,6 @@
 2.19.0
- - ref: migrate from pyqt5 to pyqt6
+ - ref: migrate from pyqt5 to pyqt6 (#165)
+ - ref: migrate from pkg_resources to importlib.resources (#155)
 2.18.2
  - enh: enable lut selection to plot isoelasticity lines (#71)
  - enh: replace findText with findData of comboBox_visc_model

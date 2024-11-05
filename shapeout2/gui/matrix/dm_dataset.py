@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtWidgets, QtCore, QtGui
 
@@ -19,9 +19,9 @@ class MatrixDataset(QtWidgets.QWidget):
         Dataslot state
         """
         super(MatrixDataset, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.matrix", "dm_dataset.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.matrix") / "dm_dataset.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # options button
         menu = QtWidgets.QMenu()

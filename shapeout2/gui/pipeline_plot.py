@@ -1,6 +1,6 @@
 import copy
 import html
-import pkg_resources
+import importlib.resources
 import warnings
 
 import dclab
@@ -47,9 +47,10 @@ class PipelinePlot(QtWidgets.QWidget):
 
     def __init__(self, parent, pipeline, plot_id, *args, **kwargs):
         super(PipelinePlot, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui", "pipeline_plot.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui") / "pipeline_plot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # used to avoid unnecessary plotting
         self._plot_data_hash = "unset"
 

@@ -1,5 +1,5 @@
 import pathlib
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 import pyqtgraph.exporters as pge
@@ -19,9 +19,10 @@ EXPORTERS = {
 class ExportPlot(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ExportPlot, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.export", "e2plot.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.export") / "e2plot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # set pipeline
         self.pipeline = pipeline
         # populate combobox plots

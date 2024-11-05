@@ -1,6 +1,6 @@
 import collections
 import pathlib
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
@@ -20,12 +20,13 @@ class QuickView(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(QuickView, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.quick_view", "qv_main.ui")
-        uic.loadUi(path_ui, self)
-        path_css = pkg_resources.resource_filename(
-            "shapeout2.gui.quick_view", "qv_style.css")
-        stylesheet = pathlib.Path(path_css).read_text()
+        ref = importlib.resources.files("shapeout2.gui.quick_view") / "qv_main.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
+        ref = importlib.resources.files("shapeout2.gui.quick_view") / "qv_style.css"
+        with importlib.resources.as_file(ref) as path_css:
+            stylesheet = pathlib.Path(path_css).read_text()
         self.groupBox_image.setStyleSheet(stylesheet)
         self.groupBox_trace.setStyleSheet(stylesheet)
 

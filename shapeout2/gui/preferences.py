@@ -2,7 +2,7 @@ import os.path as os_path
 import pathlib
 import traceback
 
-import pkg_resources
+import importlib.resources
 import platform
 
 from dclab.rtdc_dataset.fmt_dcor import access_token
@@ -40,9 +40,9 @@ class Preferences(QtWidgets.QDialog):
 
     def __init__(self, parent, *args, **kwargs):
         super(Preferences, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui", "preferences.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui") / "preferences.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
         self.settings = QtCore.QSettings()
         self.parent = parent
 

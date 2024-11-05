@@ -1,7 +1,7 @@
 import codecs
 import numbers
 import pathlib
-import pkg_resources
+import importlib.resources
 import time
 
 import dclab
@@ -18,9 +18,10 @@ STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
 class ComputeStatistics(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeStatistics, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_stats.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.compute") / "comp_stats.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # for external statistics
         self.path = None
         # set pipeline

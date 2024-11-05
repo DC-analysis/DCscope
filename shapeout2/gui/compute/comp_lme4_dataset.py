@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtGui, QtWidgets
 
@@ -8,9 +8,9 @@ from ... import meta_tool
 class LME4Dataset(QtWidgets.QDialog):
     def __init__(self, parent, slot, *args, **kwargs):
         super(LME4Dataset, self).__init__(parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_lme4_dataset.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.compute") / "comp_lme4_dataset.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.identifier = slot.identifier
 

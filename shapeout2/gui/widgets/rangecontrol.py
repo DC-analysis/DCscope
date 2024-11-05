@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 import numpy as np
 from PyQt6 import uic, QtCore, QtWidgets
@@ -21,9 +21,9 @@ class RangeControl(QtWidgets.QWidget):
     def __init__(self, parent, label="feature", checkbox=True, integer=False,
                  data=None, *args, **kwargs):
         super(RangeControl, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.widgets", "rangecontrol.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.widgets") / "rangecontrol.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         for spinbox in (self.doubleSpinBox_min, self.doubleSpinBox_max):
             spinbox.setOpts(

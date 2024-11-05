@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
@@ -12,9 +12,9 @@ class MatrixPlot(QtWidgets.QWidget):
 
     def __init__(self, identifier=None, state=None, *args, **kwargs):
         super(MatrixPlot, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.matrix", "pm_plot.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.matrix") / "pm_plot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # options button
         menu = QtWidgets.QMenu()

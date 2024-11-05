@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 import dclab
 from dclab.features.emodulus.viscosity import KNOWN_MEDIA, SAME_MEDIA
@@ -16,9 +16,10 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(BulkActionEmodulus, self).__init__(parent=parent,
                                                  *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.bulk", "bulk_emodulus.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.bulk") / "bulk_emodulus.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # main
         self.parent = self.parent
 

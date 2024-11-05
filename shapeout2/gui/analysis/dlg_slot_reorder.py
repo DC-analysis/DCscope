@@ -1,4 +1,4 @@
-import pkg_resources
+import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
@@ -8,9 +8,9 @@ class DlgSlotReorder(QtWidgets.QDialog):
 
     def __init__(self, pipeline, *args, **kwargs):
         super(DlgSlotReorder, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "dlg_slot_reorder.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui.analysis") / "dlg_slot_reorder.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.pipeline = pipeline
         for ii, slot in enumerate(pipeline.slots):
