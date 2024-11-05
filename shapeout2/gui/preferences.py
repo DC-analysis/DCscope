@@ -48,7 +48,7 @@ class Preferences(QtWidgets.QDialog):
 
         # Get default R path
         if rsetup.has_r():
-            rdefault = rsetup.get_r_path()
+            rdefault = str(rsetup.get_r_path())
         else:
             rdefault = ""
 
@@ -68,6 +68,7 @@ class Preferences(QtWidgets.QDialog):
                 QStandardPaths.StandardLocation.AppDataLocation), "extensions")
         self.extensions = ExtensionManager(store_path)
 
+        self.tabWidget.setCurrentIndex(0)
         self.reload()
 
         # signals
@@ -100,6 +101,7 @@ class Preferences(QtWidgets.QDialog):
         """Read configuration or set default parameters"""
         for key, widget, default in self.config_pairs:
             value = self.settings.value(key, default)
+            value = value or default
             if isinstance(widget, QtWidgets.QCheckBox):
                 widget.setChecked(bool(int(value)))
             elif isinstance(widget, QtWidgets.QLineEdit):
