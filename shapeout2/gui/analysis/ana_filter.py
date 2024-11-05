@@ -28,7 +28,7 @@ class FilterPanel(QtWidgets.QWidget):
     request_new_polygon_filter = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
+        super(FilterPanel, self).__init__(*args, **kwargs)
         path_ui = pkg_resources.resource_filename(
             "shapeout2.gui.analysis", "ana_filter.ui")
         uic.loadUi(path_ui, self)
@@ -44,6 +44,7 @@ class FilterPanel(QtWidgets.QWidget):
         self.toolButton_remove.clicked.connect(self.on_remove_filter)
         self.pushButton_apply.clicked.connect(self.write_filter)
         self.pushButton_reset.clicked.connect(self.update_content)
+
         self.comboBox_filters.currentIndexChanged.connect(self.update_content)
         self.toolButton_moreless.clicked.connect(self.on_moreless)
         self.label_box_edit.setVisible(False)
@@ -128,7 +129,7 @@ class FilterPanel(QtWidgets.QWidget):
                 # Insert the control at the correct position (label-sorted)
                 rcf = list(self._box_range_controls.keys())
                 rcl = [dclab.dfn.get_feature_label(ft) for ft in rcf]
-                index = sorted(rcl + [lab]).index(lab) + 1  # +1 b/c new list
+                index = sorted(rcl + [lab]).index(lab)
                 self.verticalLayout_box.insertWidget(index, rc)
                 self._box_range_controls[feat] = rc
 
