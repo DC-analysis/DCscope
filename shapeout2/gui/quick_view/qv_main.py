@@ -134,16 +134,24 @@ class QuickView(QtWidgets.QWidget):
                          )
 
         self.img_info = {
-            "image": {"view_event": self.imageView_image,
-                      "view_poly": self.imageView_image_poly,
-                      "cmap": pg.colormap.get('CET-L1')},
-            "qpi_pha": {"view_event": self.imageView_image_pha,
-                        "view_poly": self.imageView_image_poly_pha,
-                        "cmap": pg.colormap.get('CET-D1A')},
+            "image": {
+                "view_event": self.imageView_image,
+                "view_poly": self.imageView_image_poly,
+                "cmap": pg.colormap.get('CET-L1'),
+                "kwargs": dict(autoLevels=False, levels=(0, 255), )
+            },
+            "qpi_pha": {
+                "view_event": self.imageView_image_pha,
+                "view_poly": self.imageView_image_poly_pha,
+                "cmap": pg.colormap.get('CET-D1A'),
+                "kwargs": dict(autoLevels=False, levels=(-3, 3), )
+            },
             "qpi_amp": {
                 "view_event": self.imageView_image_amp,
                 "view_poly": self.imageView_image_poly_amp,
-                "cmap": pg.colormap.get('CET-L1')},
+                "cmap": pg.colormap.get('CET-L1'),
+                "kwargs": dict(autoLevels=False, levels=(0, 2), )
+            },
         }
 
         # set initial empty dataset
@@ -265,7 +273,6 @@ class QuickView(QtWidgets.QWidget):
 
     def get_event_image(self, ds, event, feat):
         state = self.__getstate__()
-        imkw = self.imkw.copy()
         cellimg = ds[feat][event]
 
         if feat == "image":
@@ -279,16 +286,7 @@ class QuickView(QtWidgets.QWidget):
             if state["event"]["image auto contrast"]:
                 vmin, vmax = cellimg.min(), cellimg.max()
                 cellimg = (cellimg - vmin) / (vmax - vmin) * 255
-        elif "qpi" in feat:
-            if "qpi_pha" in feat:
-                imkw["levels"] = (-3, 3)
-            elif "qpi_amp" in feat:
-                imkw["levels"] = (0, 2)
-        else:
-            raise ValueError(f"Options for `feat` are 'image', "
-                             f"'qpi_pha' and 'qpi_amp', got {feat}")
 
-        if feat == "image":
             # convert to RGB
             cellimg = cellimg.reshape(
                 cellimg.shape[0], cellimg.shape[1], 1)
@@ -298,15 +296,15 @@ class QuickView(QtWidgets.QWidget):
             cellimg = np.clip(cellimg, 0, 255)
             cellimg = np.require(cellimg, np.uint8, 'C')
 
-        cellimg = self.display_contour(ds, event, state, cellimg, feat, imkw)
+        cellimg = self.display_contour(ds, event, state, cellimg, feat)
 
-        return cellimg, imkw
+        return cellimg
 
-    @staticmethod
-    def display_contour(ds, event, state, cellimg, feat, imkw):
+    def display_contour(self, ds, event, state, cellimg, feat):
         # Only load contour data if there is an image column.
         # We don't know how big the images should be so we
         # might run into trouble displaying random contours.
+        imkw = self.img_info[feat]["kwargs"]
         if "mask" in ds and len(ds["mask"]) > event:
             mask = ds["mask"][event]
             if state["event"]["image contour"]:
@@ -375,8 +373,9 @@ class QuickView(QtWidgets.QWidget):
             ds_idx = np.where(plotted)[0][point.index()]
             self.show_event(ds_idx)
 
-    def display_img(self, feat, view, cellimg, **imkw):
-        self.img_info[feat][view].setImage(cellimg, **imkw)
+    def display_img(self, feat, view, cellimg):
+        self.img_info[feat][view].setImage(cellimg,
+                                           **self.img_info[feat]["kwargs"])
         self.img_info[feat][view].setColorMap(self.img_info[feat]["cmap"])
         self.img_info[feat][view].show()
 
@@ -398,20 +397,19 @@ class QuickView(QtWidgets.QWidget):
             try:
                 # if we have qpi data, image might be a different shape
                 if "qpi_pha" in ds:
-                    cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
-                    self.display_img("qpi_pha", view, cellimg, **imkw)
+                    cellimg = self.get_event_image(ds, event, "qpi_pha")
+                    self.display_img("qpi_pha", view, cellimg)
                     if "qpi_amp" in ds:
-                        cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
-                        self.display_img("qpi_amp", view, cellimg, **imkw)
+                        cellimg = self.get_event_image(ds, event, "qpi_amp")
+                        self.display_img("qpi_amp", view, cellimg)
                 elif "image" in ds:
-                    cellimg, imkw = self.get_event_image(ds, event, "image")
-                    self.display_img("image", view, cellimg, **imkw)
+                    cellimg = self.get_event_image(ds, event, "image")
+                    self.display_img("image", view, cellimg)
 
             except IndexError:
                 # the plot got updated, and we still have the old data
-                cellimg, imkw = self.get_event_image(self.rtdc_ds, 0, "image")
-                self.imageView_image_poly.setImage(cellimg, **imkw)
-                self.display_img("image", view, cellimg, **imkw)
+                cellimg = self.get_event_image(self.rtdc_ds, 0, "image")
+                self.display_img("image", view, cellimg)
 
     def on_event_scatter_spin(self, event):
         """Sping control for event selection changed"""
@@ -673,14 +671,14 @@ class QuickView(QtWidgets.QWidget):
 
             # if we have qpi data, image might be a different shape
             if "qpi_pha" in ds:
-                cellimg, imkw = self.get_event_image(ds, event, "qpi_pha")
-                self.display_img("qpi_pha", view, cellimg, **imkw)
+                cellimg = self.get_event_image(ds, event, "qpi_pha")
+                self.display_img("qpi_pha", view, cellimg)
                 if "qpi_amp" in ds:
-                    cellimg, imkw = self.get_event_image(ds, event, "qpi_amp")
-                    self.display_img("qpi_amp", view, cellimg, **imkw)
+                    cellimg = self.get_event_image(ds, event, "qpi_amp")
+                    self.display_img("qpi_amp", view, cellimg)
             elif "image" in ds:
-                cellimg, imkw = self.get_event_image(ds, event, "image")
-                self.display_img("image", view, cellimg, **imkw)
+                cellimg = self.get_event_image(ds, event, "image")
+                self.display_img("image", view, cellimg)
 
             self.groupBox_image.show()
 
