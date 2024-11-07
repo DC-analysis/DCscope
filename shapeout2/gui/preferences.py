@@ -60,6 +60,9 @@ class Preferences(QtWidgets.QDialog):
             ["dcor/servers", self.dcor_servers, ["dcor.mpl.mpg.de"]],
             ["dcor/use ssl", self.dcor_use_ssl, "1"],
             ["lme4/r path", self.lme4_rpath, rdefault],
+            ["s3/endpoint url", self.lineEdit_s3_endpoint_url, ""],
+            ["s3/access key id", self.lineEdit_s3_access_key_id, ""],
+            ["s3/secret access key", self.lineEdit_s3_secret_access_key, ""],
         ]
 
         # extensions

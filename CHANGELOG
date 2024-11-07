@@ -1,9 +1,11 @@
 2.19.0
+ - feat: support accessing private S3 basins (#174)
  - fix: only allow user to choose "R.exe" in R binary manual search (#173)
  - enh: correctly show system R binary in settings
  - ref: migrate from pyqt5 to pyqt6 (#165)
  - ref: migrate from pkg_resources to importlib.resources (#155)
  - setup: support Python 3.12
+ - setup: new dependency "boto3" via "dclab[s3]""
 2.18.2
  - enh: enable lut selection to plot isoelasticity lines (#71)
  - enh: replace findText with findData of comboBox_visc_model

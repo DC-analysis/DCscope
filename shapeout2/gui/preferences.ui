@@ -89,7 +89,7 @@
             <string/>
            </property>
            <property name="echoMode">
-            <enum>QLineEdit::Normal</enum>
+            <enum>QLineEdit::Password</enum>
            </property>
            <property name="placeholderText">
             <string>optional (to access private data)</string>
@@ -141,6 +141,100 @@
           <size>
            <width>20</width>
            <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>S3 basins</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <item>
+        <widget class="QLabel" name="label_10">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>If you are working with DC datasets that have basins in an S3 object store, you can specify the corresponding access credentials here. Please restart Shape-Out for the settings to take effect.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QFormLayout" name="formLayout_3">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_7">
+           <property name="text">
+            <string>Endpoint URL</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEdit_s3_endpoint_url">
+           <property name="toolTip">
+            <string>This is the endpoint URL that boto3 will attempt to connect to</string>
+           </property>
+           <property name="placeholderText">
+            <string>e.g. https://objectstore.hpccloud.mpcdf.mpg.de</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Access Key ID</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEdit_s3_access_key_id">
+           <property name="toolTip">
+            <string>This is the access key for accessing .rtdc resources on S3</string>
+           </property>
+           <property name="placeholderText">
+            <string>e.g. 1ad3afa49c7241bac142ed4108343ea</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_9">
+           <property name="text">
+            <string>Secret Acces Key</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="lineEdit_s3_secret_access_key">
+           <property name="toolTip">
+            <string>This is the secret access key matching the Access Key ID</string>
+           </property>
+           <property name="echoMode">
+            <enum>QLineEdit::Password</enum>
+           </property>
+           <property name="placeholderText">
+            <string>e.g. a3a4862a92643be730c946d267015e20</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>281</height>
           </size>
          </property>
         </spacer>

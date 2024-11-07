@@ -77,6 +77,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationDomain("zellmechanik.com")
         QtCore.QCoreApplication.setApplicationName("shapeout2")
         QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
+
         #: Shape-Out settings
         self.settings = QtCore.QSettings()
         # Register custom DCOR CA bundle directory with dclab
@@ -90,6 +91,18 @@ class ShapeOut2(QtWidgets.QMainWindow):
         # open a session with private data.
         api_key = self.settings.value("dcor/api key", "")
         dclab.rtdc_dataset.fmt_dcor.api.APIHandler.add_api_key(api_key)
+        # Register S3 access settings in dclab
+        s3_endpoint_url = self.settings.value("s3/endpoint url", "")
+        if s3_endpoint_url:
+            dclab.rtdc_dataset.fmt_s3.S3_ENDPOINT_URL = s3_endpoint_url
+        s3_access_key_id = self.settings.value("s3/access key id", "")
+        if s3_access_key_id:
+            dclab.rtdc_dataset.fmt_s3.S3_ACCESS_KEY_ID = s3_access_key_id
+        s3_secret_access_key = self.settings.value("s3/secret access key", "")
+        if s3_secret_access_key:
+            dclab.rtdc_dataset.fmt_s3.S3_SECRET_ACCESS_KEY = \
+                s3_secret_access_key
+
         #: Analysis pipeline
         self.pipeline = pipeline.Pipeline()
         #: Extensions
