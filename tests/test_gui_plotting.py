@@ -272,3 +272,36 @@ def test_remove_plots_issue_36(qtbot):
     # remove a plot
     pw = mw.block_matrix.get_widget(filt_plot_id=plot_id)
     pw.action_remove()
+
+
+def test_changing_lut_identifier_in_analysis_view_plots(qtbot):
+    """Test LUT identifier user interaction in analysis view plots."""
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    # add a dataslot
+    path = datapath / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path])
+
+    # add a plot
+    plot_id = mw.add_plot()
+
+    # activate analysis view
+    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    pv = mw.widget_ana_view.widget_plot
+
+    # Change to "HE-2D-FEM-22" and apply
+    idx = pv.comboBox_lut.findData("HE-2D-FEM-22")
+    pv.comboBox_lut.setCurrentIndex(idx)
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    assert pv.comboBox_lut.currentData() == "HE-2D-FEM-22"
+
+    # Change to "HE-3D-FEM-22" and apply
+    idx = pv.comboBox_lut.findData("HE-3D-FEM-22")
+    pv.comboBox_lut.setCurrentIndex(idx)
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    assert pv.comboBox_lut.currentData() == "HE-3D-FEM-22"

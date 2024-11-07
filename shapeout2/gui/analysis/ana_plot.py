@@ -94,6 +94,7 @@ class PlotPanel(QtWidgets.QWidget):
                 "axis x": self.comboBox_axis_x.currentData(),
                 "axis y": self.comboBox_axis_y.currentData(),
                 "isoelastics": self.checkBox_isoelastics.isChecked(),
+                "lut": self.comboBox_lut.currentData(),
                 "kde": self.comboBox_kde.currentData(),
                 "range x": [rx["start"], rx["end"]],
                 "range y": [ry["start"], ry["end"]],
@@ -161,6 +162,8 @@ class PlotPanel(QtWidgets.QWidget):
         self.comboBox_axis_y.setCurrentIndex(
             self.comboBox_axis_y.findData(gen["axis y"]))
         self.checkBox_isoelastics.setChecked(gen["isoelastics"])
+        lut_index = self.comboBox_lut.findData(gen.get("lut", "LE-2D-FEM-19"))
+        self.comboBox_lut.setCurrentIndex(lut_index)
         kde_index = self.comboBox_kde.findData(gen["kde"])
         self.comboBox_kde.setCurrentIndex(kde_index)
         scx_index = self.comboBox_scale_x.findData(gen["scale x"])
@@ -211,6 +214,11 @@ class PlotPanel(QtWidgets.QWidget):
 
     def _init_controls(self):
         """All controls that are not subject to change"""
+        # LUT
+        self.comboBox_lut.clear()
+        lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
+        for lut_id in lut_dict.keys():
+            self.comboBox_lut.addItem(lut_id, lut_id)
         # KDE
         kde_names = STATE_OPTIONS["general"]["kde"]
         self.comboBox_kde.clear()

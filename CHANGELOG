@@ -1,5 +1,6 @@
 2.19.0
  - feat: support accessing private S3 basins (#174)
+ - enh: enable lut selection in analysis view plots (#71)
  - fix: only allow user to choose "R.exe" in R binary manual search (#173)
  - enh: correctly show system R binary in settings
  - ref: migrate from pyqt5 to pyqt6 (#165)
