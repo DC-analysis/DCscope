@@ -128,28 +128,27 @@ class QuickView(QtWidgets.QWidget):
         self.legend_trace = self.graphicsView_trace.addLegend(
             offset=(-.01, +.01))
 
-        #: default parameters for the event image
-        self.imkw = dict(autoLevels=False,
-                         levels=(0, 255),
-                         )
+        cmap_phase = pg.colormap.get('CET-D1A')
+        cmap_phase.color[-1] = [0, 0, 0, 1]  # make the contour value black
 
+        #: default parameters for the event image
         self.img_info = {
             "image": {
                 "view_event": self.imageView_image,
                 "view_poly": self.imageView_image_poly,
-                "cmap": pg.colormap.get('CET-L1'),
+                "cmap": None,
                 "kwargs": dict(autoLevels=False, levels=(0, 255), )
             },
             "qpi_pha": {
                 "view_event": self.imageView_image_pha,
                 "view_poly": self.imageView_image_poly_pha,
-                "cmap": pg.colormap.get('CET-D1A'),
+                "cmap": cmap_phase,
                 "kwargs": dict(autoLevels=False, levels=(-3, 3), )
             },
             "qpi_amp": {
                 "view_event": self.imageView_image_amp,
                 "view_poly": self.imageView_image_poly_amp,
-                "cmap": pg.colormap.get('CET-L1'),
+                "cmap": None,
                 "kwargs": dict(autoLevels=False, levels=(0, 2), )
             },
         }
@@ -287,18 +286,25 @@ class QuickView(QtWidgets.QWidget):
                 vmin, vmax = cellimg.min(), cellimg.max()
                 cellimg = (cellimg - vmin) / (vmax - vmin) * 255
 
-            # convert to RGB
-            cellimg = cellimg.reshape(
-                cellimg.shape[0], cellimg.shape[1], 1)
-            cellimg = np.repeat(cellimg, 3, axis=2)
-
+            cellimg = self._convert_to_rgb(cellimg)
             # clip and convert to int
             cellimg = np.clip(cellimg, 0, 255)
             cellimg = np.require(cellimg, np.uint8, 'C')
 
+        elif feat == "qpi_amp":
+            # to get the correct contour colour it is easier to view the
+            # amplitude as an RGB image
+            cellimg = self._convert_to_rgb(cellimg)
+
         cellimg = self.display_contour(ds, event, state, cellimg, feat)
 
         return cellimg
+
+    @staticmethod
+    def _convert_to_rgb(cellimg):
+        cellimg = cellimg.reshape(
+            cellimg.shape[0], cellimg.shape[1], 1)
+        return np.repeat(cellimg, 3, axis=2)
 
     def display_contour(self, ds, event, state, cellimg, feat):
         # Only load contour data if there is an image column.
@@ -315,29 +321,33 @@ class QuickView(QtWidgets.QWidget):
                 # set red contour pixel values in original image
                 red_pix = ((imkw["levels"][1] - imkw["levels"][0])
                            * 0.7) - np.abs(imkw["levels"][0])
-                if feat == "image":
+                if feat == "image" or feat == "qpi_amp":
                     cellimg[cont, 0] = int(
                         red_pix) if imkw["levels"][1] == 255 else red_pix
                     cellimg[cont, 1] = int(imkw["levels"][0])
                     cellimg[cont, 2] = int(imkw["levels"][0])
-                else:
-                    # just 2D images (not RGB)
-                    cellimg[cont] = int(
-                        red_pix) if imkw["levels"][1] == 255 else red_pix
+                elif feat == "qpi_pha":
+                    # use the red value from the colormap
+                    cellimg[cont] = int(imkw["levels"][1])
 
             if state["event"]["image zoom"]:
-                xv, yv = np.where(mask)
-                idminx = xv.min() - 5
-                idminy = yv.min() - 5
-                idmaxx = xv.max() + 5
-                idmaxy = yv.max() + 5
-                idminx = idminx if idminx >= 0 else 0
-                idminy = idminy if idminy >= 0 else 0
-                shx, shy = mask.shape
-                idmaxx = idmaxx if idmaxx < shx else shx
-                idmaxy = idmaxy if idmaxy < shy else shy
-                cellimg = cellimg[idminx:idmaxx, idminy:idmaxy]
+                cellimg = self.image_zoom(cellimg, mask)
+
             return cellimg
+
+    @staticmethod
+    def image_zoom(cellimg, mask):
+        xv, yv = np.where(mask)
+        idminx = xv.min() - 5
+        idminy = yv.min() - 5
+        idmaxx = xv.max() + 5
+        idmaxy = yv.max() + 5
+        idminx = idminx if idminx >= 0 else 0
+        idminy = idminy if idminy >= 0 else 0
+        shx, shy = mask.shape
+        idmaxx = idmaxx if idmaxx < shx else shx
+        idmaxy = idmaxy if idmaxy < shy else shy
+        return cellimg[idminx:idmaxx, idminy:idmaxy]
 
     def get_statistics(self):
         if self.rtdc_ds is not None:
@@ -376,7 +386,8 @@ class QuickView(QtWidgets.QWidget):
     def display_img(self, feat, view, cellimg):
         self.img_info[feat][view].setImage(cellimg,
                                            **self.img_info[feat]["kwargs"])
-        self.img_info[feat][view].setColorMap(self.img_info[feat]["cmap"])
+        if self.img_info[feat]["cmap"] is not None:
+            self.img_info[feat][view].setColorMap(self.img_info[feat]["cmap"])
         self.img_info[feat][view].show()
 
     def on_event_scatter_hover(self, pos):
