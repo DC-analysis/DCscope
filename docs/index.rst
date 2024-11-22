@@ -5,9 +5,7 @@
 
 |
 
-Shape-Out 2 is the successor of
-`Shape-Out <https://shapeout.readthedocs.io>`_,
-a user interface for data analysis in real-time deformability cytometry (RT-DC).
+Shape-Out 2 is a user interface for data analysis in deformability cytometry (DC).
 This is the documentation of Shape-Out version |release|.
 
 .. rtd_pdf::
@@ -22,6 +20,7 @@ Documentation
    sec_rtdc_basics
    sec_interface
    sec_quick_guides
+   sec_devs
 
 .. toctree::
    :maxdepth: 1

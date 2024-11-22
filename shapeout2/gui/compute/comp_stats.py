@@ -1,13 +1,14 @@
 import codecs
 import numbers
 import pathlib
-import pkg_resources
+import importlib.resources
 import time
 
 import dclab
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ..widgets import show_wait_cursor
+from ..widgets.feature_combobox import HIDDEN_FEATURES
 from ..._version import version
 
 STAT_METHODS = sorted(dclab.statistics.Statistics.available_methods.keys())
@@ -16,10 +17,12 @@ STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
 
 class ComputeStatistics(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_stats.ui")
-        uic.loadUi(path_ui, self)
+        super(ComputeStatistics, self).__init__(parent=parent, *args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.compute") / "comp_stats.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # for external statistics
         self.path = None
         # set pipeline
@@ -46,7 +49,8 @@ class ComputeStatistics(QtWidgets.QDialog):
         else:
             self.comboBox.setCurrentIndex(0)
         self.on_combobox()  # computes self.features
-        self.bulklist_features.on_select_all()
+        # Only select innate features
+        self.on_select_features_innate()
 
     def done(self, r):
         if r:
@@ -60,6 +64,16 @@ class ComputeStatistics(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def export_statistics(self):
         """Export statistics to .tsv"""
+        # Output path
+        opath, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, 'Save statistics', '', 'tab-separated values (*.tsv)')
+        if not opath:
+            # Abort export
+            return False
+        elif not opath.endswith(".tsv"):
+            opath += ".tsv"
+        opath = pathlib.Path(opath)
+
         # get features
         features = self.bulklist_features.get_selection()
         # get methods
@@ -88,7 +102,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                     break
                 prog.setValue(slot_index + 1)
                 QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.AllEvents, 300)
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         else:
             # from path
             inpath = pathlib.Path(self.path)
@@ -110,16 +124,8 @@ class ComputeStatistics(QtWidgets.QDialog):
                 values.append(v)
                 prog.setValue(ii + 1)
                 QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.AllEvents, 300)
-        # Output path
-        opath, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, 'Save statistics', '', 'tab-separated values (*.tsv)')
-        if not opath:
-            # Abort export
-            return False
-        elif not opath.endswith(".tsv"):
-            opath += ".tsv"
-        opath = pathlib.Path(opath)
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
         # Header
         header = ["Statistics Output",
                   "Shape-Out {}".format(version),
@@ -148,6 +154,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                 fd.write(line + "\n")
         return True  # True means success
 
+    @QtCore.pyqtSlot()
     def on_browse(self):
         out = QtWidgets.QFileDialog.getExistingDirectory(self,
                                                          'Export directory')
@@ -159,6 +166,7 @@ class ComputeStatistics(QtWidgets.QDialog):
             self.path = None
             self.comboBox.setCurrentIndex(0)
 
+    @QtCore.pyqtSlot()
     def on_combobox(self):
         if self.comboBox.currentIndex() == 1:
             # Datasets from a folder
@@ -172,6 +180,23 @@ class ComputeStatistics(QtWidgets.QDialog):
             # Datasets from current session
             self.widget_other.hide()
             self.update_feature_list(use_pipeline=True)
+
+    @QtCore.pyqtSlot()
+    def on_select_features_innate(self):
+        """Only select all innate features of the first dataset"""
+
+        if self.pipeline.num_slots:
+            ds = self.pipeline.get_dataset(0)
+            features_innate = ds.features_innate
+            lw = self.bulklist_features.listWidget
+            for ii in range(lw.count()):
+                wid = lw.item(ii)
+                for feat in features_innate:
+                    if wid.data(101) == feat:
+                        wid.setCheckState(QtCore.Qt.CheckState.Checked)
+                        break
+                else:
+                    wid.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
     def update_feature_list(self, use_pipeline=True):
         if use_pipeline:
@@ -188,6 +213,11 @@ class ComputeStatistics(QtWidgets.QDialog):
             labs = [dclab.dfn.get_feature_label(f) for f in features]
             lf = sorted(zip(labs, features))
             self.features = [it[1] for it in lf]
+
+        # do not compute statistics for basinmap features
+        for feat in HIDDEN_FEATURES + ["index"]:
+            if feat in self.features:
+                self.features.remove(feat)
 
         labels = [dclab.dfn.get_feature_label(feat) for feat in self.features]
         self.bulklist_features.set_items(self.features, labels)

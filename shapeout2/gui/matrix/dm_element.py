@@ -1,6 +1,6 @@
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtWidgets, QtCore
+from PyQt6 import uic, QtWidgets, QtCore
 
 
 class MatrixElement(QtWidgets.QWidget):
@@ -8,11 +8,12 @@ class MatrixElement(QtWidgets.QWidget):
     quickview_selected = QtCore.pyqtSignal()
     element_changed = QtCore.pyqtSignal()
 
-    def __init__(self):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.matrix", "dm_element.ui")
-        uic.loadUi(path_ui, self)
+    def __init__(self, *args, **kwargs):
+        super(MatrixElement, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.matrix") / "dm_element.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.active = False
         self.enabled = True
@@ -43,7 +44,7 @@ class MatrixElement(QtWidgets.QWidget):
     def mousePressEvent(self, event):
         # toggle selection
         if not self.invalid:
-            if event.modifiers() == QtCore.Qt.ShiftModifier:
+            if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
                 quickview = not self.has_quickview()
             else:
                 self.active = not self.active

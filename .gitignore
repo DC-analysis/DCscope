@@ -107,7 +107,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-_version_save.py
+_version.py
 
 docs/*.bib.bak
 .idea
@@ -116,3 +116,5 @@ build-recipes/ShapeOut2Launcher.spec
 
 # line profiler
 *.lprof
+
+*.ui.autosave

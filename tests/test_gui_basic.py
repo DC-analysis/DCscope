@@ -54,7 +54,7 @@ def test_init_load_dataslot(qtbot):
 
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="requires python>=3.8")
 def test_on_action_about(qtbot):
-    with mock.patch("PyQt5.QtWidgets.QMessageBox.about") as mock_about:
+    with mock.patch("PyQt6.QtWidgets.QMessageBox.about") as mock_about:
         mw = ShapeOut2()
         mw.on_action_about()
         mw.close()

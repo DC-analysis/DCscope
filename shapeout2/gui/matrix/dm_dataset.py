@@ -1,6 +1,6 @@
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtWidgets, QtCore, QtGui
+from PyQt6 import uic, QtWidgets, QtCore, QtGui
 
 from ... import meta_tool
 from ... import pipeline
@@ -12,16 +12,17 @@ class MatrixDataset(QtWidgets.QWidget):
     option_action = QtCore.pyqtSignal(str)
     modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, identifier=None, state=None):
+    def __init__(self, identifier=None, state=None, *args, **kwargs):
         """Create a new dataset matrix element
 
         Specify either an existing Dataslot identifier or a
         Dataslot state
         """
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.matrix", "dm_dataset.ui")
-        uic.loadUi(path_ui, self)
+        super(MatrixDataset, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.matrix") / "dm_dataset.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # options button
         menu = QtWidgets.QMenu()

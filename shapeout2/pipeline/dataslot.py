@@ -1,9 +1,11 @@
 import copy
+import functools
 
 import dclab
 from dclab.features.emodulus.viscosity import KNOWN_MEDIA
 import numpy as np
 
+from ..idiom import SLOPING_FEATURES
 from .. import meta_tool
 from ..util import hashobj
 
@@ -25,9 +27,9 @@ class Dataslot(object):
         cfg = meta_tool.get_rtdc_config(path)
         if name is None:
             name = cfg["experiment"]["sample"]
-        #: unique identifier of the filter
+        #: session-unique identifier of the slot
         self.identifier = identifier
-        #: user-defined name of the filter
+        #: user-defined name of the slot
         self.name = name
         #: whether to use this slot
         self.slot_used = True
@@ -188,12 +190,17 @@ class Dataslot(object):
             Loaded dataset
         """
         if self._dataset is None:
-            ds = dclab.new_dataset(self.path, identifier=self.identifier)
+            ds = dclab.new_dataset(self.path)
             self._dataset = ds
         else:
             ds = self._dataset
         self.update_dataset(ds)
         return ds
+
+    def get_sane_spacing_range(self, feat):
+        """Return sane contour spacing range for this dataset and feature"""
+        return get_sane_contour_spacing_range_for_slot_id(
+            self.identifier, feat)
 
     def update_dataset(self, dataset):
         """Update the configuration of an instance of RTDCBase
@@ -212,6 +219,44 @@ class Dataslot(object):
             for key in self.config["crosstalk"]:
                 if key in dataset.config["calculation"]:
                     dataset.config["calculation"].pop(key)
+
+
+@functools.lru_cache(1000)
+def get_sane_contour_spacing_range_for_slot_id(slot_id, feat):
+    slot = Dataslot.get_instances()[slot_id]
+    ds = slot.get_dataset()
+    sp_min, sp_max = get_sane_contour_spacing_range(feat, ds[feat][:])
+    return sp_min, sp_max
+
+
+def get_sane_contour_spacing_range(feat, data):
+    """Return a sane range for contour spacing for a feature
+
+    Parameters
+    ----------
+    feat: str
+        Name of the feature; If this is in :const:`.SLOPING_FEATURES`,
+        then spacing takes into account first and last item in `data`.
+        Otherwise, the first 10000 elements of `data` are used to
+        guess a sane contour spacing.
+    data: 1d ndarray
+        feature data
+    """
+    if feat in SLOPING_FEATURES:
+        frange = np.abs(data[-1] - data[0])
+        if np.isnan(frange) or np.isinf(frange):
+            invalid = np.logical_or(np.isinf(data), np.isnan(data))
+            data_valid = data[~invalid]
+            frange = np.abs(data_valid[-1] - data_valid[0])
+    else:
+        frange = np.ptp(data[:10000])
+        if np.isnan(frange) or np.isinf(frange):
+            invalid = np.logical_or(np.isinf(data), np.isnan(data))
+            data_valid = data[~invalid]
+            frange = np.ptp(data_valid[:10000])
+    spmin = frange / 1000
+    spmax = frange / 5
+    return spmin, spmax
 
 
 def random_color():

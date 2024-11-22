@@ -1,6 +1,111 @@
+2.19.1
+ - ref: remove distutils dependency
+ - docs: add developer's section
+2.19.0
+ - feat: support accessing private S3 basins (#174)
+ - enh: enable lut selection in analysis view plots (#71)
+ - fix: only allow user to choose "R.exe" in R binary manual search (#173)
+ - enh: correctly show system R binary in settings
+ - ref: migrate from pyqt5 to pyqt6 (#165)
+ - ref: migrate from pkg_resources to importlib.resources (#155)
+ - setup: support Python 3.12
+ - setup: new dependency "boto3" via "dclab[s3]""
+2.18.2
+ - enh: enable lut selection to plot isoelasticity lines (#71)
+ - enh: replace findText with findData of comboBox_visc_model
+ - fix: allow to select R binary when not found automatically
+ - enh: enable lut selection for emodulus computation in bulk actions (#71)
+ - enh: enable lut selection for emodulus computation (#71)
+ - setup: bump dclab to 0.62.5 (properly resolve path to R executable)
+2.18.1
+ - setup: bump dclab to 0.61.3 (replace rpy2 with wrapper) (#73 #161)
+2.18.0
+ - BREAKING CHANGE: set default viscosity model for Young's modulus
+   computation to "buyukurganci-2022", because it is more accurate
+   and also because it is defined for the "0.83% MC-PBS" medium
+ - BREAKING CHANGE: remove support for machine learning extensions
+   (.modc files), because they are not used
+ - fix: remove leading/trailing slashes for DCOR servers
+ - setup: bump dclab to 0.61.1 (fix basin-based array access, export from
+   datasets with internal basins, other minor fixes)
+2.17.0
+ - setup: bump dclab to 0.60.0 (internal basin support, export logs)
+2.16.5
+ - setup: bump dclab to 0.59.1 (mapped-basin now fully supported)
+2.16.4
+ - setup: bump dclab to 0.59.0 (improved support for basin features)
+2.16.3
+ - maintenance release
+2.16.2
+ - fix: data export feature selection must default to features_loaded
+ - enh: only show local features in QuickView Event Feature tab
+ - enh: show dcnum pipeline identifiers in Analysis view
+ - enh: add section:key tool tips for analysis view metadata
+ - enh: added links to docs explaining default export selection
+ - docs: remove Shape-Out 1 reference
+ - setup: remove rpy2 from dependencies until #161 is fixed
+ - setup: migrate from setup.py to pyproject.toml
+ - setup: bump dclab to 0.58.7 (performance)
+2.16.1
+ - setup: bump dclab to 0.58.4 (reduced memory usage when computing
+   contour-based features such as volume, export dataset configuration
+   as metadata in .tsv export, support both posix and nt relative basin
+   paths)
+2.16.0
+ - feat: enable storage strategy (basin control) in export dialog (#159)
+ - fix: ask for .tsv output path before computing statistics
+ - enh: color feature data in QuickView combobox according to availability
+ - enh: hide basinmap features in scatter plot selections (#159)
+ - docs: remove reference to Shape-Out 1 in introduction
+ - docs: mention basins and link to dclab (#159)
+ - docs: add quick guide for data export
+ - ref: reduce usage of `dclab.dfn.scalar_feature_names` (#108)
+ - setup: bump dclab to 0.58.2
+2.15.5
+ - fix: right-click menu not working for plot widgets (#160)
+ - ref: introduce `FeatureComboBox` class for listing features
+2.15.4
+ - fix: very small numbers not parsed when showing metadata (#158)
+ - fix: do not allow question mark "?" in exported file names (#156)
+ - fix: do not override files when exporting data (#153)
+ - fix: remove the "so2exp" prefix when exporting data (#157)
+2.15.3
+ - build: PyInstaller to rebuild its bootloader (avoid false positive
+   malware detection)
+2.15.2
+ - fix: handle zero-valued contour spacing
+ - setup: bump dclab to 0.57.4 (handle zero-valued spacing for KDE contour)
+2.15.1
+ - fix: statistics not updating when changing plot axes (#154)
+ - setup: bump dclab from 0.57.0 to 0.57.1
+2.15.0
+ - enh: avoid creating hierarchy when no filters are applied (speed)
+ - enh: cache computed statistics
+ - ref: avoid division-by-zero warning
+ - setup: bump dclab from 0.56.3 to 0.57.0 (speed)
+2.14.3
+ - fix: intermediate plotting of first event whenever a slot is added
+ - fix: catch zero-division warning when plotting empty image
+ - enh: remember selected events in QuickView
+ - enh: avoid showing first dataset event when user clicks in QuickView
+ - setup: bump dclab from 0.55.7 to 0.56.3 (enhanced basin support)
+2.14.2
+ - setup: bump dclab from 0.55.6 to 0.55.7
+2.14.1
+ - fix: perform sanity check for contour spacing before plotting
+ - fix: use pyqtgraph.SpinBox to edit box filters (#149)
+ - enh: minor optimization of min/max feature algorithm
+ - enh: only preselect innate features when computing statistics (#150)
+ - setup: bump dclab to 0.55.6 (new scalar features, dcor access)
+ - setup: bump pyqtgraph from 0.12.4 to 0.13.3
+2.14.0
+ - ref: don't set RTDCBase.identifier to slot identifier
+ - setup: drop support for Python 3.8
+ - setup: bump dclab from 0.54.2 to 0.55.4 (better DCOR support)
+ - build: use Python 3.10 for building executables
 2.13.7
  - ci: fix rtd build pipeline
- - setup: bump dclab from 0.52.0 to 0.53.1 (improved basin support)
+ - setup: bump dclab from 0.52.0 to 0.54.2 (improved basin support)
 2.13.6
  - ci: fix Windows build pipeline
 2.13.5

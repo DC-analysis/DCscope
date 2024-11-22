@@ -11,7 +11,6 @@ from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import bulk
 from shapeout2 import session
 
-
 datapath = pathlib.Path(__file__).parent / "data"
 
 
@@ -182,6 +181,35 @@ def test_wrong_medium_viscosity(qtbot):
         assert "emodulus" not in ds, "because medium is fixed"
         assert ds.config["setup"]["medium"] == "CellCarrierB"
         assert ds.config["calculation"]["emodulus lut"] == "LE-2D-FEM-19"
+        assert ds.config["calculation"]["emodulus medium"] == "CellCarrierB"
+        assert "emodulus temperature" not in ds.config["calculation"]
+        assert "emodulus viscosity" not in ds.config["calculation"]
+        assert ds.config["calculation"]["emodulus viscosity model"] == \
+               "buyukurganci-2022"
+
+
+def test_lut_selection(qtbot):
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    # add a dataslot
+    path = datapath / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path])
+    mw.add_dataslot(paths=[path])
+
+    # create bulk action dialog manually
+    dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
+    dlg.comboBox_medium.setCurrentIndex(dlg.comboBox_medium.findData("other"))
+    dlg.doubleSpinBox_visc.setValue(1.0)  # random number
+    dlg.comboBox_lut.setCurrentIndex(dlg.comboBox_lut.findData("HE-2D-FEM-22"))
+
+    dlg.on_ok()
+
+    for slot in mw.pipeline.slots:
+        ds = slot.get_dataset()
+        assert "emodulus" not in ds, "because medium is fixed"
+        assert ds.config["setup"]["medium"] == "CellCarrierB"
+        assert ds.config["calculation"]["emodulus lut"] == "HE-2D-FEM-22"
         assert ds.config["calculation"]["emodulus medium"] == "CellCarrierB"
         assert "emodulus temperature" not in ds.config["calculation"]
         assert "emodulus viscosity" not in ds.config["calculation"]

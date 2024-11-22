@@ -1,4 +1,3 @@
-from distutils.version import LooseVersion, StrictVersion
 import json
 import os
 import struct
@@ -6,7 +5,8 @@ import sys
 import traceback
 import urllib.request
 
-from PyQt5 import QtCore
+from dclab.external.packaging import parse as parse_version
+from PyQt6 import QtCore
 
 
 class UpdateWorker(QtCore.QObject):
@@ -29,7 +29,7 @@ def check_for_update(version, ghrepo):
     thread.start()
 
     QtCore.QMetaObject.invokeMethod(obj, 'processUpdate',
-                                    QtCore.Qt.QueuedConnection,
+                                    QtCore.Qt.ConnectionType.QueuedConnection,
                                     QtCore.Q_ARG(str, version),
                                     QtCore.Q_ARG(str, ghrepo),
                                     )
@@ -58,12 +58,8 @@ def check_release(ghrepo="user/repo", version=None, timeout=20):
         newversion = j["tag_name"]
 
         if version is not None:
-            try:
-                new = StrictVersion(newversion)
-                old = StrictVersion(version)
-            except ValueError:
-                new = LooseVersion(newversion)
-                old = LooseVersion(version)
+            new = parse_version(newversion)
+            old = parse_version(version)
             if new > old:
                 update = True
                 new_version = newversion

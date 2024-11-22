@@ -1,6 +1,6 @@
 import pathlib
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 from shapeout2.gui.main import ShapeOut2
 from shapeout2 import session
@@ -37,7 +37,7 @@ def test_matrix_slots(qtbot):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
     slot_id2 = mw.pipeline.slot_ids[1]
@@ -62,14 +62,14 @@ def test_matrix_slots_duplicate_issue_96(qtbot):
 
     # change the name of the dataset
     # go to analysis view
-    qtbot.mouseClick(mw.toolButton_ana_view, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(mw.toolButton_ana_view, QtCore.Qt.MouseButton.LeftButton)
     # go to the dataset tab
     av = mw.widget_ana_view
-    qtbot.mouseClick(av.tab_slot, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(av.tab_slot, QtCore.Qt.MouseButton.LeftButton)
     # enter a name
     ws = av.widget_slot
     ws.lineEdit_name.setText("A Unique Name")
-    qtbot.mouseClick(ws.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(ws.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # See if that worked
     assert mw.pipeline.slots[0].name == "A Unique Name"

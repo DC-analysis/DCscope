@@ -1,10 +1,10 @@
-import pkg_resources
+import importlib.resources
 import traceback as tb
 import urllib.parse
 import webbrowser
 
 import dclab
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 import requests
 
 from ..widgets import show_wait_cursor, run_async
@@ -16,10 +16,10 @@ class DCORLoader(QtWidgets.QDialog):
 
     def __init__(self, parent, *args, **kwargs):
         """Search and load DCOR data"""
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.dcor", "dcor.ui")
-        uic.loadUi(path_ui, self)
+        super(DCORLoader, self).__init__(parent=parent, *args, **kwargs)
+        ref = importlib.resources.files("shapeout2.gui.dcor") / "dcor.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.main_ui = parent
         self.search_results = []
@@ -42,18 +42,21 @@ class DCORLoader(QtWidgets.QDialog):
         self.search_item_retrieved.connect(self.on_search_add_result)
 
         # button signals
-        btn_close = self.buttonBox.button(QtWidgets.QDialogButtonBox.Close)
+        btn_close = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this window")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_open = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        btn_open = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_open.clicked.connect(self.on_open)
         btn_open.setToolTip("Add selected resources to current session")
         btn_open.setText("Add to session")
         plusicon = QtGui.QIcon.fromTheme("list-add")
         btn_open.setIcon(plusicon)
-        btn_help = self.buttonBox.button(QtWidgets.QDialogButtonBox.Help)
+        btn_help = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Help)
         btn_help.clicked.connect(self.on_help)
         btn_help.setToolTip("View DCOR Quick Guide online")
         helpicon = QtGui.QIcon.fromTheme("documentinfo")
@@ -62,10 +65,11 @@ class DCORLoader(QtWidgets.QDialog):
     def get_api_base_url(self):
         """Return the API url in the form https://dcor.mpl.mpg.de/api/3"""
         server = self.settings.value("dcor/servers", ["dcor.mpl.mpg.de"])[0]
+        server = server.strip("/")  # remove leading/trailing slashes
         use_ssl = bool(int(self.settings.value("dcor/use ssl", 1)))
         # ready API
-        http = "https" if use_ssl else "http"
-        base = "{}://{}/api/3".format(http, server)
+        proto = "https" if use_ssl else "http"
+        base = f"{proto}://{server}/api/3"
         return base
 
     def get_api_headers(self):
@@ -194,14 +198,14 @@ class DCORLoader(QtWidgets.QDialog):
             msg.setIcon(QtWidgets.QMessageBox.Information)
             msg.setText("Search found invalid data: {}".format(failed))
             msg.setWindowTitle("Dataset validation")
-            msg.exec_()
+            msg.exec()
 
         if error:
             msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
             msg.setText(error)
             msg.setWindowTitle("DCOR access error!")
-            msg.exec_()
+            msg.exec()
 
     def perform_search(self, search_string, search_type, search_id,
                        api_base_url, api_headers):
@@ -295,5 +299,6 @@ def get_server_cert_path(host=None):
     settings = QtCore.QSettings()
     if host is None:
         host = settings.value("dcor/servers", ["dcor.mpl.mpg.de"])[0]
+        host = host.strip("/")  # remove leading/trailing slashes
 
     return dclab.rtdc_dataset.fmt_dcor.get_server_cert_path(host)

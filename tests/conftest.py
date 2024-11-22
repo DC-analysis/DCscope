@@ -2,7 +2,7 @@ import shutil
 import tempfile
 import time
 
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 
 
 TMPDIR = tempfile.mkdtemp(prefix=time.strftime(
@@ -17,9 +17,8 @@ def pytest_configure(config):
     QtCore.QCoreApplication.setOrganizationName("Zellmechanik-Dresden")
     QtCore.QCoreApplication.setOrganizationDomain("zellmechanik.com")
     QtCore.QCoreApplication.setApplicationName("shapeout2")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     settings.setValue("check for updates", 0)
     settings.setValue("advanced/user confirm clear", 0)
     settings.sync()
@@ -34,9 +33,8 @@ def pytest_unconfigure(config):
     QtCore.QCoreApplication.setOrganizationName("Zellmechanik-Dresden")
     QtCore.QCoreApplication.setOrganizationDomain("zellmechanik.com")
     QtCore.QCoreApplication.setApplicationName("shapeout2")
-    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
     settings = QtCore.QSettings()
-    settings.setIniCodec("utf-8")
     settings.setValue("advanced/user confirm clear", 1)
     # clear global temp directory
     shutil.rmtree(TMPDIR, ignore_errors=True)

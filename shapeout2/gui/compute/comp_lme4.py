@@ -1,8 +1,8 @@
-import pkg_resources
+import importlib.resources
 import webbrowser
 
 from dclab import lme4
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 from .comp_lme4_dataset import LME4Dataset
 from .comp_lme4_results import Rlme4ResultsDialog
@@ -13,9 +13,10 @@ from ..widgets import ShowWaitCursor
 class ComputeSignificance(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeSignificance, self).__init__(parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_lme4.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files(
+            "shapeout2.gui.compute") / "comp_lme4.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # set pipeline
         self.pipeline = pipeline
@@ -33,24 +34,27 @@ class ComputeSignificance(QtWidgets.QDialog):
             self.dataset_layout.addWidget(dw)
             self.datasets.append(dw)
         spacer = QtWidgets.QSpacerItem(20, 0,
-                                       QtWidgets.QSizePolicy.Minimum,
-                                       QtWidgets.QSizePolicy.Expanding)
+                                       QtWidgets.QSizePolicy.Policy.Minimum,
+                                       QtWidgets.QSizePolicy.Policy.Expanding)
         self.dataset_layout.addItem(spacer)
         self.update()
 
         # button signals
-        btn_close = self.buttonBox.button(QtWidgets.QDialogButtonBox.Close)
+        btn_close = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this dialog")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_openlme4 = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        btn_openlme4 = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_openlme4.clicked.connect(self.on_lme4)
         btn_openlme4.setToolTip("Perform lme4 analysis")
         btn_openlme4.setText("Run R-lme4")
         picon = QtGui.QIcon.fromTheme("rlang")
         btn_openlme4.setIcon(picon)
-        btn_help = self.buttonBox.button(QtWidgets.QDialogButtonBox.Help)
+        btn_help = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Help)
         btn_help.clicked.connect(self.on_help)
         btn_help.setToolTip("View R-lme4 Quick Guide online")
         helpicon = QtGui.QIcon.fromTheme("documentinfo")
@@ -80,10 +84,12 @@ class ComputeSignificance(QtWidgets.QDialog):
         self.setEnabled(False)
         # set R HOME from settings
         settings = QtCore.QSettings()
-        settings.setIniCodec("utf-8")
         r_path = settings.value("lme4/r path", "")
         if r_path:
             lme4.set_r_path(r_path)
+        r_libs_path = settings.value("lme4/r libs user", "")
+        if r_libs_path:
+            lme4.set_r_lib_path(r_libs_path)
         # compute LMM
         with ShowWaitCursor():
             rlme4 = lme4.Rlme4(model=self.model, feature=self.feature)
@@ -95,7 +101,7 @@ class ComputeSignificance(QtWidgets.QDialog):
         if ret_dlg:
             return dlg
         else:
-            dlg.exec_()
+            dlg.exec()
 
     @QtCore.pyqtSlot()
     def on_close(self):

@@ -234,7 +234,7 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="comboBox_x"/>
+           <widget class="FeatureComboBox" name="comboBox_x"/>
           </item>
           <item row="1" column="0">
            <widget class="QLabel" name="label_2">
@@ -244,7 +244,7 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QComboBox" name="comboBox_y"/>
+           <widget class="FeatureComboBox" name="comboBox_y"/>
           </item>
           <item row="1" column="2">
            <widget class="QWidget" name="widget_yrange" native="true">
@@ -367,14 +367,40 @@
          </layout>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBox_isoelastics">
-          <property name="text">
-           <string>Show isoelasticity lines</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QCheckBox" name="checkBox_isoelastics">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>Show isoelasticity lines</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox_lut"/>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </item>
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -426,7 +452,7 @@
                <number>0</number>
               </property>
               <item>
-               <widget class="QComboBox" name="comboBox_z_hue"/>
+               <widget class="FeatureComboBox" name="comboBox_z_hue"/>
               </item>
              </layout>
             </widget>
@@ -1163,6 +1189,11 @@
  </widget>
  <customwidgets>
   <customwidget>
+   <class>FeatureComboBox</class>
+   <extends>QComboBox</extends>
+   <header>shapeout2.gui.widgets</header>
+  </customwidget>
+  <customwidget>
    <class>SimplePlotWidget</class>
    <extends>QGraphicsView</extends>
    <header>shapeout2.gui.widgets</header>
@@ -1186,22 +1217,6 @@
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>checkBox_auto_apply</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>toolButton_apply</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>882</x>
-     <y>244</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>966</x>
-     <y>244</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>comboBox_hue</sender>
    <signal>currentIndexChanged(int)</signal>

@@ -1,5 +1,5 @@
 import numpy as np
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
@@ -89,8 +89,8 @@ class QuickViewScatterWidget(SimplePlotWidget):
 
     def plot_data(self, rtdc_ds, slot, xax="area_um", yax="deform",
                   xscale="linear", yscale="linear",  downsample=False,
-                  hue_type="none", hue_kwargs=None,
-                  isoelastics=False):
+                  hue_type="none", hue_kwargs=None, isoelastics=False,
+                  lut_identifier=None):
         self.rtdc_ds = rtdc_ds
         self.slot = slot
         self.xax = xax
@@ -170,7 +170,8 @@ class QuickViewScatterWidget(SimplePlotWidget):
                 axis_x=self.xax,
                 axis_y=self.yax,
                 channel_width=cfg["setup"]["channel width"],
-                pixel_size=cfg["imaging"]["pixel size"])
+                pixel_size=cfg["imaging"]["pixel size"],
+                lut_identifier=lut_identifier)
 
     def set_mouse_click_mode(self, mode):
         allowed = ["scatter", "poly-create", "poly-modify"]
@@ -216,8 +217,8 @@ class QuickViewViewBox(SimpleViewBox):
     add_poly_vertex = QtCore.pyqtSignal(QtCore.QPointF)
     update_hover_pos = QtCore.pyqtSignal(QtCore.QPointF)
 
-    def __init__(self, *args, **kwds):
-        super(QuickViewViewBox, self).__init__(*args, **kwds)
+    def __init__(self, *args, **kwargs):
+        super(QuickViewViewBox, self).__init__(*args, **kwargs)
         self.mode = "scatter"
 
         #: allowed right-click menu options with new name
@@ -225,7 +226,7 @@ class QuickViewViewBox(SimpleViewBox):
         self.right_click_actions["Mouse Mode"] = "Change Mouse mode"
 
     def mouseClickEvent(self, ev):
-        if ev.button() == QtCore.Qt.LeftButton:
+        if ev.button() == QtCore.Qt.MouseButton.LeftButton:
             pos = self.mapToView(ev.pos())
             if self.mode == "scatter":
                 self.set_scatter_point.emit(pos)

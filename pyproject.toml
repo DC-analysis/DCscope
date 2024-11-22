@@ -1,0 +1,54 @@
+[build-system]
+# Defined by PEP 518:
+requires = [
+    # for version management
+    "setuptools>=64", "setuptools_scm[toml]>=8"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shapeout2"
+authors = [
+    # In alphabetical order.
+    {name = "Benedikt Hartmann"},
+    {name = "Eoghan O'Connell"},
+    {name = "Maximilian Schlögel"},
+    {name = "Paul Müller"},
+]
+maintainers = [
+    {name = "Paul Müller", email="dev@craban.de"},
+]
+description = "User interface for deformability cytometry (DC)"
+readme = "README.rst"
+requires-python = ">=3.9, <4"
+keywords = ["RT-DC", "DC", "deformability", "cytometry"]
+classifiers = [
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 3',
+    'Intended Audience :: Science/Research',
+]
+license = {text = "GPL v3"}
+dependencies = [
+    "fcswrite>=0.5.1",
+    "dclab[dcor,http,s3]>=0.62.5",
+    "h5py>=2.8.0",
+    "numpy>=1.21",  # CVE-2021-33430
+    "pyqt6",
+    "pyqtgraph==0.13.3",
+    "requests>=2.31.0",  # CVE-2023-32681
+    "scipy>=1.10.0",  # CVE-2023-25399
+]
+dynamic = ["version"]
+
+[project.scripts]
+shapeout2 = "shapeout2.__main__:main"
+
+[project.urls]
+source = "https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2"
+tracker = "https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/issues"
+documentation = "https://shapeout2.readthedocs.io"
+changelog = "https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/blob/master/CHANGELOG"
+
+[tool.setuptools_scm]
+write_to = "shapeout2/_version.py"
+version_scheme = "post-release"

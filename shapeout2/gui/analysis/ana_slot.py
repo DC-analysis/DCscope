@@ -1,5 +1,5 @@
 import copy
-import pkg_resources
+import importlib.resources
 import warnings
 
 import dclab
@@ -7,7 +7,7 @@ from dclab.features.emodulus.viscosity import (
     ALIAS_MEDIA, KNOWN_MEDIA, TemperatureOutOfRangeWarning
 )
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ... import meta_tool
 from ...pipeline import Dataslot
@@ -22,10 +22,12 @@ class SlotPanel(QtWidgets.QWidget):
     pipeline_changed = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_slot.ui")
-        uic.loadUi(path_ui, self)
+        super(SlotPanel, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_slot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # current Shape-Out 2 pipeline
         self._pipeline = None
         # signals
@@ -44,6 +46,8 @@ class SlotPanel(QtWidgets.QWidget):
         # init
         self._update_emodulus_medium_choices()
         self._update_emodulus_temp_choices()
+        self._update_emodulus_lut_choices()
+        self._update_emodulus_visc_model_choices()
 
         self.update_content()
 
@@ -62,7 +66,8 @@ class SlotPanel(QtWidgets.QWidget):
         else:  # "other", user-defined medium
             emod_visc = self.doubleSpinBox_visc.value()  # user input
             scenario = None
-        emod_visc_model = self.comboBox_visc_model.currentText()
+        emod_visc_model = self.comboBox_visc_model.currentData()
+        emod_select_lut = self.comboBox_lut.currentText()
         state = {
             "identifier": slot_state["identifier"],
             "name": self.lineEdit_name.text(),
@@ -83,7 +88,7 @@ class SlotPanel(QtWidgets.QWidget):
             },
             "emodulus": {
                 "emodulus enabled": slot_state["emodulus"]["emodulus enabled"],
-                "emodulus lut": "LE-2D-FEM-19",
+                "emodulus lut": emod_select_lut,
                 # It is ok if we have user-defined strings here, because
                 # only media in KNOWN_MEDIA are passed to dclab in the end.
                 "emodulus medium": self.comboBox_medium.currentData(),
@@ -137,12 +142,15 @@ class SlotPanel(QtWidgets.QWidget):
             self.comboBox_temp.blockSignals(True)
             self.comboBox_temp.setCurrentIndex(idx_scen)
             self.comboBox_temp.blockSignals(False)
-        idx_vm = self.comboBox_visc_model.findText(
-            emodulus.get("emodulus viscosity model", ""))
-        if idx_vm == -1:
+
+        idx_vm = self.comboBox_visc_model.findData(
             # use defaults from previous session (Herold-2107)
-            idx_vm = 1
+            emodulus.get("emodulus viscosity model", "herold-2017"))
+
         self.comboBox_visc_model.setCurrentIndex(idx_vm)
+        # Set current state of the emodulus lut
+        idx_lut = self.comboBox_lut.findData(emodulus.get("emodulus lut", ""))
+        self.comboBox_lut.setCurrentIndex(idx_lut)
         # This has to be done after setting the scenario
         # (otherwise it might be overridden in the frontend)
         self.doubleSpinBox_temp.setValue(emodulus["emodulus temperature"])
@@ -264,6 +272,35 @@ class SlotPanel(QtWidgets.QWidget):
         self.comboBox_temp.setCurrentIndex(idx)
         self.comboBox_temp.blockSignals(False)
 
+    def _update_emodulus_lut_choices(self):
+        """update currently available LUT choices for YM
+
+        The previous selection is preserved. Signals are blocked.
+        """
+        self.comboBox_lut.blockSignals(True)
+        cursel = self.comboBox_lut.currentData()
+        self.comboBox_lut.clear()
+        lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
+        for lut_id in lut_dict.keys():
+            self.comboBox_lut.addItem(lut_id, lut_id)
+        idx = self.comboBox_lut.findData(cursel)
+        self.comboBox_lut.setCurrentIndex(idx)
+        self.comboBox_lut.blockSignals(False)
+
+    def _update_emodulus_visc_model_choices(self):
+        """update currently available viscosity model choices for YM
+
+        Signals are blocked.
+        """
+        self.comboBox_visc_model.blockSignals(True)
+        self.comboBox_visc_model.clear()
+
+        choices = {"Herold (2017)": "herold-2017",
+                   "Buyukurganci (2022)": "buyukurganci-2022"}
+        for name, data in choices.items():
+            self.comboBox_visc_model.addItem(name, data)
+        self.comboBox_visc_model.blockSignals(False)
+
     @property
     def current_slot_state(self):
         if self.slot_ids:
@@ -349,7 +386,7 @@ class SlotPanel(QtWidgets.QWidget):
         medium = self.comboBox_medium.currentData()
         tselec = self.comboBox_temp.currentData()
         medium_key = ALIAS_MEDIA.get(medium, medium)
-        visc_model = self.comboBox_visc_model.currentText()
+        visc_model = self.comboBox_visc_model.currentData()
         # Only show model selection if we are dealing with MC-PBS
         self.comboBox_visc_model.setVisible(medium_key.count("MC-PBS"))
         self.doubleSpinBox_visc.setStyleSheet("")

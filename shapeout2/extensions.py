@@ -5,12 +5,10 @@ import shutil
 
 from dclab.util import hashfile
 from dclab.rtdc_dataset.feat_anc_plugin import plugin_feature
-from dclab.rtdc_dataset.feat_anc_ml import ml_feature
 
 
 SUPPORTED_FORMATS = [
     ".py",
-    ".modc"
 ]
 
 
@@ -158,10 +156,6 @@ class Extension:
                 pfinst = self.get_plugin_feature_instances()[0]
                 info = pfinst.plugin_feature_info
                 description = info['long description']
-            elif self.type == "feat_anc_ml":
-                pfinst = self.get_ml_feature_instances()[0]
-                info = pfinst.ml_feature_info
-                description = info['long description']
         return description
 
     @property
@@ -180,8 +174,6 @@ class Extension:
         """Whether the extension is currently loaded"""
         if self.type == "feat_anc_plugin":
             return bool(self.get_plugin_feature_instances())
-        elif self.type == "feat_anc_ml":
-            return bool(self.get_ml_feature_instances())
 
     @property
     def path_lock_disabled(self):
@@ -196,12 +188,7 @@ class Extension:
                 pfinst = self.get_plugin_feature_instances()[0]
                 info = pfinst.plugin_feature_info
                 title = f"{info['description']} " \
-                        + f"({info['version']}-{info['identifier'][:4]})"
-            elif self.type == "feat_anc_ml":
-                mlinst = self.get_ml_feature_instances()[0]
-                info = mlinst.ml_feature_info
-                title = f"{info['description']} " \
-                        + f"({info['date']} - {info['identifier'][:4]})"
+                    + f"({info['version']}-{info['identifier'][:4]})"
         return title
 
     @property
@@ -210,19 +197,8 @@ class Extension:
         """Type of the extension (e.g. "feat_anc_plugin")"""
         if self.path.suffix == ".py":
             return "feat_anc_plugin"
-        elif self.path.suffix == ".modc":
-            return "feat_anc_ml"
         else:
             raise ValueError(f"Cannot determine extension type: {self.path}!")
-
-    def get_ml_feature_instances(self):
-        """Return a list of all MachineLearningFeature instances"""
-        ml_instances = []
-        for inst in ml_feature.MachineLearningFeature.features:
-            if (isinstance(inst, ml_feature.MachineLearningFeature)
-                    and self.path.samefile(inst.modc_path)):
-                ml_instances.append(inst)
-        return ml_instances
 
     def get_plugin_feature_instances(self):
         """Return a list of all PlugInFeature instances for this extension"""
@@ -255,8 +231,6 @@ class Extension:
         try:
             if self.type == "feat_anc_plugin":
                 plugin_feature.load_plugin_feature(self.path)
-            if self.type == "feat_anc_ml":
-                ml_feature.load_ml_feature(self.path)
         except BaseException:
             # If loading the extension fails, disable it and only then
             # raise the exception.
@@ -268,9 +242,6 @@ class Extension:
         if self.type == "feat_anc_plugin":
             for inst in self.get_plugin_feature_instances():
                 plugin_feature.remove_plugin_feature(inst)
-        elif self.type == "feat_anc_ml":
-            for inst in self.get_ml_feature_instances():
-                ml_feature.remove_ml_feature(inst)
 
     def destroy(self):
         """Unload and remove the extension"""

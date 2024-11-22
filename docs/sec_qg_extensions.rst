@@ -1,11 +1,10 @@
 .. _sec_qg_extensions:
 
-=========================================================
-Loading Extensions (machine-learning and plugin features)
-=========================================================
+====================================
+Loading Extensions (plugin features)
+====================================
 Since version 2.9.0, Shape-Out 2 allows loading dclab
-:ref:`plugin features <dclab:sec_av_feat_plugin>` and
-:ref:`machine-learning features <dclab:sec_av_ml>`.
+:ref:`plugin features <dclab:sec_av_feat_plugin>`.
 You may need those if you need to quantify anything that is not
 covered by the :ref:`default features <dclab:sec_features>`.
 
@@ -35,16 +34,3 @@ extension and add it to Shape-Out. You will see a new scalar feature named
 per object volume for the fluorescence channel 1. Using this extension as
 a template, you could create the density features for the other fluorescence
 channels as well.
-
-
-Example: RBC-detection with machine-learning
---------------------------------------------
-.. note::
-
-    For this example you will need to have tensorflow installed.
-
-Download the :download:`extension_naive_rbc_score.modc <data/extension_naive_rbc_score.modc>`
-extension and add it to Shape-Out. You will see a new scalar feature named
-"RBC score (naive)". This showcase model only consists of one dense layer
-of size six, but already does a better-than-random job in identifying
-red blood cells.

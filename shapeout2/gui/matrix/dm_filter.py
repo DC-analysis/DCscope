@@ -1,6 +1,6 @@
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ... import pipeline
 
@@ -11,11 +11,12 @@ class MatrixFilter(QtWidgets.QWidget):
     option_action = QtCore.pyqtSignal(str)
     modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, identifier=None, state=None):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.matrix", "dm_filter.ui")
-        uic.loadUi(path_ui, self)
+    def __init__(self, identifier=None, state=None, *args, **kwargs):
+        super(MatrixFilter, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.matrix") / "dm_filter.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # options button
         menu = QtWidgets.QMenu()

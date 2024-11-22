@@ -1,7 +1,7 @@
 import copy
 
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ... import pipeline
 
@@ -16,8 +16,8 @@ class DataMatrix(QtWidgets.QWidget):
     filter_modify_clicked = QtCore.pyqtSignal(str)
     slot_modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, parent=None):
-        super(DataMatrix, self).__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super(DataMatrix, self).__init__(*args, **kwargs)
 
         self.glo = None
         self._reset_layout()
@@ -126,12 +126,12 @@ class DataMatrix(QtWidgets.QWidget):
             self.old_layout.deleteLater()
         # add new layout
         self.glo = QtWidgets.QGridLayout()
-        self.glo.setAlignment(QtCore.Qt.AlignTop)
+        self.glo.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         self.glo.setSpacing(2)
         self.glo.setContentsMargins(0, 0, 0, 0)
         # add dummy corner element
         cl = QtWidgets.QLabel("Block\nMatrix")
-        cl.setAlignment(QtCore.Qt.AlignCenter)
+        cl.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.glo.addWidget(cl, 0, 0)
         self.setLayout(self.glo)
 
@@ -233,10 +233,12 @@ class DataMatrix(QtWidgets.QWidget):
         return mf
 
     def adjust_size(self):
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         self.setMinimumSize(self.sizeHint())
         self.setFixedSize(self.sizeHint())
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         self.setMinimumSize(self.sizeHint())
         self.setFixedSize(self.sizeHint())
 
@@ -304,8 +306,8 @@ class DataMatrix(QtWidgets.QWidget):
         return fw.__getstate__()
 
     def get_slot_index(self, slot_id):
-        for ii, ds in enumerate(self.dataset_widgets):
-            if ds.identifier == slot_id:
+        for ii, dw in enumerate(self.dataset_widgets):
+            if dw.identifier == slot_id:
                 break
         else:
             raise KeyError("Dataset '{}' not found!".format(slot_id))

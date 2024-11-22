@@ -1,12 +1,12 @@
 import copy
 import html
-import pkg_resources
+import importlib.resources
 import warnings
 
 import dclab
 from dclab import kde_contours
 import numpy as np
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph import exporters
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
@@ -47,9 +47,10 @@ class PipelinePlot(QtWidgets.QWidget):
 
     def __init__(self, parent, pipeline, plot_id, *args, **kwargs):
         super(PipelinePlot, self).__init__(parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui", "pipeline_plot.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files("shapeout2.gui") / "pipeline_plot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # used to avoid unnecessary plotting
         self._plot_data_hash = "unset"
 
@@ -264,7 +265,8 @@ class PipelinePlotItem(SimplePlotItem):
         win.nextRow()
         win.addLabel(labelx, col=1)
         # Update the UI (do it twice, otherwise the tick labels overlap)
-        QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
         win.hide()
         # perform actual export
         suffix = file[-3:]
@@ -299,7 +301,8 @@ class PipelinePlotItem(SimplePlotItem):
                                   axis_x=gen["axis x"],
                                   axis_y=gen["axis y"],
                                   channel_width=cfg["setup"]["channel width"],
-                                  pixel_size=cfg["imaging"]["pixel size"])
+                                  pixel_size=cfg["imaging"]["pixel size"],
+                                  lut_identifier=gen.get("lut", None))
             self._plot_elements += els
         # Modifications in log mode
         set_viewbox(self,
@@ -410,10 +413,10 @@ def add_label(text, anchor_parent, text_halign="center", text_valign="center",
         css += "color:{};".format(color)
     html = "<span style='{}'>{}</span>".format(css, text)
     label = QtWidgets.QGraphicsTextItem(
-                        "",
-                        # This is kind of hackish: set the parent to the right
-                        # axis so that it is always drawn there.
-                        parent=anchor_parent)
+        "",
+        # This is kind of hackish: set the parent to the right
+        # axis so that it is always drawn there.
+        parent=anchor_parent)
     label.setHtml(html)
 
     # move label
@@ -474,7 +477,8 @@ def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
     return elements
 
 
-def add_isoelastics(plot_item, axis_x, axis_y, channel_width, pixel_size):
+def add_isoelastics(plot_item, axis_x, axis_y, channel_width, pixel_size,
+                    lut_identifier=None):
     elements = []
     isodef = dclab.isoelastics.get_default()
     # We do not use isodef.get_with_rtdcbase, because then the
@@ -484,7 +488,8 @@ def add_isoelastics(plot_item, axis_x, axis_y, channel_width, pixel_size):
     # in Shape-Out 1.
     try:
         iso = isodef.get(
-            lut_identifier="LE-2D-FEM-19",
+            lut_identifier=lut_identifier if lut_identifier
+            else "LE-2D-FEM-19",
             channel_width=channel_width,
             flow_rate=None,
             viscosity=None,
@@ -648,7 +653,13 @@ def compute_contour_opening_angles(plot_state, contour):
         b = np.array(cr) - np.array(c0)
         absa = np.sqrt(np.sum(a ** 2))
         absb = np.sqrt(np.sum(b ** 2))
-        phi = np.arccos(np.sum(a * b) / (absa * absb))
+        denom = absa * absb
+        # avoid division by zero warnings
+        if isinstance(denom, np.ndarray):
+            denom[denom == 0] = np.nan
+        elif denom == 0:
+            denom = np.nan
+        phi = np.arccos(np.sum(a * b) / denom)
         if np.abs(phi) > np.pi/2:
             phi -= np.sign(phi) * np.pi
         opang[jj] = phi
@@ -730,7 +741,7 @@ def set_viewbox(plot, range_x, range_y, scale_x="linear", scale_y="linear",
 
 
 linestyles = {
-    "solid": QtCore.Qt.SolidLine,
-    "dashed": QtCore.Qt.DashLine,
-    "dotted": QtCore.Qt.DotLine,
+    "solid": QtCore.Qt.PenStyle.SolidLine,
+    "dashed": QtCore.Qt.PenStyle.DashLine,
+    "dotted": QtCore.Qt.PenStyle.DotLine,
 }

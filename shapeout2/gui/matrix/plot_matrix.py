@@ -1,6 +1,6 @@
 import copy
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ... import pipeline
 
@@ -12,8 +12,8 @@ class PlotMatrix(QtWidgets.QWidget):
     plot_modify_clicked = QtCore.pyqtSignal(str)
     matrix_changed = QtCore.pyqtSignal()
 
-    def __init__(self, parent=None):
-        super(PlotMatrix, self).__init__(parent)
+    def __init__(self, *args, **kwargs):
+        super(PlotMatrix, self).__init__(*args, **kwargs)
 
         self.glo = None
         self._reset_layout(init=True)
@@ -77,7 +77,7 @@ class PlotMatrix(QtWidgets.QWidget):
             self.old_layout.deleteLater()
         # add new layout
         self.glo = QtWidgets.QGridLayout()
-        self.glo.setAlignment(QtCore.Qt.AlignLeft)
+        self.glo.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
         self.glo.setSpacing(2)
         self.glo.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.glo)
@@ -152,8 +152,8 @@ class PlotMatrix(QtWidgets.QWidget):
             height = self.data_matrix.sizeHint().height()
             self.setMinimumSize(width, height)
             self.setFixedSize(width, height)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             self.setMinimumSize(width, height)
             self.setFixedSize(width, height)
 
@@ -192,8 +192,8 @@ class PlotMatrix(QtWidgets.QWidget):
         ncols = self.glo.columnCount()
         nrows = self.glo.rowCount()
         for ii in range(1, nrows):
-            ds = self.data_matrix.glo.itemAtPosition(ii, 0).widget()
-            if ds.identifier == dataset_id:
+            dw = self.data_matrix.glo.itemAtPosition(ii, 0).widget()
+            if dw.identifier == dataset_id:
                 for jj in range(ncols):
                     f = self.glo.itemAtPosition(0, jj).widget()
                     if f.identifier == plot_id:

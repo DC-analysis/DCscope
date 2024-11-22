@@ -1,9 +1,9 @@
-""""Test stats functionality"""
+"""Test stats functionality"""
 import pathlib
 import tempfile
 from unittest import mock
 
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 from shapeout2.gui.main import ShapeOut2
 from shapeout2 import session

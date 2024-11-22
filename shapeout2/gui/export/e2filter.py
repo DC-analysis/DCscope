@@ -1,7 +1,7 @@
 import pathlib
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtWidgets
+from PyQt6 import uic, QtWidgets
 
 import dclab
 
@@ -11,10 +11,11 @@ from ...util import get_valid_filename
 
 class ExportFilter(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, file_format, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.export", "e2filter.ui")
-        uic.loadUi(path_ui, self)
+        super(ExportFilter, self).__init__(parent=parent, *args, **kwargs)
+        ref = importlib.resources.files("shapeout2.gui.export") / "e2filter.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         #: current analysis pipeline
         self.pipeline = pipeline
         #: export file format

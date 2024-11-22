@@ -1,6 +1,6 @@
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 
 class DlgSlotReorder(QtWidgets.QDialog):
@@ -8,9 +8,10 @@ class DlgSlotReorder(QtWidgets.QDialog):
 
     def __init__(self, pipeline, *args, **kwargs):
         super(DlgSlotReorder, self).__init__(*args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "dlg_slot_reorder.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "dlg_slot_reorder.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.pipeline = pipeline
         for ii, slot in enumerate(pipeline.slots):
@@ -18,7 +19,8 @@ class DlgSlotReorder(QtWidgets.QDialog):
 
         self.toolButton_down.clicked.connect(self.on_move_item)
         self.toolButton_up.clicked.connect(self.on_move_item)
-        btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+        btn_ok = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
         btn_ok.clicked.connect(self.on_ok)
 
     @QtCore.pyqtSlot()

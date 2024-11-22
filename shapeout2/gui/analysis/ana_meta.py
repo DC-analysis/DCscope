@@ -1,19 +1,20 @@
 import numbers
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ... import meta_tool
 
 
 class MetaPanel(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_meta.ui")
-        uic.loadUi(path_ui, self)
+        super(MetaPanel, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_meta.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         self.comboBox_slots.currentIndexChanged.connect(self.update_content)
         self.pipeline_state = None
@@ -48,7 +49,7 @@ class MetaPanel(QtWidgets.QWidget):
 
     def update_info_box(self, group_box, config, section):
         """Populate an individual group box with keyword-value pairs"""
-        group_box.layout().setAlignment(QtCore.Qt.AlignTop)
+        group_box.layout().setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         # cleanup
         for ii in reversed(range(group_box.layout().count())):
             item = group_box.layout().itemAt(ii).widget()
@@ -60,15 +61,17 @@ class MetaPanel(QtWidgets.QWidget):
             for key, value in items:
                 k, v, t = format_config_key_value(section, key, value)
                 widget = QtWidgets.QWidget()
-                widget.setToolTip(t)
                 hbox = QtWidgets.QHBoxLayout()
-                hbox.setAlignment(QtCore.Qt.AlignLeft)
+                hbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
                 hbox.setContentsMargins(0, 0, 0, 0)
                 ldescr = QtWidgets.QLabel(k + ": ")
-                ldescr.setAlignment(QtCore.Qt.AlignTop)
+                ldescr.setToolTip(f"{section}:{key}")
+                ldescr.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
                 hbox.addWidget(ldescr)
                 lvalue = QtWidgets.QLabel(v)
-                lvalue.setAlignment(QtCore.Qt.AlignBottom)
+                if t:
+                    lvalue.setToolTip(t)
+                lvalue.setAlignment(QtCore.Qt.AlignmentFlag.AlignBottom)
                 hbox.addWidget(lvalue)
                 widget.setLayout(hbox)
                 group_box.layout().addWidget(widget)
@@ -94,6 +97,8 @@ class MetaPanel(QtWidgets.QWidget):
             cfg = meta_tool.get_rtdc_config(slot_state["path"])
             self.update_info_box(self.groupBox_experiment, cfg,
                                  "experiment")
+            self.update_info_box(self.groupBox_pipeline, cfg,
+                                 "pipeline")
             self.update_info_box(self.groupBox_fluorescence, cfg,
                                  "fluorescence")
             self.update_info_box(self.groupBox_imaging, cfg,
@@ -116,7 +121,8 @@ def format_config_key_value(section, key, value):
     tip = ""
     # Value formatting
     if dtype == numbers.Number:  # pretty-print floats
-        if value == 0:
+        if abs(value) < 1e-12:
+            # small enough to be considered zero for all metadata
             string = "0.0"
         else:
             # determine number of decimals
@@ -164,6 +170,17 @@ def format_config_key_value(section, key, value):
 def sort_config_section_items(section, items):
     if section == "experiment":
         order = ["sample", "run index", "event count", "date", "time"]
+    elif section == "pipeline":
+        order = ["dcnum generation",
+                 "dcnum data",
+                 "dcnum background",
+                 "dcnum segmenter",
+                 "dcnum feature",
+                 "dcnum gate",
+                 "dcnum hash",
+                 "dcnum mapping",
+                 "dcnum yield",
+                 ]
     elif section == "setup":
         order = ["medium", "channel width"]
     else:

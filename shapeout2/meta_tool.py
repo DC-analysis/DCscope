@@ -14,6 +14,7 @@ class dataset_monitoring_lru_cache:
     with an exception that when the `path` starts with "https://",
     then caching is done as well.
     """
+
     def __init__(self, maxsize=100):
         self.lru_cache = functools.lru_cache(maxsize=maxsize)
         self.cached_wrapper = None

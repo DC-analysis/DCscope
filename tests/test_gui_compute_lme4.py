@@ -2,11 +2,15 @@
 import pathlib
 import socket
 
+from dclab.lme4 import rsetup
 from shapeout2.gui.main import ShapeOut2
 from shapeout2 import session
 from shapeout2.gui.compute.comp_lme4 import ComputeSignificance
 import pytest
 
+
+if not (rsetup.has_r() and rsetup.has_lme4()):
+    pytest.skip(allow_module_level=True)
 
 data_path = pathlib.Path(__file__).parent / "data"
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -29,6 +33,8 @@ def run_around_tests():
 
 
 @pytest.mark.skipif(not NET_AVAILABLE, reason="No network connection!")
+@pytest.mark.filterwarnings(
+    'ignore::dclab.rtdc_dataset.config.WrongConfigurationTypeWarning')
 def test_lme4_with_dcor_session(qtbot):
     """
     Open a session with DCOR data and perform lme4 analysis from
@@ -68,6 +74,8 @@ def test_lme4_with_dcor_session(qtbot):
 
 
 @pytest.mark.skipif(not NET_AVAILABLE, reason="No network connection!")
+@pytest.mark.filterwarnings(
+    'ignore::dclab.rtdc_dataset.config.WrongConfigurationTypeWarning')
 def test_lme4_with_dcor_session_differential(qtbot):
     """
     Perform differential deformation test

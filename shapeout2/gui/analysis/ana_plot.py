@@ -1,9 +1,9 @@
 import copy
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 from ...pipeline import Plot
 from ...pipeline.plot import STATE_OPTIONS
@@ -23,10 +23,11 @@ class PlotPanel(QtWidgets.QWidget):
     pipeline_changed = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_plot.ui")
-        uic.loadUi(path_ui, self)
+        super(PlotPanel, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_plot.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         # current Shape-Out 2 pipeline
         self._pipeline = None
@@ -63,8 +64,6 @@ class PlotPanel(QtWidgets.QWidget):
         self.toolButton_spacing_auto.clicked.connect(self.on_spacing_auto)
 
     def __getstate__(self):
-        feats_srt = self.get_features()
-
         rx = self.widget_range_x.__getstate__()
         ry = self.widget_range_y.__getstate__()
 
@@ -92,9 +91,10 @@ class PlotPanel(QtWidgets.QWidget):
             },
             "general": {
                 "auto range": self.checkBox_auto_range.isChecked(),
-                "axis x": feats_srt[self.comboBox_axis_x.currentIndex()],
-                "axis y": feats_srt[self.comboBox_axis_y.currentIndex()],
+                "axis x": self.comboBox_axis_x.currentData(),
+                "axis y": self.comboBox_axis_y.currentData(),
                 "isoelastics": self.checkBox_isoelastics.isChecked(),
+                "lut": self.comboBox_lut.currentData(),
                 "kde": self.comboBox_kde.currentData(),
                 "range x": [rx["start"], rx["end"]],
                 "range y": [ry["start"], ry["end"]],
@@ -135,7 +135,6 @@ class PlotPanel(QtWidgets.QWidget):
     def __setstate__(self, state):
         if self.current_plot.identifier != state["identifier"]:
             raise ValueError("Plot identifier mismatch!")
-        feats_srt = self.get_features()
         toblock = [
             self.comboBox_axis_x,
             self.comboBox_axis_y,
@@ -158,9 +157,13 @@ class PlotPanel(QtWidgets.QWidget):
         # General
         gen = state["general"]
         self.checkBox_auto_range.setChecked(gen["auto range"])
-        self.comboBox_axis_x.setCurrentIndex(feats_srt.index(gen["axis x"]))
-        self.comboBox_axis_y.setCurrentIndex(feats_srt.index(gen["axis y"]))
+        self.comboBox_axis_x.setCurrentIndex(
+            self.comboBox_axis_x.findData(gen["axis x"]))
+        self.comboBox_axis_y.setCurrentIndex(
+            self.comboBox_axis_y.findData(gen["axis y"]))
         self.checkBox_isoelastics.setChecked(gen["isoelastics"])
+        lut_index = self.comboBox_lut.findData(gen.get("lut", "LE-2D-FEM-19"))
+        self.comboBox_lut.setCurrentIndex(lut_index)
         kde_index = self.comboBox_kde.findData(gen["kde"])
         self.comboBox_kde.setCurrentIndex(kde_index)
         scx_index = self.comboBox_scale_x.findData(gen["scale x"])
@@ -181,10 +184,8 @@ class PlotPanel(QtWidgets.QWidget):
         hue_index = self.comboBox_marker_hue.findData(sca["marker hue"])
         self.comboBox_marker_hue.setCurrentIndex(hue_index)
         self.doubleSpinBox_marker_size.setValue(sca["marker size"])
-        if sca["hue feature"] in feats_srt:
-            feat_index = feats_srt.index(sca["hue feature"])
-        else:
-            feat_index = 0  # feature not available in datasets
+        feat_index = self.comboBox_marker_feature.findData(sca["hue feature"])
+        feat_index = feat_index or 0
         self.comboBox_marker_feature.setCurrentIndex(feat_index)
         color_index = COLORMAPS.index(sca["colormap"])
         self.comboBox_colormap.setCurrentIndex(color_index)
@@ -213,6 +214,11 @@ class PlotPanel(QtWidgets.QWidget):
 
     def _init_controls(self):
         """All controls that are not subject to change"""
+        # LUT
+        self.comboBox_lut.clear()
+        lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
+        for lut_id in lut_dict.keys():
+            self.comboBox_lut.addItem(lut_id, lut_id)
         # KDE
         kde_names = STATE_OPTIONS["general"]["kde"]
         self.comboBox_kde.clear()
@@ -320,7 +326,7 @@ class PlotPanel(QtWidgets.QWidget):
         for spacing, spinBox in zip([spacing_x, spacing_y],
                                     [self.doubleSpinBox_spacing_x,
                                      self.doubleSpinBox_spacing_y]):
-            if spacing is None or np.isnan(spacing):
+            if spacing is None or np.isnan(spacing) or spacing == 0:
                 continue
             else:
                 if spacing >= 1:
@@ -607,7 +613,7 @@ class PlotPanel(QtWidgets.QWidget):
                     cb.addItem(dclab.dfn.get_feature_label(feat), feat)
                 if curfeat is not None:
                     # write back current selection
-                    curidx = feats_srt.index(curfeat)
+                    curidx = cb.findData(curfeat)
                     cb.setCurrentIndex(curidx)
                 cb.blockSignals(False)
             # populate content

@@ -12,7 +12,6 @@ on disk, you can use the *Statistics* tool available via the *Compute* menu.
 .. _qg_statistics_init:
 .. figure:: scrots/qg_statistics_init.png
     :target: _images/qg_statistics_init.png
-    :align: right
 
     Statistics export of current session
 
@@ -25,7 +24,6 @@ left and the desired statistics in the table on the right.
 .. _qg_statistics_folder:
 .. figure:: scrots/qg_statistics_folder.png
     :target: _images/qg_statistics_folder.png
-    :align: right
 
     Compute statistics for other data
 

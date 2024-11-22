@@ -1,14 +1,14 @@
 import copy
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 import dclab
 
 from ...pipeline import Filter
 
 from ..widgets import RangeControl
-from .. import idiom
+from ... import idiom
 
 
 class FilterPanel(QtWidgets.QWidget):
@@ -28,10 +28,11 @@ class FilterPanel(QtWidgets.QWidget):
     request_new_polygon_filter = QtCore.pyqtSignal()
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_filter.ui")
-        uic.loadUi(path_ui, self)
+        super(FilterPanel, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_filter.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
         # current Shape-Out 2 pipeline
         self._pipeline = None
         self.setUpdatesEnabled(False)
@@ -44,6 +45,7 @@ class FilterPanel(QtWidgets.QWidget):
         self.toolButton_remove.clicked.connect(self.on_remove_filter)
         self.pushButton_apply.clicked.connect(self.write_filter)
         self.pushButton_reset.clicked.connect(self.update_content)
+
         self.comboBox_filters.currentIndexChanged.connect(self.update_content)
         self.toolButton_moreless.clicked.connect(self.on_moreless)
         self.label_box_edit.setVisible(False)
@@ -111,7 +113,7 @@ class FilterPanel(QtWidgets.QWidget):
         """
         feats, labs = self.get_features_labels()
 
-        self.verticalLayout_box.setAlignment(QtCore.Qt.AlignTop)
+        self.verticalLayout_box.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         for lab, feat in sorted(zip(labs, feats)):
             integer = True if feat in idiom.INTEGER_FEATURES else False
@@ -128,7 +130,7 @@ class FilterPanel(QtWidgets.QWidget):
                 # Insert the control at the correct position (label-sorted)
                 rcf = list(self._box_range_controls.keys())
                 rcl = [dclab.dfn.get_feature_label(ft) for ft in rcf]
-                index = sorted(rcl + [lab]).index(lab) + 1  # +1 b/c new list
+                index = sorted(rcl + [lab]).index(lab)
                 self.verticalLayout_box.insertWidget(index, rc)
                 self._box_range_controls[feat] = rc
 
@@ -293,7 +295,7 @@ class FilterPanel(QtWidgets.QWidget):
 
     def update_polygon_filters(self, update_state=True):
         """Update the layout containing the polygon filters"""
-        self.verticalLayout_poly.setAlignment(QtCore.Qt.AlignTop)
+        self.verticalLayout_poly.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         # clear layout
         for ii in reversed(range(self.verticalLayout_poly.count())):
             item = self.verticalLayout_poly.itemAt(ii).widget()
@@ -305,7 +307,7 @@ class FilterPanel(QtWidgets.QWidget):
             for pf in dclab.PolygonFilter.instances:
                 widget = QtWidgets.QWidget()
                 hbox = QtWidgets.QHBoxLayout()
-                hbox.setAlignment(QtCore.Qt.AlignLeft)
+                hbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
                 hbox.setContentsMargins(0, 0, 0, 0)
                 chb = QtWidgets.QCheckBox()
                 hbox.addWidget(chb)

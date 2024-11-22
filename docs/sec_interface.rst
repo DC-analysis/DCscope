@@ -3,51 +3,17 @@ User Interface
 ==============
 
 
-Differences to Shape-Out 1
-==========================
-Shape-Out 2 is a complete rewrite of the user interface from scratch.
-The overall user experience is much better compared to Shape-Out 1.
-The main reasons for the development of Shape-Out 2 were:
-
-- The graphical user interface (GUI) of Shape-Out 1 was designed to
-  be flexible with regard to new configuration parameters. While this
-  played well for the beginning of RT-DC development, the GUI now appears
-  not very thought-out for a mature measuring technique. The workflow
-  of Shape-Out 2 has been designed to meet most of its users needs.
-- Shape-Out 1 is condemned to Python 2 (which reached its end of life
-  January 1st 2020), because it relies on the combination of chaco
-  (for plotting) with wxPython 3 (for the GUI). Chaco is now focusing
-  on PyQt and thus does not support the new wxPython 4. However,
-  wxPython 3 does not support Python 3, so we are stuck with Python 2.
-- For Shape-Out 1, there appeared a `weird issue
-  <https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut/issues/243>`_
-  which is probably related to the old wxPython library and some other
-  software installed on some Windows systems.
-
-Both versions of Shape-Out rely on :ref:`dclab <dclab:index>` which
-provides the core functionalities for RT-DC data analysis. There are,
-however, a few breaking changes that might prevent you from moving
-your data analysis from Shape-Out 1 to Shape-Out 2:
-
-- Shape-Out 2 does not anymore support the .tdms file format. If you
-  would like to use .tdms data in Shape-Out 2, you have to convert those
-  data to the .rtdc file format first. You can do just that with
-  `DCKit <https://github.com/DC-analysis/DCKit/releases/latest>`_,
-  which provides a convenient GUI for several other RT-DC data
-  management tasks as well. The .rtdc file format is faster, occupies less
-  space on disk, and consists of only one file per measurement
-  (no more para.ini, etc.).
-- Shape-Out 1 sessions cannot be opened in Shape-Out 2. This is mostly
-  caused by the different approach to data analysis. In principle, it
-  could be possible to convert sessions (including the corresponding
-  .tdms files), but the effort in doing so would probably exceed the
-  effort required to just rebuild a clean analysis session in Shape-Out 2.
-
-
 Terminology
 ===========
 Shape-Out 2 introduces several terms in the user interface that also play
 a role in data analysis and are consequently used in the entire code base.
+
+basin
+    A source of feature data stored in datasets other than the one opened
+    by the user. For an overview on basins, please take a look at the
+    :ref:`dclab documentation <dclab:sec_av_basins>`. When exporting data
+    from Shape-Out, the original dataset can be referenced via basins,
+    allowing you to reduce data redundancy.
 
 block matrix
     The :ref:`sec_block_matrix` is a visualization of the analysis
@@ -83,7 +49,6 @@ Basic usage
 ===========
 .. image:: scrots/ui_main.png
     :target: _images/ui_main.png
-    :align: right
     :scale: 20%
 
 The user interface is split into several parts: the menu bar and the tool
@@ -108,7 +73,6 @@ Block Matrix
 ------------
 .. image:: scrots/ui_block_matrix.png
     :target: _images/ui_block_matrix.png
-    :align: right
     :scale: 65%
 
 The Block Matrix gives an overview of the current analysis
@@ -202,7 +166,18 @@ tool panels that are accessible via the corresponding tool buttons on the right.
 
 
 Use the **Plot** panel to define all plot parameters. It also displays
-common statistics of the two features plotted.
+common statistics of the two features plotted. The drop down menus for the
+`X` and `Y` axes list the available features for the current dataset. The
+background color for each of the features is an indicator for the feature
+availability:
+
+- *green*: The feature data are present in the current dataset or are
+  already computed.
+- *blue*: The feature data are part of another dataset,
+  a :ref:`basin <dclab:sec_av_basins>`, which may at a remote location
+  (e.g. on `DCOR <https://dcor.mpl.mpg.de/>`_) or on the local file system.
+- *orange*: The feature data must be computed before it can be displayed. The
+  feature is an :ref:`ancillary feature <dclab:sec_features_ancillary>`.
 
 .. image:: scrots/ui_qv_settings.png
     :target: _images/ui_qv_settings.png

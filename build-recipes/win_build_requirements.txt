@@ -1,4 +1,3 @@
 # Any additional requirements for building the application
-# https://github.com/rpy2/rpy2/issues/796
-rpy2==3.4.5
 pyinstaller
+scipy==1.11.4  # hat problems with pyinstaller (scipy.special._cdflib not found)

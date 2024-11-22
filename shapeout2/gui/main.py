@@ -1,20 +1,20 @@
-import os.path as os_path
 import pathlib
-import pkg_resources
+import importlib.resources
 import signal
 import sys
 import traceback
+import warnings
 import webbrowser
 
 import dclab
-from dclab.lme4.rlibs import rpy2, MockRPackage
 from dclab.lme4 import rsetup
 import h5py
 import numpy
 import scipy
 
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import QStandardPaths
+from PyQt6.QtWidgets import QMessageBox
 import pyqtgraph as pg
 
 from . import analysis
@@ -34,19 +34,21 @@ from .. import session
 
 from .._version import version
 
-
 # global plotting configuration parameters
 pg.setConfigOption("background", None)
 pg.setConfigOption("foreground", "k")
 pg.setConfigOption("antialias", True)
 pg.setConfigOption("imageAxisOrder", "row-major")
 
-
 # set Qt icon theme search path
-QtGui.QIcon.setThemeSearchPaths([
-    os_path.join(pkg_resources.resource_filename("shapeout2", "img"),
-                 "icon-theme")])
-QtGui.QIcon.setThemeName(".")
+ref = importlib.resources.files("shapeout2.img") / "icon.png"
+with importlib.resources.as_file(ref) as icon_path:
+    theme_path = icon_path.with_name("icon-theme")
+if theme_path.exists():
+    QtGui.QIcon.setThemeSearchPaths([str(theme_path)])
+    QtGui.QIcon.setThemeName(".")
+else:
+    warnings.warn("ShapeOut theme path not available")
 
 
 class ShapeOut2(QtWidgets.QMainWindow):
@@ -59,9 +61,11 @@ class ShapeOut2(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
-        QtWidgets.QMainWindow.__init__(self)
-        path_ui = pkg_resources.resource_filename("shapeout2.gui", "main.ui")
-        uic.loadUi(path_ui, self)
+        super(ShapeOut2, self).__init__()
+        ref = importlib.resources.files("shapeout2.gui") / "main.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         # update check
         self._update_thread = None
         self._update_worker = None
@@ -72,26 +76,40 @@ class ShapeOut2(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.setOrganizationName("Zellmechanik-Dresden")
         QtCore.QCoreApplication.setOrganizationDomain("zellmechanik.com")
         QtCore.QCoreApplication.setApplicationName("shapeout2")
-        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.IniFormat)
+        QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
+
         #: Shape-Out settings
         self.settings = QtCore.QSettings()
-        self.settings.setIniCodec("utf-8")
         # Register custom DCOR CA bundle directory with dclab
         ca_path = pathlib.Path(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation)) / "certificates"
+                QStandardPaths.StandardLocation.AppDataLocation)
+        ) / "certificates"
         ca_path.mkdir(exist_ok=True, parents=True)
         dclab.rtdc_dataset.fmt_dcor.DCOR_CERTS_SEARCH_PATHS.append(ca_path)
         # Register user-defined DCOR API Key in case the user wants to
         # open a session with private data.
         api_key = self.settings.value("dcor/api key", "")
         dclab.rtdc_dataset.fmt_dcor.api.APIHandler.add_api_key(api_key)
+        # Register S3 access settings in dclab
+        s3_endpoint_url = self.settings.value("s3/endpoint url", "")
+        if s3_endpoint_url:
+            dclab.rtdc_dataset.fmt_s3.S3_ENDPOINT_URL = s3_endpoint_url
+        s3_access_key_id = self.settings.value("s3/access key id", "")
+        if s3_access_key_id:
+            dclab.rtdc_dataset.fmt_s3.S3_ACCESS_KEY_ID = s3_access_key_id
+        s3_secret_access_key = self.settings.value("s3/secret access key", "")
+        if s3_secret_access_key:
+            dclab.rtdc_dataset.fmt_s3.S3_SECRET_ACCESS_KEY = \
+                s3_secret_access_key
+
         #: Analysis pipeline
         self.pipeline = pipeline.Pipeline()
         #: Extensions
-        store_path = os_path.join(
+        store_path = pathlib.Path(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation), "extensions")
+                QStandardPaths.StandardLocation.AppDataLocation)
+        ) / "extensions"
         try:
             self.extensions = ExtensionManager(store_path)
         except BaseException:
@@ -100,7 +118,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
                 "Extensions automatically disabled",
                 "Some extensions could not be loaded and were disabled:\n\n"
                 + traceback.format_exc(),
-                )
+            )
         # GUI
         self.setWindowTitle(f"Shape-Out {version}")
         # Disable native menu bar (e.g. on Mac)
@@ -126,8 +144,6 @@ class ShapeOut2(QtWidgets.QMainWindow):
             self.on_action_compute_statistics)
         self.actionComputeSignificance.triggered.connect(
             self.on_action_compute_significance)
-        self.actionComputeSignificance.setVisible(
-            not isinstance(rpy2, MockRPackage))  # only show if rpy2 is there
         # Export menu
         # data
         self.actionExportData.triggered.connect(self.on_action_export_data)
@@ -192,7 +208,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             self.on_quickview_refresh)  # might be an active filter (#26)
         self.widget_quick_view.polygon_filter_modified.connect(
             self.plots_changed)  # might be an active filter (#26)
-        # This is important, because if meta data such as emodulus recipe
+        # This is important, because if metadata such as emodulus recipe
         # is changed, the QuickView must be updated as well.
         self.plots_changed.connect(self.widget_quick_view.plot)
         # plot signals
@@ -202,8 +218,8 @@ class ShapeOut2(QtWidgets.QMainWindow):
         # if "--version" was specified, print the version and exit
         if "--version" in arguments:
             print(version)
-            QtWidgets.QApplication.processEvents(QtCore.QEventLoop.AllEvents,
-                                                 300)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             sys.exit(0)
         else:
             # deal with any other arguments that might have been passed
@@ -430,6 +446,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         self.block_matrix.update()
         return slot_ids
 
+    @QtCore.pyqtSlot()
     def add_filter(self):
         """Add a filter using tool buttons"""
         filt_id = self.pipeline.add_filter()
@@ -439,6 +456,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         self.block_matrix.update()
         return filt_id
 
+    @QtCore.pyqtSlot()
     def add_plot(self):
         plot_id = self.pipeline.add_plot()
         self.block_matrix.add_plot(identifier=plot_id)
@@ -449,6 +467,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         self.block_matrix.update()
         return plot_id
 
+    @QtCore.pyqtSlot()
     def add_plot_window(self, plot_id):
         """Create a plot window if necessary and show it"""
         if plot_id in self.subwindows_plots:
@@ -507,23 +526,24 @@ class ShapeOut2(QtWidgets.QMainWindow):
 
     def init_analysis_view(self):
         sub = widgets.MDISubWindowWOButtons(self)
-        self.widget_ana_view = analysis.AnalysisView()
-        self.subwindows["analysis_view"] = sub
+        self.widget_ana_view = analysis.AnalysisView(parent=self)
         sub.setWidget(self.widget_ana_view)
-        sub.hide()
-        self.mdiArea.addSubWindow(sub)
+        self.subwindows["analysis_view"] = sub
+        # signals
         self.toolButton_ana_view.clicked.connect(sub.setVisible)
         # applying a new filter triggers updating QuickView
         self.widget_ana_view.widget_filter.pushButton_apply.clicked.connect(
             self.on_quickview_refresh)
+        sub.hide()
+        self.mdiArea.addSubWindow(sub)
 
     def init_quick_view(self):
         sub = widgets.MDISubWindowWOButtons(self)
-        self.widget_quick_view = quick_view.QuickView()
+        self.widget_quick_view = quick_view.QuickView(parent=self)
         sub.setWidget(self.widget_quick_view)
-        self.toolButton_quick_view.clicked.connect(self.on_quickview)
         self.subwindows["quick_view"] = sub
         # signals
+        self.toolButton_quick_view.clicked.connect(self.on_quickview)
         self.block_matrix.quickviewed.connect(self.on_quickview_show_dataset)
         sub.hide()
         self.mdiArea.addSubWindow(sub)
@@ -532,14 +552,13 @@ class ShapeOut2(QtWidgets.QMainWindow):
     def on_action_about(self):
         gh = "ZELLMECHANIK-DRESDEN/ShapeOut2"
         rtd = "shapeout2.readthedocs.io"
-        about_text = "Shape-Out 2 is the successor of Shape-Out, " \
-            + "a graphical user interface for the analysis and " \
-            + "visualization of RT-DC data sets.<br><br>" \
-            + "Author: Paul Müller<br>" \
-            + "GitHub: " \
-            + "<a href='https://github.com/{gh}'>{gh}</a><br>".format(gh=gh) \
-            + "Documentation: " \
-            + "<a href='https://{rtd}'>{rtd}</a><br>".format(rtd=rtd)
+        about_text = (
+            f"Shape-Out 2 is a graphical user interface for the analysis "
+            f"and visualization of deformability cytometry data sets.<br><br>"
+            f"Author: Paul Müller<br>"
+            f"GitHub: <a href='https://github.com/{gh}'>{gh}</a><br>"
+            f"Documentation: <a href='https://{rtd}'>{rtd}</a><br>"
+        )
         QtWidgets.QMessageBox.about(self, f"Shape-Out {version}", about_text)
 
     @QtCore.pyqtSlot()
@@ -563,12 +582,13 @@ class ShapeOut2(QtWidgets.QMainWindow):
 
             ghrepo = "ZELLMECHANIK-DRESDEN/ShapeOut2"
 
-            QtCore.QMetaObject.invokeMethod(self._update_worker,
-                                            'processUpdate',
-                                            QtCore.Qt.QueuedConnection,
-                                            QtCore.Q_ARG(str, version),
-                                            QtCore.Q_ARG(str, ghrepo),
-                                            )
+            QtCore.QMetaObject.invokeMethod(
+                self._update_worker,
+                'processUpdate',
+                QtCore.Qt.ConnectionType.QueuedConnection,
+                QtCore.Q_ARG(str, version),
+                QtCore.Q_ARG(str, ghrepo),
+            )
 
     @QtCore.pyqtSlot(dict)
     def on_action_check_update_finished(self, mdict):
@@ -583,7 +603,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         dlb = mdict["binary url"]
         msg = QtWidgets.QMessageBox()
         msg.setWindowTitle("Shape-Out {} available!".format(ver))
-        msg.setTextFormat(QtCore.Qt.RichText)
+        msg.setTextFormat(QtCore.Qt.TextFormat.RichText)
         text = "You can install Shape-Out {} ".format(ver)
         if dlb is not None:
             text += 'from a <a href="{}">direct download</a>. '.format(dlb)
@@ -591,7 +611,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             text += 'by running `pip install --upgrade shapeout2`. '
         text += 'Visit the <a href="{}">official release page</a>!'.format(web)
         msg.setText(text)
-        msg.exec_()
+        msg.exec()
 
     @QtCore.pyqtSlot()
     def on_action_compute_emodulus(self):
@@ -608,7 +628,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         else:
             QtWidgets.QMessageBox.critical(
                 self, "R not found!",
-                "The R executable was not found by rpy2. Please add it "
+                "The R executable was not found. Please add it "
                 + "to the PATH variable or define it manually in the "
                 + "Shape-Out preferences.")
 
@@ -623,9 +643,9 @@ class ShapeOut2(QtWidgets.QMainWindow):
         if bool(int(self.settings.value("advanced/user confirm clear", "1"))):
             button_reply = QtWidgets.QMessageBox.question(
                 self, 'Clear Session', "All progress will be lost. Continue?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No)
-            yes = button_reply == QtWidgets.QMessageBox.Yes
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No)
+            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         else:
             yes = True
         if yes:
@@ -641,9 +661,9 @@ class ShapeOut2(QtWidgets.QMainWindow):
             button_reply = QtWidgets.QMessageBox.question(
                 self, 'Clear Datasets',
                 "Remove all datasets from this session?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No,
-                QtWidgets.QMessageBox.No)
-            yes = button_reply == QtWidgets.QMessageBox.Yes
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No)
+            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
         else:
             yes = True
         if yes:
@@ -773,7 +793,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
             path, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self, 'Open session', '', 'Shape-Out 2 session (*.so2)',
                 'Shape-Out 2 session (*.so2)',
-                QtWidgets.QFileDialog.DontUseNativeDialog)
+                QtWidgets.QFileDialog.Option.DontUseNativeDialog)
         if path:
             search_paths = []
             while True:
@@ -783,13 +803,13 @@ class ShapeOut2(QtWidgets.QMainWindow):
                 except session.DataFileNotFoundError as e:
                     missds = "\r".join([str(pp) for pp in e.missing_paths])
                     msg = QtWidgets.QMessageBox()
-                    msg.setIcon(QtWidgets.QMessageBox.Warning)
+                    msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
                     msg.setText("Some datasets were not found! "
                                 + "Please specify a search location.")
                     msg.setWindowTitle(
                         "Missing {} dataset(s)".format(len(e.missing_paths)))
                     msg.setDetailedText("Missing files: \n\n" + missds)
-                    msg.exec_()
+                    msg.exec()
                     spath = QtWidgets.QFileDialog.getExistingDirectory(
                         self, 'Data search path')
                     if spath:
@@ -838,15 +858,13 @@ class ShapeOut2(QtWidgets.QMainWindow):
                 pg,
                 scipy,
                 ]
-        if not isinstance(rpy2, MockRPackage):
-            libs.append(rpy2)
 
         sw_text = f"Shape-Out {version}\n\n"
         sw_text += f"Python {sys.version}\n\n"
         sw_text += "Modules:\n"
         for lib in libs:
             sw_text += f"- {lib.__name__} {lib.__version__}\n"
-        sw_text += f"- PyQt5 {QtCore.QT_VERSION_STR}\n"  # Extrawurst
+        sw_text += f"- PyQt6 {QtCore.QT_VERSION_STR}\n"  # Extrawurst
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
         if hasattr(sys, 'frozen'):
             sw_text += "\nThis executable has been created using PyInstaller."
@@ -876,10 +894,10 @@ class ShapeOut2(QtWidgets.QMainWindow):
     def on_new_polygon_filter(self):
         if not self.pipeline.slots:
             msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
             msg.setText("A dataset is required for creating a polygon filter!")
             msg.setWindowTitle("No dataset loaded")
-            msg.exec_()
+            msg.exec()
         else:
             slot_index, _ = self.block_matrix.get_quickview_indices()
             if slot_index is None:
@@ -986,6 +1004,7 @@ class ShapeOut2(QtWidgets.QMainWindow):
         else:
             self.toolButton_dm.setChecked(True)
 
+    @QtCore.pyqtSlot()
     def reload_pipeline(self):
         """Convenience function for reloading the current pipeline"""
         self.adopt_pipeline(self.pipeline.__getstate__())
@@ -1008,16 +1027,17 @@ def excepthook(etype, value, trace):
     exception = "".join([vinfo]+tmp)
 
     errorbox = QtWidgets.QMessageBox()
-    errorbox.setIcon(QtWidgets.QMessageBox.Critical)
+    errorbox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
     errorbox.addButton(QtWidgets.QPushButton('Close'),
-                       QtWidgets.QMessageBox.YesRole)
+                       QtWidgets.QMessageBox.ButtonRole.YesRole)
     errorbox.addButton(QtWidgets.QPushButton(
-        'Copy text && Close'), QtWidgets.QMessageBox.NoRole)
+        'Copy text && Close'), QtWidgets.QMessageBox.ButtonRole.NoRole)
     errorbox.setText(exception)
-    ret = errorbox.exec_()
+    ret = errorbox.exec()
+    print(exception)
     if ret == 1:
         cb = QtWidgets.QApplication.clipboard()
-        cb.clear(mode=cb.Clipboard)
+        cb.clear(mode=cb.Mode.Clipboard)
         cb.setText(exception)
 
 

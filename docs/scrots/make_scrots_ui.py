@@ -6,8 +6,8 @@ import pathlib
 import sys
 
 import dclab
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui.main import ShapeOut2
 from shapeout2 import session
 
@@ -27,29 +27,29 @@ mw.reload_pipeline()
 # analysis view
 mw.on_modify_slot(mw.pipeline.slot_ids[0])
 mw.widget_ana_view.repaint()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_ana_view.grab().save("_ui_ana_slot.png")
 
 mw.subwindows["analysis_view"].move(200, 300)
 
 # main window
 mw.update()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.grab().save("_ui_main.png")
 
 mw.on_modify_filter(mw.pipeline.filter_ids[0])
 mw.widget_ana_view.repaint()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_ana_view.grab().save("_ui_ana_filter.png")
 
 mw.on_modify_plot(mw.pipeline.plot_ids[0])
 mw.widget_ana_view.repaint()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_ana_view.grab().save("_ui_ana_plot.png")
 
 mw.widget_ana_view.tabWidget.setCurrentIndex(0)
 mw.widget_ana_view.repaint()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_ana_view.grab().save("_ui_ana_meta.png")
 
 # plots
@@ -73,11 +73,11 @@ mw.widget_quick_view.comboBox_xscale.setCurrentIndex(1)
 mw.widget_quick_view.comboBox_yscale.setCurrentIndex(1)
 mw.widget_quick_view.checkBox_hue.click()
 mw.widget_quick_view.toolButton_apply.click()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_settings.png")
 mw.widget_quick_view.toolButton_event.toggle()
 mw.widget_quick_view.spinBox_event.setValue(4829)
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_event.png")
 # manually create a polygon filter with points from the poly file
 mw.widget_quick_view.toolButton_poly.toggle()
@@ -91,13 +91,13 @@ cellimg, imkw = mw.widget_quick_view.get_event_image(
     42)
 mw.widget_quick_view.imageView_image_poly.setImage(cellimg, **imkw)
 mw.widget_quick_view.imageView_image_poly.show()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_poly.png")
 
 # block matrix
 mw.block_matrix.setFixedSize(420, 320)
 mw.block_matrix.repaint()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.block_matrix.scrollArea_block.grab().save("_ui_block_matrix.png")
 
 mw.close()

@@ -28,7 +28,7 @@ def get_valid_filename(value):
         elif ch in replace:
             ret += replace[ch]
         else:
-            ret += "?"
+            ret += "-"
 
     ret = ret.strip(".")
     return ret

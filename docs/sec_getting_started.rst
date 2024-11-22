@@ -45,6 +45,24 @@ Help menu) and notifies the user when a new version is available.
        pip install --upgrade shapeout2
 
 
+Supported data file formats
+===========================
+Shape-Out 2 exclusively supports the .rtdc data file format. This file format is
+based on the `HDF5 format <https://en.wikipedia.org/wiki/Hierarchical_Data_Format>`_
+which makes it portable, consistent, and efficient.
+
+If you have **.tdms-based datasets** (created using antique versions of Shape-In),
+you can still use the data after you have converted them to .rtdc files using
+`DCKit <https://github.com/DC-analysis/DCKit/releases/latest>`_,
+which provides a convenient GUI for several other RT-DC data
+management tasks as well. The .rtdc file format is faster than the .tdms file
+format, occupies less disk space, and consists of only one file per measurement.
+
+If you have **raw .rtdc files** that only contain the recorded images and no
+extracted events, you can perform segmentation and feature extraction using
+`ChipStream <https://github.com/DC-analysis/ChipStream/releases/latest>`_.
+
+
 How to cite
 ===========
 If you use Shape-Out in a scientific publication, please cite it with:
@@ -56,4 +74,4 @@ If you use Shape-Out in a scientific publication, please cite it with:
    Available at https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2.
 
 If the journal does not accept ``and others``, you can fill in the missing
-names from the `credits file <https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/blob/master/CREDITS>`_.
+names in the authors section of the `pyproject.toml file <https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/blob/master/pyproject.toml>`_.

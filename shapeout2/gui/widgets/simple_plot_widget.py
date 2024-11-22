@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 import pyqtgraph as pg
 from pyqtgraph import exporters
 
@@ -71,8 +71,8 @@ class SimplePlotWidget(pg.PlotWidget):
     - those of SimplePlotItem
     """
 
-    def __init__(self, parent=None, background='w', **kargs):
-        plot_item = SimplePlotItem(**kargs)
+    def __init__(self, parent=None, background='w', **item_kwargs):
+        plot_item = SimplePlotItem(**item_kwargs)
         super(SimplePlotWidget, self).__init__(parent,
                                                background=background,
                                                plotItem=plot_item)
@@ -109,5 +109,5 @@ class SimpleViewBox(pg.ViewBox):
                        lambda: self.export.emit("svg"))
 
         pos = ev.screenPos()
-        menu.popup(QtCore.QPoint(pos.x(), pos.y()))
+        menu.popup(QtCore.QPoint(int(pos.x()), int(pos.y())))
         return True

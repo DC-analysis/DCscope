@@ -2,8 +2,8 @@
 import pathlib
 import sys
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import compute
 
@@ -54,12 +54,12 @@ feat_id = dlg.comboBox_feat.findData("deform")
 dlg.comboBox_feat.setCurrentIndex(feat_id)
 
 dlg.show()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_lme4_diff_init.png")
 
 dlgr = dlg.on_lme4(ret_dlg=True)
 dlgr.show()
-QApplication.processEvents(QtCore.QEventLoop.AllEvents, 300)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlgr.grab().save("_qg_lme4_diff_results.png")
 
 mw.close()

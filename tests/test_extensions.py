@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from dclab.rtdc_dataset import feat_anc_ml, feat_anc_plugin
+from dclab.rtdc_dataset import feat_anc_plugin
 from shapeout2 import extensions
 
 
@@ -21,7 +21,6 @@ def cleanup_plugin_features():
     yield
     # code run after the test
     # remove our test plugin examples
-    feat_anc_ml.remove_all_ml_features()
     feat_anc_plugin.remove_all_plugin_features()
 
 
@@ -99,11 +98,8 @@ def test_em_load_from_store():
     assert 0 not in em2, "sanity check"
 
 
-@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
-                                       "ext_feat_anc_plugin_ca.py"])
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_plugin_ca.py"])
 def test_ex_all_enabled(path_name):
-    if path_name.endswith(".modc"):
-        pytest.importorskip("tensorflow")
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
     path_used = tmpd / path_name
     shutil.copy2(data_path / path_name, path_used)
@@ -113,11 +109,8 @@ def test_ex_all_enabled(path_name):
     assert not ex.enabled
 
 
-@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
-                                       "ext_feat_anc_plugin_ca.py"])
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_plugin_ca.py"])
 def test_ex_all_loaded(path_name):
-    if path_name.endswith(".modc"):
-        pytest.importorskip("tensorflow")
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
     path_used = tmpd / path_name
     shutil.copy2(data_path / path_name, path_used)
@@ -136,11 +129,8 @@ def test_ex_all_loaded(path_name):
     assert not ex.path_lock_disabled.exists()
 
 
-@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
-                                       "ext_feat_anc_plugin_ca.py"])
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_plugin_ca.py"])
 def test_ex_all_loaded_2(path_name):
-    if path_name.endswith(".modc"):
-        pytest.importorskip("tensorflow")
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
     path_used = tmpd / path_name
     shutil.copy2(data_path / path_name, path_used)
@@ -155,39 +145,13 @@ def test_ex_all_loaded_2(path_name):
     assert ex.enabled
 
 
-@pytest.mark.parametrize("path_name", ["ext_feat_anc_ml_tf_rbc.modc",
-                                       "ext_feat_anc_plugin_ca.py"])
+@pytest.mark.parametrize("path_name", ["ext_feat_anc_plugin_ca.py"])
 def test_ex_all_repr(path_name):
-    if path_name.endswith(".modc"):
-        pytest.importorskip("tensorflow")
     tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
     path_used = tmpd / path_name
     shutil.copy2(data_path / path_name, path_used)
     ex = extensions.Extension(path_used)
     assert path_name in repr(ex)
-
-
-def test_ex_ml_description():
-    pytest.importorskip("tensorflow")
-    path_name = "ext_feat_anc_ml_tf_rbc.modc"
-    tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    path_used = tmpd / path_name
-    shutil.copy2(data_path / path_name, path_used)
-    ex = extensions.Extension(path_used)
-    ex.load()
-    assert "I don't know what I am doing" in ex.description
-
-
-def test_ex_ml_title():
-    pytest.importorskip("tensorflow")
-    path_name = "ext_feat_anc_ml_tf_rbc.modc"
-    tmpd = pathlib.Path(tempfile.mkdtemp(prefix="extension_"))
-    path_used = tmpd / path_name
-    shutil.copy2(data_path / path_name, path_used)
-    ex = extensions.Extension(path_used)
-    ex.load()
-    assert "2021-11-26 02:07" in ex.title
-    assert "Naive red blood cell score" in ex.title
 
 
 def test_ex_plugin_description():

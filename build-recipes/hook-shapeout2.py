@@ -17,4 +17,4 @@ datas += collect_data_files("shapeout2", subdir="img")
 # Add the Zstandard library used by dclab
 datas += collect_data_files("hdf5plugin", includes=["plugins/libh5zstd.*"])
 
-hiddenimports = ["rpy2"]
+hiddenimports = []

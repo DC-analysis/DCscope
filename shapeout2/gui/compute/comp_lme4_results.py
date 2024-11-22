@@ -1,17 +1,18 @@
 import pathlib
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import uic, QtCore, QtGui, QtWidgets
 
 
 class Rlme4ResultsDialog(QtWidgets.QDialog):
     def __init__(self, parent, rlme4_results, *args, **kwargs):
         super(Rlme4ResultsDialog, self).__init__(parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.compute", "comp_lme4_results.ui")
-        uic.loadUi(path_ui, self)
+        ref = importlib.resources.files(
+            "shapeout2.gui.compute") / "comp_lme4_results.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
 
         res = rlme4_results
 
@@ -38,13 +39,20 @@ class Rlme4ResultsDialog(QtWidgets.QDialog):
 
         # summary text
         summary = []
+        if res["lme4 messages"]:
+            summary += ["lme4 messages"]
+            summary += ["-------------"]
+            summary += str(res["lme4 messages"]).split("\n")
+            summary += "\n"
         summary += ["Model summary"]
         summary += ["-------------"]
         summary += self.parse_r_model_summary(
             str(res["r model summary"]).split("\n"))
+        summary += "\n"
         summary += ["Coefficient table"]
         summary += ["-----------------"]
         summary += str(res["r model coefficients"]).split("\n")
+        summary += "\n"
         summary += ["Anova test"]
         summary += ["----------"]
         summary += str(res["r anova"]).split("\n")
@@ -62,12 +70,14 @@ class Rlme4ResultsDialog(QtWidgets.QDialog):
         self.plainTextEdit.setPlainText("\n".join(summary))
 
         # button signals
-        btn_close = self.buttonBox.button(QtWidgets.QDialogButtonBox.Close)
+        btn_close = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this dialog")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_openlme4 = self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        btn_openlme4 = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_openlme4.clicked.connect(self.on_save)
         btn_openlme4.setToolTip("Save report as text file")
         btn_openlme4.setText("Save report (.txt)")

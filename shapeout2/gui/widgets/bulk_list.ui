@@ -47,6 +47,16 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
+         <widget class="QLabel" name="label_help_selection">
+          <property name="text">
+           <string>&lt;a href=&quot;https://shapeout2.readthedocs.io/en/stable/sec_qg_export_data.html#sec-qg-export-data-faq&quot;&gt;Why are not all selected?&lt;/a&gt;</string>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>

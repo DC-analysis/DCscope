@@ -2,8 +2,8 @@
 import sys
 import time
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QApplication
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QApplication
 from shapeout2.gui.main import ShapeOut2
 from shapeout2.gui import dcor
 
@@ -29,7 +29,7 @@ for _ in range(5):
 # force redraw of scrollbars
 dlg.listWidget.scrollToBottom()
 dlg.listWidget.scrollToTop()
-app.processEvents(QtCore.QEventLoop.AllEvents, 300)
+app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_dcor_dlg.png")
 
 mw.close()

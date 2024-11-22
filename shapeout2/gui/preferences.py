@@ -2,24 +2,16 @@ import os.path as os_path
 import pathlib
 import traceback
 
-import pkg_resources
+import importlib.resources
 import platform
 
-from dclab.lme4.rlibs import (
-    rpy2, MockRPackage, RPY2UnavailableError, RUnavailableError)
 from dclab.rtdc_dataset.fmt_dcor import access_token
 from dclab.lme4 import rsetup
-from PyQt5 import uic, QtCore, QtWidgets
-from PyQt5.QtCore import QStandardPaths
+from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6.QtCore import QStandardPaths
 
 from .widgets import show_wait_cursor
 from ..extensions import ExtensionManager, SUPPORTED_FORMATS
-
-
-if isinstance(rpy2, MockRPackage):
-    RPY2_AVAILABLE = not isinstance(rpy2.exception, RPY2UnavailableError)
-else:
-    RPY2_AVAILABLE = True
 
 
 class ExtensionErrorWrapper:
@@ -37,7 +29,7 @@ class ExtensionErrorWrapper:
                 f"It was not possible to load the extension {self.ehash}! "
                 + "You might have to install additional software:\n\n"
                 + traceback.format_exc(),
-                )
+            )
             return True  # do not raise the exception
 
 
@@ -47,21 +39,18 @@ class Preferences(QtWidgets.QDialog):
     feature_changed = QtCore.pyqtSignal()
 
     def __init__(self, parent, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self, parent=parent, *args, **kwargs)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui", "preferences.ui")
-        uic.loadUi(path_ui, self)
+        super(Preferences, self).__init__(parent=parent, *args, **kwargs)
+        ref = importlib.resources.files("shapeout2.gui") / "preferences.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
         self.settings = QtCore.QSettings()
         self.parent = parent
 
         # Get default R path
-        if RPY2_AVAILABLE and rsetup.has_r():
-            rdefault = rsetup.get_r_path()
+        if rsetup.has_r():
+            rdefault = str(rsetup.get_r_path())
         else:
             rdefault = ""
-
-        # disable R settings
-        self.tab_r.setEnabled(RPY2_AVAILABLE)
 
         #: configuration keys, corresponding widgets, and defaults
         self.config_pairs = [
@@ -71,26 +60,31 @@ class Preferences(QtWidgets.QDialog):
             ["dcor/servers", self.dcor_servers, ["dcor.mpl.mpg.de"]],
             ["dcor/use ssl", self.dcor_use_ssl, "1"],
             ["lme4/r path", self.lme4_rpath, rdefault],
+            ["s3/endpoint url", self.lineEdit_s3_endpoint_url, ""],
+            ["s3/access key id", self.lineEdit_s3_access_key_id, ""],
+            ["s3/secret access key", self.lineEdit_s3_secret_access_key, ""],
         ]
 
         # extensions
         store_path = os_path.join(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation), "extensions")
+                QStandardPaths.StandardLocation.AppDataLocation), "extensions")
         self.extensions = ExtensionManager(store_path)
 
+        self.tabWidget.setCurrentIndex(0)
         self.reload()
 
         # signals
         self.btn_apply = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Apply)
+            QtWidgets.QDialogButtonBox.StandardButton.Apply)
         self.btn_apply.clicked.connect(self.on_settings_apply)
         self.btn_cancel = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.Cancel)
-        self.btn_ok = self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok)
+            QtWidgets.QDialogButtonBox.StandardButton.Cancel)
+        self.btn_ok = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.btn_ok.clicked.connect(self.on_settings_apply)
         self.btn_restore = self.buttonBox.button(
-            QtWidgets.QDialogButtonBox.RestoreDefaults)
+            QtWidgets.QDialogButtonBox.StandardButton.RestoreDefaults)
         self.btn_restore.clicked.connect(self.on_settings_restore)
         # DCOR
         self.pushButton_enc_token.clicked.connect(self.on_dcor_enc_token)
@@ -110,6 +104,7 @@ class Preferences(QtWidgets.QDialog):
         """Read configuration or set default parameters"""
         for key, widget, default in self.config_pairs:
             value = self.settings.value(key, default)
+            value = value or default
             if isinstance(widget, QtWidgets.QCheckBox):
                 widget.setChecked(bool(int(value)))
             elif isinstance(widget, QtWidgets.QLineEdit):
@@ -125,6 +120,9 @@ class Preferences(QtWidgets.QDialog):
         devmode = bool(int(self.settings.value("advanced/developer mode", 0)))
         self.dcor_use_ssl.setVisible(devmode)  # show "use ssl" in dev mode
 
+        if self.tabWidget.currentWidget() is self.tab_r:
+            self.reload_lme4()
+
         self.reload_ext()
 
     def reload_ext(self):
@@ -139,11 +137,13 @@ class Preferences(QtWidgets.QDialog):
             for ii, ext in enumerate(self.extensions):
                 lwitem = QtWidgets.QListWidgetItem(ext.title,
                                                    self.listWidget_ext)
-                lwitem.setFlags(QtCore.Qt.ItemIsEditable
-                                | QtCore.Qt.ItemIsSelectable
-                                | QtCore.Qt.ItemIsEnabled
-                                | QtCore.Qt.ItemIsUserCheckable)
-                lwitem.setCheckState(2 if ext.enabled else 0)
+                lwitem.setFlags(QtCore.Qt.ItemFlag.ItemIsEditable
+                                | QtCore.Qt.ItemFlag.ItemIsSelectable
+                                | QtCore.Qt.ItemFlag.ItemIsEnabled
+                                | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                lwitem.setCheckState(QtCore.Qt.CheckState.Checked
+                                     if ext.enabled
+                                     else QtCore.Qt.CheckState.UnChecked)
                 lwitem.setData(100, ext.hash)
             self.listWidget_ext.setCurrentRow(0)
             if row + 1 > self.listWidget_ext.count() or row < 0:
@@ -155,18 +155,27 @@ class Preferences(QtWidgets.QDialog):
     @show_wait_cursor
     def reload_lme4(self, install=False):
         """Reload information about lme4, optionally installing it"""
+        # Before we do anything, we have to find a persistent writable
+        # location where we can install lme4 and set the environment variable
+        # R_LIBS_USER accordingly.
+        r_libs_user = self.settings.value("lme4/r libs user", None)
+        if r_libs_user is None or not pathlib.Path(r_libs_user).exists():
+            r_libs_user = pathlib.Path(
+                QStandardPaths.writableLocation(
+                    QStandardPaths.StandardLocation.AppLocalDataLocation)
+            ) / "r-libs"
+            r_libs_user.mkdir(parents=True, exist_ok=True)
+            r_libs_user = str(r_libs_user)
+            self.settings.setValue("lme4/r libs user", r_libs_user)
+        rsetup.set_r_lib_path(r_libs_user)
+
         # set the binary
         binary = self.lme4_rpath.text()
         if pathlib.Path(binary).is_file():
-            try:
-                rsetup.set_r_path(binary)
-            except RUnavailableError as exc:
-                QtWidgets.QMessageBox.information(
-                    self,
-                    "No compatible R version found",
-                    "The R/lme4 functionality is not available.\n\n"
-                    + f"{exc.__class__.__name__}: {exc}"
-                )
+            rsetup.set_r_path(binary)
+
+        # enable/disable lme4-install button
+        self.pushButton_lme4_install.setEnabled(rsetup.has_r())
 
         # check lme4 package status
         if not rsetup.has_r():
@@ -181,7 +190,7 @@ class Preferences(QtWidgets.QDialog):
 
         if install and lme4_st == "not installed":
             self.setEnabled(False)
-            rsetup.install_lme4()
+            rsetup.require_lme4()
             self.setEnabled(True)
             # update interface with installed lme4
             self.reload_lme4(install=False)
@@ -210,7 +219,7 @@ class Preferences(QtWidgets.QDialog):
             self,
             "Password required",
             f"Please enter the encryption password for {path.name}!",
-            QtWidgets.QLineEdit.Password)
+            QtWidgets.QLineEdit.EchoMode.Password)
         pwd = pwd.strip()
         if not pwd or not cont:
             return
@@ -221,7 +230,8 @@ class Preferences(QtWidgets.QDialog):
         # write certificate to our global Shape-Out certs directory
         ca_path = pathlib.Path(
             QStandardPaths.writableLocation(
-                QStandardPaths.AppDataLocation)) / "certificates"
+                QStandardPaths.StandardLocation.AppDataLocation)
+        ) / "certificates"
         (ca_path / f"{host}.cert").write_bytes(cert)
         # store other metadata
         self.settings.setValue("dcor/api key", api_key)
@@ -229,7 +239,7 @@ class Preferences(QtWidgets.QDialog):
         servers = self.settings.value("dcor/servers", ["dcor.mpl.mpg.de"])
         if host in servers:
             servers.remove(host)
-        servers.insert(0, host)
+        servers.insert(0, host.strip("/"))
         self.settings.setValue("dcor/servers", servers)
         self.reload()
 
@@ -302,9 +312,9 @@ class Preferences(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_lme4_search_r(self):
         if platform.system() == "Windows":
-            filters = "Executable (*.exe)"
+            filters = "R executable (R.exe)"
         else:
-            filters = ""
+            filters = "R executable (R)"
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Executable", ".", filters)
         if path:
@@ -321,11 +331,11 @@ class Preferences(QtWidgets.QDialog):
                         "advanced/developer mode", 0))
                     if devmode != value:
                         msg = QtWidgets.QMessageBox()
-                        msg.setIcon(QtWidgets.QMessageBox.Information)
+                        msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
                         msg.setText("Please restart Shape-Out for the changes "
                                     + "to take effect.")
                         msg.setWindowTitle("Restart Shape-Out")
-                        msg.exec_()
+                        msg.exec()
             elif isinstance(widget, QtWidgets.QLineEdit):
                 value = widget.text().strip()
             elif widget is self.dcor_servers:

@@ -1,6 +1,6 @@
-import pkg_resources
+import importlib.resources
 
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 
 
 class AnalysisView(QtWidgets.QWidget):
@@ -10,10 +10,12 @@ class AnalysisView(QtWidgets.QWidget):
     pipeline_changed = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.analysis", "ana_view.ui")
-        uic.loadUi(path_ui, self)
+        super(AnalysisView, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.analysis") / "ana_view.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
         self.setWindowTitle("Analysis View")
         self.setMinimumSize(self.sizeHint())
         # Signals

@@ -4,7 +4,7 @@ import tempfile
 
 import dclab
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 import pytest
 
@@ -44,7 +44,7 @@ def test_gui_export_filter_ray(qtbot, monkeypatch):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
     assert len(mw.pipeline.slot_ids) == 1, "we added that"
@@ -56,7 +56,7 @@ def test_gui_export_filter_ray(qtbot, monkeypatch):
     assert wf._polygon_checkboxes[pf1.unique_id].isChecked()
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # check the filter
     assert pf1.unique_id in mw.pipeline.filters[0].polylist
@@ -99,7 +99,7 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch):
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
     em = mw.block_matrix.get_widget(slot_id, filt_id)
-    qtbot.mouseClick(em, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
     assert len(mw.pipeline.slot_ids) == 1, "we added that"
@@ -117,7 +117,7 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch):
     assert wf._polygon_checkboxes[pf2.unique_id].isChecked()
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # check the filter
     assert pf1.unique_id in mw.pipeline.filters[0].polylist
@@ -130,7 +130,8 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch):
     dlg = mw.on_action_export_filter_polygon()
     assert dlg.file_format == "poly"
 
-    qtbot.mouseClick(dlg.radioButton_multiple, QtCore.Qt.LeftButton)
+    qtbot.mouseClick(dlg.radioButton_multiple,
+                     QtCore.Qt.MouseButton.LeftButton)
     assert dlg.file_mode == "multiple"
 
     # set directory

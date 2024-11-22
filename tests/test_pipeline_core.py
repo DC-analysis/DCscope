@@ -57,6 +57,7 @@ def test_get_min_max_inf():
     ddict["area_ratio"][1] = np.nan
     ds2 = dclab.new_dataset(ddict)
     ds2.config.update(config)
+    ds2.config["experiment"]["event count"] = 100
     ds2.export.hdf5(tmp, features=["area_um", "deform", "area_ratio"])
 
     # initiate the pipeline

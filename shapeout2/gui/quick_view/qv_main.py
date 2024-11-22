@@ -1,14 +1,15 @@
+import collections
 import pathlib
-import pkg_resources
+import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt5 import uic, QtCore, QtWidgets
+from PyQt6 import uic, QtCore, QtWidgets
 import pyqtgraph as pg
 from scipy.ndimage import binary_erosion
 
 from ..compute.comp_stats import STAT_METHODS
-from .. import idiom
+from ... import idiom
 from ..widgets import show_wait_cursor
 
 
@@ -18,13 +19,16 @@ class QuickView(QtWidgets.QWidget):
     polygon_filter_about_to_be_deleted = QtCore.pyqtSignal(int)
 
     def __init__(self, *args, **kwargs):
-        QtWidgets.QWidget.__init__(self)
-        path_ui = pkg_resources.resource_filename(
-            "shapeout2.gui.quick_view", "qv_main.ui")
-        uic.loadUi(path_ui, self)
-        path_css = pkg_resources.resource_filename(
-            "shapeout2.gui.quick_view", "qv_style.css")
-        stylesheet = pathlib.Path(path_css).read_text()
+        super(QuickView, self).__init__(*args, **kwargs)
+        ref = importlib.resources.files(
+            "shapeout2.gui.quick_view") / "qv_main.ui"
+        with importlib.resources.as_file(ref) as path_ui:
+            uic.loadUi(path_ui, self)
+
+        ref = importlib.resources.files(
+            "shapeout2.gui.quick_view") / "qv_style.css"
+        with importlib.resources.as_file(ref) as path_css:
+            stylesheet = pathlib.Path(path_css).read_text()
         self.groupBox_image.setStyleSheet(stylesheet)
         self.groupBox_trace.setStyleSheet(stylesheet)
 
@@ -42,6 +46,15 @@ class QuickView(QtWidgets.QWidget):
         self.comboBox_hue.clear()
         self.comboBox_hue.addItem("KDE", "kde")
         self.comboBox_hue.addItem("feature", "feature")
+
+        # Set look-up table options for isoelasticity lines
+        self.comboBox_lut.clear()
+        lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
+        for lut_id in lut_dict.keys():
+            self.comboBox_lut.addItem(lut_id, lut_id)
+        # Set LE-2D-FEM-19 as a default
+        idx = self.comboBox_lut.findData("LE-2D-FEM-19")
+        self.comboBox_lut.setCurrentIndex(idx)
 
         # settings button
         self.toolButton_event.toggled.connect(self.on_tool)
@@ -97,6 +110,7 @@ class QuickView(QtWidgets.QWidget):
                                self.comboBox_z_hue,
                                self.comboBox_hue,
                                self.checkBox_hue,
+                               self.comboBox_lut
                                ]
         for w in self.signal_widgets:
             if hasattr(w, "currentIndexChanged"):
@@ -155,7 +169,11 @@ class QuickView(QtWidgets.QWidget):
 
         # set initial empty dataset
         self._rtdc_ds = None
+        #: A cache for the event index plotted for a dataset
+        self._dataset_event_plot_indices_cache = {}
         self.slot = None
+
+        self._statistics_cache = collections.OrderedDict()
 
     def __getstate__(self):
         plot = {
@@ -166,6 +184,7 @@ class QuickView(QtWidgets.QWidget):
             "scale x": self.comboBox_xscale.currentData(),
             "scale y": self.comboBox_yscale.currentData(),
             "isoelastics": self.checkBox_isoelastics.isChecked(),
+            "lut": self.comboBox_lut.currentData(),
             "marker hue": self.checkBox_hue.isChecked(),
             "marker hue value": self.comboBox_hue.currentData(),
             "marker hue feature": self.comboBox_z_hue.currentData(),
@@ -203,6 +222,8 @@ class QuickView(QtWidgets.QWidget):
             # scaling
             ("scale x", self.comboBox_xscale),
             ("scale y", self.comboBox_yscale),
+            # look up table
+            ("lut", self.comboBox_lut),
             # marker hue
             ("marker hue value", self.comboBox_hue),
             ("marker hue feature", self.comboBox_z_hue),
@@ -210,6 +231,7 @@ class QuickView(QtWidgets.QWidget):
             idx = cb.findData(plot[key])
             idx = idx if idx > 0 else 0
             cb.setCurrentIndex(idx)
+
         # isoelastics
         self.checkBox_isoelastics.setChecked(plot["isoelastics"])
         for tb in self.signal_widgets:
@@ -235,7 +257,7 @@ class QuickView(QtWidgets.QWidget):
             else:
                 isopen = False
         elif isinstance(rtdc_ds, dclab.rtdc_dataset.RTDC_Hierarchy):
-            isopen = self._check_file_open(rtdc_ds.hparent)
+            isopen = self._check_file_open(rtdc_ds.get_root_parent())
         else:
             # DCOR
             isopen = True
@@ -358,13 +380,24 @@ class QuickView(QtWidgets.QWidget):
         if self.rtdc_ds is not None:
             features = [self.comboBox_x.currentData(),
                         self.comboBox_y.currentData()]
-            h, v = dclab.statistics.get_statistics(ds=self.rtdc_ds,
-                                                   features=features,
-                                                   methods=STAT_METHODS)
-            return h, v
+            # cache statistics from
+            dsid = "-".join(features
+                            + [self.rtdc_ds.identifier,
+                               self.rtdc_ds.filter._parent_hash]
+                            )
+            if dsid not in self._statistics_cache:
+                stats = dclab.statistics.get_statistics(ds=self.rtdc_ds,
+                                                        features=features,
+                                                        methods=STAT_METHODS)
+                self._statistics_cache[dsid] = stats
+            if len(self._statistics_cache) > 1000:
+                # avoid a memory leak
+                self._statistics_cache.popitem(last=False)
+            return self._statistics_cache[dsid]
         else:
             return None, None
 
+    @QtCore.pyqtSlot(object, object)
     def on_event_scatter_clicked(self, plot, point):
         """User clicked on scatter plot
 
@@ -375,18 +408,23 @@ class QuickView(QtWidgets.QWidget):
         point: QPoint
             Selected point (determined by scatter plot widget)
         """
-        # `self.on_tool` (`self.toolButton_event`) takes care of this:
-        # self.widget_scatter.select.show()
-        if not self.toolButton_event.isChecked():
-            # emulate mouse toggle
-            self.toolButton_event.setChecked(True)
-            self.toolButton_event.toggled.emit(True)
         if self.widget_scatter.events_plotted is not None:
             # plotted events
             plotted = self.widget_scatter.events_plotted
             # get corrected index
             ds_idx = np.where(plotted)[0][point.index()]
             self.show_event(ds_idx)
+        # Note that triggering the toolButton_event must be done after
+        # calling show_event, otherwise the first event is shown and
+        # only after that the desired one. This would be a drawback when
+        # events come from remote locations.
+        #
+        # `self.on_tool` (`self.toolButton_event`) takes care of this:
+        # self.widget_scatter.select.show()
+        if not self.toolButton_event.isChecked():
+            # emulate mouse toggle
+            self.toolButton_event.setChecked(True)
+            self.toolButton_event.toggled.emit(True)
 
     def display_img(self, feat, view, cellimg):
         self.img_info[feat][view].setImage(cellimg,
@@ -395,6 +433,7 @@ class QuickView(QtWidgets.QWidget):
             self.img_info[feat][view].setColorMap(self.img_info[feat]["cmap"])
         self.img_info[feat][view].show()
 
+    @QtCore.pyqtSlot(QtCore.QPointF)
     def on_event_scatter_hover(self, pos):
         """Update the image view in the polygon widget """
         if self.rtdc_ds is not None and self.toolButton_poly.isChecked():
@@ -423,15 +462,18 @@ class QuickView(QtWidgets.QWidget):
                 # the plot got updated, and we still have the old data
                 self.get_event_and_display(ds, 0, "image", view)
 
+    @QtCore.pyqtSlot(int)
     def on_event_scatter_spin(self, event):
         """Sping control for event selection changed"""
         self.show_event(event - 1)
 
+    @QtCore.pyqtSlot()
     def on_event_scatter_update(self):
         """Just update the event shown"""
         event = self.spinBox_event.value()
         self.show_event(event - 1)
 
+    @QtCore.pyqtSlot()
     def on_poly_create(self):
         """User wants to create a polygon filter"""
         self.pushButton_poly_create.setEnabled(False)
@@ -455,6 +497,7 @@ class QuickView(QtWidgets.QWidget):
         mdiwin.update()
         self.update()
 
+    @QtCore.pyqtSlot()
     def on_poly_done(self):
         """User is done creating or modifying a polygon filter"""
         self.pushButton_poly_create.setEnabled(True)
@@ -502,6 +545,7 @@ class QuickView(QtWidgets.QWidget):
         elif mode == "modify":
             self.polygon_filter_modified.emit()
 
+    @QtCore.pyqtSlot()
     def on_poly_modify(self):
         """User wants to modify a polygon filter"""
         self.pushButton_poly_create.setEnabled(False)
@@ -526,6 +570,7 @@ class QuickView(QtWidgets.QWidget):
         # add ROI
         self.widget_scatter.activate_poly_mode(pf.points)
 
+    @QtCore.pyqtSlot()
     def on_stats2clipboard(self):
         """Copy the statistics as tsv data to the clipboard"""
         h, v = self.get_statistics()
@@ -619,7 +664,8 @@ class QuickView(QtWidgets.QWidget):
                                           yscale=plot["scale y"],
                                           hue_type=hue_type,
                                           hue_kwargs=hue_kwargs,
-                                          isoelastics=plot["isoelastics"])
+                                          isoelastics=plot["isoelastics"],
+                                          lut_identifier=plot["lut"])
             # make sure the correct plot items are visible
             # (e.g. scatter select)
             self.on_tool()
@@ -629,6 +675,8 @@ class QuickView(QtWidgets.QWidget):
             self.label_poly_y.setText(
                 dclab.dfn.get_feature_label(plot["axis y"]))
             self.show_statistics()
+            # Make sure features are properly colored in the comboboxes
+            self.update_feature_choices()
 
     @QtCore.pyqtSlot()
     def plot_auto(self):
@@ -661,6 +709,8 @@ class QuickView(QtWidgets.QWidget):
         """
         # dataset
         ds = self.rtdc_ds
+        self._dataset_event_plot_indices_cache[
+            id(self.rtdc_ds.hparent)] = event
         event_count = ds.config["experiment"]["event count"]
         if event_count == 0:
             # nothing to do
@@ -712,7 +762,7 @@ class QuickView(QtWidgets.QWidget):
                     else:
                         show = True
                     flid = key.split("_")[0]
-                    if (key in ds["trace"] and show):
+                    if key in ds["trace"] and show:
                         # show the trace information
                         tracey = ds["trace"][key][event]  # trace data
                         range_fl[0] = min(range_fl[0], tracey.min())
@@ -745,7 +795,7 @@ class QuickView(QtWidgets.QWidget):
                 self.groupBox_trace.hide()
         else:
             # only use computed features (speed)
-            fcands = ds.features_loaded
+            fcands = ds.features_local
             feats = [f for f in fcands if f in ds.features_scalar]
             lf = sorted([(dclab.dfn.get_feature_label(f), f) for f in feats])
             keys = []
@@ -759,11 +809,18 @@ class QuickView(QtWidgets.QWidget):
             self.tableWidget_feats.set_key_vals(keys, vals)
 
     @show_wait_cursor
+    @QtCore.pyqtSlot(object, object)
     def show_rtdc(self, rtdc_ds, slot):
         """Display an RT-DC measurement given by `path` and `filters`"""
-        # Create a hierarchy child so that the user can browse
-        # comfortably through the data without seeing hidden events.
-        self.rtdc_ds = dclab.new_dataset(rtdc_ds)
+        if np.all(rtdc_ds.filter.all) and rtdc_ds.format == "hierarchy":
+            # No filers applied, no additional hierarchy child required.
+            self.rtdc_ds = rtdc_ds
+        else:
+            # Create a hierarchy child so that the user can browse
+            # comfortably through the data without seeing hidden events.
+            self.rtdc_ds = dclab.new_dataset(
+                rtdc_ds,
+                identifier=f"child-of-{rtdc_ds.identifier}")
         event_count = self.rtdc_ds.config["experiment"]["event count"]
         if event_count == 0:
             self.widget_scatter.hide()
@@ -784,40 +841,36 @@ class QuickView(QtWidgets.QWidget):
         state.pop("event")
 
         self.slot = slot
-        # default features (plot axes)
-        if plot["axis x"] is None:
-            plot["axis x"] = "area_um"
-        if plot["axis y"] is None:
-            plot["axis y"] = "deform"
+
         # check whether axes exist in ds and change them to defaults
         # if necessary
-        ds_features = self.rtdc_ds.features_scalar
-        if plot["axis x"] not in ds_features:
-            for feat in dclab.dfn.scalar_feature_names:
-                if feat in ds_features:
-                    plot["axis x"] = feat
-                    break
-        if plot["axis y"] not in ds_features:
-            for feat in dclab.dfn.scalar_feature_names:
-                if feat in ds_features:
-                    plot["axis y"] = feat
-                    if feat != plot["axis y"]:
-                        # If there is only one feature, at least we
-                        # have set the state to a reasonable value.
-                        break
+        ds_features = sorted(self.rtdc_ds.features_scalar)
+        if plot["axis x"] not in ds_features and ds_features:
+            plot["axis x"] = ds_features[0]
+        if plot["axis y"] not in ds_features and ds_features:
+            if len(ds_features) > 1:
+                plot["axis y"] = ds_features[1]
+            else:
+                # If there is only one feature, at least we
+                # have set the state to a reasonable value.
+                plot["axis y"] = ds_features[0]
+
         # set control ranges
         self.spinBox_event.blockSignals(True)
         self.spinBox_event.setMaximum(event_count)
         self.spinBox_event.setToolTip("total: {}".format(event_count))
-        self.spinBox_event.setValue(1)
+        cur_value = self._dataset_event_plot_indices_cache.get(
+            id(rtdc_ds), 0) + 1
+        self.spinBox_event.setValue(cur_value)
         self.spinBox_event.blockSignals(False)
 
         # set quick view state
         self.__setstate__(state)
         # scatter plot
         self.plot()
-        # select first event in event viewer (also updates selection point)
-        self.show_event(0)
+        # reset image view
+        self.groupBox_image.hide()
+        self.groupBox_trace.hide()
         # this only updates the size of the tools (because there is no
         # sender)
         self.on_tool()
@@ -834,22 +887,12 @@ class QuickView(QtWidgets.QWidget):
         """
         if self.rtdc_ds is not None:
             # axes combobox choices
-            ds_feats = self.rtdc_ds.features_scalar
-            ds_labels = [dclab.dfn.get_feature_label(f) for f in ds_feats]
-            ds_fl = sorted(zip(ds_labels, ds_feats))
-            for cb in [self.comboBox_x, self.comboBox_y, self.comboBox_z_hue]:
-                fcur = cb.currentData()
-                blocked = cb.signalsBlocked()  # remember block state
-                cb.blockSignals(True)
-                # set features
-                cb.clear()
-                for label, feat in ds_fl:
-                    if feat in ds_feats:
-                        cb.addItem(label, feat)
-                idcur = cb.findData(fcur)
-                if idcur >= 0:
-                    cb.setCurrentIndex(idcur)
-                cb.blockSignals(blocked)
+            self.comboBox_x.set_dataset(self.rtdc_ds, default_choice="area_um")
+            self.comboBox_x.update_feature_list(default_choice="area_um")
+            self.comboBox_y.set_dataset(self.rtdc_ds, default_choice="deform")
+            self.comboBox_y.update_feature_list(default_choice="deform")
+            self.comboBox_z_hue.set_dataset(self.rtdc_ds, default_choice=None)
+            self.comboBox_z_hue.update_feature_list()
 
     def update_polygon_panel(self):
         """Update polygon filter combobox etc."""
