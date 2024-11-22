@@ -143,7 +143,7 @@ class QuickView(QtWidgets.QWidget):
                 "view_event": self.imageView_image_pha,
                 "view_poly": self.imageView_image_poly_pha,
                 "cmap": cmap_phase,
-                "kwargs": dict(autoLevels=False, levels=(-3, 3), )
+                "kwargs": dict(autoLevels=False, levels=(-3.5, 3.5), )
             },
             "qpi_amp": {
                 "view_event": self.imageView_image_amp,
@@ -300,6 +300,11 @@ class QuickView(QtWidgets.QWidget):
 
         return cellimg
 
+    def get_event_and_display(self, ds, event, feat, view):
+        """Convenience method to get the event image and display in one step"""
+        cellimg = self.get_event_image(ds, event, feat)
+        self.display_img(feat, view, cellimg)
+
     @staticmethod
     def _convert_to_rgb(cellimg):
         cellimg = cellimg.reshape(
@@ -327,8 +332,8 @@ class QuickView(QtWidgets.QWidget):
                     cellimg[cont, 1] = int(imkw["levels"][0])
                     cellimg[cont, 2] = int(imkw["levels"][0])
                 elif feat == "qpi_pha":
-                    # use the red value from the colormap
-                    cellimg[cont] = int(imkw["levels"][1])
+                    # use the highest value from the colormap
+                    cellimg[cont] = imkw["levels"][1]
 
             if state["event"]["image zoom"]:
                 cellimg = self.image_zoom(cellimg, mask)
@@ -408,19 +413,15 @@ class QuickView(QtWidgets.QWidget):
             try:
                 # if we have qpi data, image might be a different shape
                 if "qpi_pha" in ds:
-                    cellimg = self.get_event_image(ds, event, "qpi_pha")
-                    self.display_img("qpi_pha", view, cellimg)
+                    self.get_event_and_display(ds, event, "qpi_pha", view)
                     if "qpi_amp" in ds:
-                        cellimg = self.get_event_image(ds, event, "qpi_amp")
-                        self.display_img("qpi_amp", view, cellimg)
+                        self.get_event_and_display(ds, event, "qpi_amp", view)
                 elif "image" in ds:
-                    cellimg = self.get_event_image(ds, event, "image")
-                    self.display_img("image", view, cellimg)
+                    self.get_event_and_display(ds, event, "image", view)
 
             except IndexError:
                 # the plot got updated, and we still have the old data
-                cellimg = self.get_event_image(self.rtdc_ds, 0, "image")
-                self.display_img("image", view, cellimg)
+                self.get_event_and_display(ds, 0, "image", view)
 
     def on_event_scatter_spin(self, event):
         """Sping control for event selection changed"""
@@ -682,14 +683,11 @@ class QuickView(QtWidgets.QWidget):
 
             # if we have qpi data, image might be a different shape
             if "qpi_pha" in ds:
-                cellimg = self.get_event_image(ds, event, "qpi_pha")
-                self.display_img("qpi_pha", view, cellimg)
+                self.get_event_and_display(ds, event, "qpi_pha", view)
                 if "qpi_amp" in ds:
-                    cellimg = self.get_event_image(ds, event, "qpi_amp")
-                    self.display_img("qpi_amp", view, cellimg)
+                    self.get_event_and_display(ds, event, "qpi_amp", view)
             elif "image" in ds:
-                cellimg = self.get_event_image(ds, event, "image")
-                self.display_img("image", view, cellimg)
+                self.get_event_and_display(ds, event, "image", view)
 
             self.groupBox_image.show()
 
