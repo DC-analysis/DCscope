@@ -145,25 +145,30 @@ class QuickView(QtWidgets.QWidget):
         cmap_phase = pg.colormap.get('CET-D1A')
         cmap_phase.color[-1] = [0, 0, 0, 1]  # make the contour value black
 
+        # image display default range of values that the cmap will cover
+        self.levels_image = (0, 255)
+        self.levels_qpi_pha = (-3.14, 3.14)
+        self.levels_qpi_amp = (0, 2)
+
         #: default parameters for the event image
         self.img_info = {
             "image": {
                 "view_event": self.imageView_image,
                 "view_poly": self.imageView_image_poly,
                 "cmap": None,
-                "kwargs": dict(autoLevels=False, levels=(0, 255), )
+                "kwargs": dict(autoLevels=False, levels=self.levels_image),
             },
             "qpi_pha": {
                 "view_event": self.imageView_image_pha,
                 "view_poly": self.imageView_image_poly_pha,
                 "cmap": cmap_phase,
-                "kwargs": dict(autoLevels=False, levels=(-3.5, 3.5), )
+                "kwargs": dict(autoLevels=False, levels=self.levels_qpi_pha),
             },
             "qpi_amp": {
                 "view_event": self.imageView_image_amp,
                 "view_poly": self.imageView_image_poly_amp,
                 "cmap": None,
-                "kwargs": dict(autoLevels=False, levels=(0, 2), )
+                "kwargs": dict(autoLevels=False, levels=self.levels_qpi_amp),
             },
         }
 
@@ -318,7 +323,19 @@ class QuickView(QtWidgets.QWidget):
             cellimg = np.clip(cellimg, 0, 255)
             cellimg = np.require(cellimg, np.uint8, 'C')
 
+        elif feat == "qpi_pha":
+            if state["event"]["image auto contrast"]:
+                vmin, vmax = cellimg.min(), cellimg.max()
+            else:
+                vmin, vmax = self.levels_qpi_pha
+            self.img_info[feat]["kwargs"]["levels"] = (vmin, vmax)
+
         elif feat == "qpi_amp":
+            if state["event"]["image auto contrast"]:
+                vmin, vmax = cellimg.min(), cellimg.max()
+            else:
+                vmin, vmax = self.levels_qpi_amp
+            self.img_info[feat]["kwargs"]["levels"] = (vmin, vmax)
             # to get the correct contour colour it is easier to view the
             # amplitude as an RGB image
             cellimg = self._convert_to_rgb(cellimg)
