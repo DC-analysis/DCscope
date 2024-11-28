@@ -292,6 +292,11 @@ class QuickView(QtWidgets.QWidget):
         contains_bg_feat = "image_bg" in rtdc_ds
         self.checkBox_image_background.setVisible(contains_bg_feat)
 
+        # set the dataset for the FeatureComboBoxes
+        self.comboBox_x.set_dataset(rtdc_ds, default_choice="area_um")
+        self.comboBox_y.set_dataset(rtdc_ds, default_choice="deform")
+        self.comboBox_z_hue.set_dataset(rtdc_ds)
+
     def get_event_image(self, ds, event, feat):
         state = self.__getstate__()
         cellimg = ds[feat][event]
@@ -887,11 +892,8 @@ class QuickView(QtWidgets.QWidget):
         """
         if self.rtdc_ds is not None:
             # axes combobox choices
-            self.comboBox_x.set_dataset(self.rtdc_ds, default_choice="area_um")
             self.comboBox_x.update_feature_list(default_choice="area_um")
-            self.comboBox_y.set_dataset(self.rtdc_ds, default_choice="deform")
             self.comboBox_y.update_feature_list(default_choice="deform")
-            self.comboBox_z_hue.set_dataset(self.rtdc_ds, default_choice=None)
             self.comboBox_z_hue.update_feature_list()
 
     def update_polygon_panel(self):
