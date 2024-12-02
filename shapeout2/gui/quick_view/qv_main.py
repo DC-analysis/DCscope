@@ -143,7 +143,8 @@ class QuickView(QtWidgets.QWidget):
             offset=(-.01, +.01))
 
         cmap_phase = pg.colormap.get('CET-D1A')
-        cmap_phase.color[-1] = [0, 0, 0, 1]  # make the contour value black
+        # make the lowest cmap value black, for use with contour
+        cmap_phase.color[0] = [0, 0, 0, 1]
 
         # image display default range of values that the cmap will cover
         self.levels_image = (0, 255)
@@ -302,10 +303,21 @@ class QuickView(QtWidgets.QWidget):
         self.comboBox_y.set_dataset(rtdc_ds, default_choice="deform")
         self.comboBox_z_hue.set_dataset(rtdc_ds)
 
+    def get_event_and_display(self, ds, event, feat, view):
+        """Convenience method to get the event image and display in one step"""
+        cellimg = self.get_event_image(ds, event, feat)
+        self.display_img(feat, view, cellimg)
+
     def get_event_image(self, ds, event, feat):
+        """Handle the image processing and contour processing for the event"""
         state = self.__getstate__()
         cellimg = ds[feat][event]
+        cellimg = self.display_image(ds, event, state, cellimg, feat)
+        cellimg = self.display_contour(ds, event, state, cellimg, feat)
+        return cellimg
 
+    def display_image(self, ds, event, state, cellimg, feat):
+        """Apply background, auto-contrast and format conversion"""
         if feat == "image":
             # apply background correction
             if "image_bg" in ds:
@@ -317,7 +329,6 @@ class QuickView(QtWidgets.QWidget):
             if state["event"]["image auto contrast"]:
                 vmin, vmax = cellimg.min(), cellimg.max()
                 cellimg = (cellimg - vmin) / (vmax - vmin) * 255
-
             cellimg = self._convert_to_rgb(cellimg)
             # clip and convert to int
             cellimg = np.clip(cellimg, 0, 255)
@@ -340,22 +351,10 @@ class QuickView(QtWidgets.QWidget):
             # amplitude as an RGB image
             cellimg = self._convert_to_rgb(cellimg)
 
-        cellimg = self.display_contour(ds, event, state, cellimg, feat)
-
         return cellimg
 
-    def get_event_and_display(self, ds, event, feat, view):
-        """Convenience method to get the event image and display in one step"""
-        cellimg = self.get_event_image(ds, event, feat)
-        self.display_img(feat, view, cellimg)
-
-    @staticmethod
-    def _convert_to_rgb(cellimg):
-        cellimg = cellimg.reshape(
-            cellimg.shape[0], cellimg.shape[1], 1)
-        return np.repeat(cellimg, 3, axis=2)
-
     def display_contour(self, ds, event, state, cellimg, feat):
+        """Add the contour to the image if requested"""
         # Only load contour data if there is an image column.
         # We don't know how big the images should be so we
         # might run into trouble displaying random contours.
@@ -368,21 +367,30 @@ class QuickView(QtWidgets.QWidget):
                 # https://github.com/DC-analysis/dclab/issues/76
                 cont = mask ^ binary_erosion(mask)
                 # set red contour pixel values in original image
-                red_pix = ((imkw["levels"][1] - imkw["levels"][0])
-                           * 0.7) - np.abs(imkw["levels"][0])
                 if feat == "image" or feat == "qpi_amp":
+                    # for RGB images
+                    ch_red = imkw["levels"][1] * 0.7
+                    ch_other = int(imkw["levels"][0]) if \
+                        imkw["levels"][1] == 255 else imkw["levels"][0]
+                    # assign channel values for contour
                     cellimg[cont, 0] = int(
-                        red_pix) if imkw["levels"][1] == 255 else red_pix
-                    cellimg[cont, 1] = int(imkw["levels"][0])
-                    cellimg[cont, 2] = int(imkw["levels"][0])
+                        ch_red) if imkw["levels"][1] == 255 else ch_red
+                    cellimg[cont, 1] = ch_other
+                    cellimg[cont, 2] = ch_other
                 elif feat == "qpi_pha":
-                    # use the highest value from the colormap
-                    cellimg[cont] = imkw["levels"][1]
+                    # use the lowest value from the colormap
+                    cellimg[cont] = imkw["levels"][0]
 
             if state["event"]["image zoom"]:
                 cellimg = self.image_zoom(cellimg, mask)
 
             return cellimg
+
+    @staticmethod
+    def _convert_to_rgb(cellimg):
+        cellimg = cellimg.reshape(
+            cellimg.shape[0], cellimg.shape[1], 1)
+        return np.repeat(cellimg, 3, axis=2)
 
     @staticmethod
     def image_zoom(cellimg, mask):
