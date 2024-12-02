@@ -409,7 +409,7 @@ def test_subtract_background(qtbot):
     # Test if checkbox is visible and checked by default
     assert qv.checkBox_image_background.isVisible(), "Checkbox is not visible"
     assert qv.checkBox_image_background.isChecked(), (
-            "Checkbox is not checked by default")
+        "Checkbox is not checked by default")
 
     # Test if CheckBox is hidden for dataset with no feature "image_bg"
 
@@ -427,9 +427,315 @@ def test_subtract_background(qtbot):
     # Check if "Subtract Background"-CheckBox is hidden
     # note: event tool is still open from test above
     assert not qv2.checkBox_image_background.isVisible(), (
-            " Subtract Background-Checkbox is visible for dataset "
-            " that don't contain \"image_bg\"-feature"
-            )
+        " Subtract Background-Checkbox is visible for dataset "
+        " that don't contain \"image_bg\"-feature"
+    )
+
+
+def test_auto_contrast(qtbot):
+    """auto contrast should change the displayed image"""
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    path = datapath / "calibration_beads_47.rtdc"
+
+    mw.add_dataslot(paths=[path])
+
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Test if CheckBox is visible for dataset
+    # and if it is checked by default
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_contrast.isChecked(), (
+        "Checkbox is not checked by default")
+
+    # Test if data changes when CheckBox is unchecked
+    image_with_contrast = qv.imageView_image.getImageItem().image
+
+    qtbot.mouseClick(qv.checkBox_image_contrast,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert not qv.checkBox_image_contrast.isChecked(), (
+        "Checkbox should be unchecked")
+    image_without_contrast = qv.imageView_image.getImageItem().image
+
+    assert isinstance(image_with_contrast, np.ndarray)
+    assert isinstance(image_without_contrast, np.ndarray)
+    assert np.array_equal(image_with_contrast.shape,
+                          image_without_contrast.shape)
+    assert not np.array_equal(image_with_contrast, image_without_contrast)
+
+
+def test_auto_contrast_qpi(qtbot):
+    """auto contrast should change the displayed image"""
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    path = datapath / "blood_rbc_qpi_data.rtdc"
+
+    mw.add_dataslot(paths=[path])
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_contrast.isChecked(), (
+        "Checkbox is not checked by default")
+
+    for view in [qv.imageView_image_amp, qv.imageView_image_pha]:
+        # Test if data changes when CheckBox is unchecked
+        qtbot.mouseClick(qv.checkBox_image_contrast,
+                         QtCore.Qt.MouseButton.LeftButton)
+        assert not qv.checkBox_image_contrast.isChecked(), (
+            "Checkbox should be unchecked")
+        image_without_contrast = view.getImageItem().image
+
+        qtbot.mouseClick(qv.checkBox_image_contrast,
+                         QtCore.Qt.MouseButton.LeftButton)
+        assert qv.checkBox_image_contrast.isChecked(), (
+            "Checkbox should be checked")
+        image_with_contrast = view.getImageItem().image
+
+        assert isinstance(image_with_contrast, np.ndarray)
+        assert isinstance(image_without_contrast, np.ndarray)
+        assert np.array_equal(image_with_contrast.shape,
+                              image_without_contrast.shape)
+        assert not np.array_equal(image_with_contrast, image_without_contrast)
+
+
+def test_contour_display(qtbot):
+    """The contours should be a specific colour depending on the image"""
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    path = datapath / "calibration_beads_47.rtdc"
+
+    mw.add_dataslot(paths=[path])
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_contour.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_contour.isChecked(), (
+        "Checkbox is not checked by default")
+
+    # Check contour data
+    image_with_contour = qv.imageView_image.getImageItem().image
+
+    qtbot.mouseClick(qv.checkBox_image_contour,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert not qv.checkBox_image_contour.isChecked(), (
+        "Checkbox should be unchecked")
+    image_without_contour = qv.imageView_image.getImageItem().image
+
+    assert isinstance(image_with_contour, np.ndarray)
+    assert isinstance(image_without_contour, np.ndarray)
+    assert np.array_equal(image_with_contour.shape,
+                          image_without_contour.shape)
+    assert not np.array_equal(image_with_contour, image_without_contour)
+
+    # show that the contour pixels are our "red": [0.7, 0, 0]
+    ch_red = np.array([int(0.7 * 255), 0, 0])
+    assert np.max(np.all(image_with_contour == ch_red, axis=-1))
+    assert not np.max(np.all(image_without_contour == ch_red, axis=-1))
+
+
+def test_contour_display_qpi_amp(qtbot):
+    """The contours should be a specific colour depending on the image"""
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    path = datapath / "blood_rbc_qpi_data.rtdc"
+
+    mw.add_dataslot(paths=[path])
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_contour.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_contour.isChecked(), (
+        "Checkbox is not checked by default")
+
+    # Check contour data qpi
+    image_with_contour = qv.imageView_image_amp.getImageItem().image
+    ch_red = [qv.imageView_image_amp.levelMax * 0.7,
+              qv.imageView_image_amp.levelMin,
+              qv.imageView_image_amp.levelMin]
+
+    # the red pixel should be in the amp image
+    assert np.max(np.isin(image_with_contour, ch_red))
+
+    # now uncheck the contour
+    qtbot.mouseClick(qv.checkBox_image_contour,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert not qv.checkBox_image_contour.isChecked(), (
+        "Checkbox should be unchecked")
+    image_without_contour = qv.imageView_image_amp.getImageItem().image
+
+    assert np.array_equal(image_with_contour.shape,
+                          image_without_contour.shape)
+    assert not np.array_equal(image_with_contour,
+                              image_without_contour)
+
+    # the red pixel should not be in the amp image
+    assert not np.max(np.isin(image_without_contour, ch_red))
+
+
+@pytest.mark.xfail
+def test_contour_display_qpi_pha(qtbot):
+    """The contours should be a specific colour depending on the image"""
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    path = datapath / "blood_rbc_qpi_data.rtdc"
+
+    mw.add_dataslot(paths=[path])
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_contour.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_contour.isChecked(), (
+        "Checkbox is not checked by default")
+
+    # Check contour data qpi_pha, it is not RGB
+    image_with_contour = qv.imageView_image_pha.getImageItem().image
+    lowest_cmap_val = qv.imageView_image_pha.levelMin
+
+    # the cmap's lowest value changed to black, and we use this value
+    #  for the contour
+    assert np.max(np.isin(image_with_contour, lowest_cmap_val))
+
+    # now uncheck the contour
+    qtbot.mouseClick(qv.checkBox_image_contour,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert not qv.checkBox_image_contour.isChecked(), (
+        "Checkbox should be unchecked")
+    image_without_contour = qv.imageView_image_pha.getImageItem().image
+
+    assert np.array_equal(image_with_contour.shape,
+                          image_without_contour.shape)
+    assert not np.array_equal(image_with_contour,
+                              image_without_contour)
+    # there is one pixel actually set at the lowest value during auto-contrast
+    assert not np.sum(np.isin(image_without_contour, lowest_cmap_val))  # == 1
 
 
 def test_isoelasticity_lines_with_lut_selection(qtbot):
