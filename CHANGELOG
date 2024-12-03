@@ -1,4 +1,5 @@
 2.19.1
+ - feat: display and handle quantitative phase imaging data
  - ref: remove distutils dependency
  - docs: add developer's section
 2.19.0
