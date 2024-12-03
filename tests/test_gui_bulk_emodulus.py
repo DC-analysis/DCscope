@@ -60,6 +60,11 @@ def test_manual_basic(qtbot):
 
     # create bulk action dialog manually
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
+
+    # sanity check: default viscosity model should be "buyukurganci-2022"
+    ivdm = dlg.comboBox_visc_model.findData("buyukurganci-2022")
+    assert dlg.comboBox_visc_model.currentIndex() == ivdm
+
     dlg.comboBox_temp.setCurrentIndex(dlg.comboBox_temp.findData("manual"))
     dlg.doubleSpinBox_temp.setValue(29.5)
     dlg.on_ok()

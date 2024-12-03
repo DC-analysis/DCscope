@@ -128,10 +128,15 @@ def test_simple(qtbot):
 
     mw.add_dataslot(paths=[path])
     wsl = mw.widget_ana_view.widget_slot
+    idvm = wsl.comboBox_visc_model.findData("herold-2017")
+    assert idvm >= 0
+    wsl.comboBox_visc_model.setCurrentIndex(idvm)
+    wsl.write_slot()
 
     # default values
     assert wsl.comboBox_medium.currentData() == "CellCarrier"
     assert wsl.comboBox_temp.currentData() == "feature"
+    assert wsl.comboBox_visc_model.currentData() == "herold-2017"
 
     # scenario A (this is already set by default)
     ds1 = mw.pipeline.slots[0].get_dataset()
@@ -326,3 +331,23 @@ def test_changeable_lut_selection(qtbot):
         path1.unlink()
     except BaseException:
         pass
+
+
+def test_viscosity_defaults_to_buyukurganci_2022(qtbot):
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    # add fake measurement
+    path1 = make_dataset(medium="CellCarrier", temp=22.5, temp_range=[22, 23])
+
+    mw.add_dataslot(paths=[path1])
+    wsl = mw.widget_ana_view.widget_slot
+    ds = mw.pipeline.slots[0].get_dataset()
+
+    assert ds.config["setup"]["medium"] == "CellCarrier", "sanity check"
+    assert wsl.comboBox_medium.currentData() == "CellCarrier"
+
+    # the buyukurganci-2022 viscosity model should be the default
+    idvm_loc = wsl.comboBox_visc_model.findData("buyukurganci-2022")
+    idvm_actual = wsl.comboBox_visc_model.currentIndex()
+    assert idvm_loc == idvm_actual

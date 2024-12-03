@@ -66,7 +66,7 @@ class Dataslot(object):
                 "emodulus scenario": "manual",
                 "emodulus temperature": np.nan,
                 "emodulus viscosity": np.nan,
-                "emodulus viscosity model": "herold-2017",
+                "emodulus viscosity model": "buyukurganci-2022",
             }
         }
 
