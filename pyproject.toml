@@ -49,9 +49,6 @@ tracker = "https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/issues"
 documentation = "https://shapeout2.readthedocs.io"
 changelog = "https://github.com/ZELLMECHANIK-DRESDEN/ShapeOut2/blob/master/CHANGELOG"
 
-[tool.setuptools]
-py-modules = ['shapeout2']
-
 [tool.setuptools_scm]
 write_to = "shapeout2/_version.py"
 version_scheme = "post-release"
