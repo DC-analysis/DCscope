@@ -142,9 +142,10 @@ class QuickView(QtWidgets.QWidget):
         self.legend_trace = self.graphicsView_trace.addLegend(
             offset=(-.01, +.01))
 
-        cmap_phase = pg.colormap.get('CET-D1A')
-        # make the lowest cmap value black, for use with contour
-        cmap_phase.color[0] = [0, 0, 0, 1]
+        # qpi_pha cmaps
+        self.cmap_pha = pg.colormap.get('CET-D1A', skipCache=True)
+        self.cmap_pha_with_black = pg.colormap.get('CET-D1A', skipCache=True)
+        self.cmap_pha_with_black.color[0] = [0, 0, 0, 1]
 
         # image display default range of values that the cmap will cover
         self.levels_image = (0, 255)
@@ -162,7 +163,7 @@ class QuickView(QtWidgets.QWidget):
             "qpi_pha": {
                 "view_event": self.imageView_image_pha,
                 "view_poly": self.imageView_image_poly_pha,
-                "cmap": cmap_phase,
+                "cmap": self.cmap_pha,
                 "kwargs": dict(autoLevels=False, levels=self.levels_qpi_pha),
             },
             "qpi_amp": {
@@ -337,6 +338,16 @@ class QuickView(QtWidgets.QWidget):
         elif feat == "qpi_pha":
             if state["event"]["image auto contrast"]:
                 vmin, vmax = cellimg.min(), cellimg.max()
+                if state["event"]["image contour"]:
+                    # offset required for auto-contrast with contour
+                    # two times the contrast range, divided by the cmap length
+                    # this essentially adds a cmap point for our contour
+                    offset = 2 * ((vmax - vmin) / len(self.cmap_pha.color))
+                    vmin = vmin - offset
+                    self.img_info[feat]["cmap"] = self.cmap_pha_with_black
+                else:
+                    self.img_info[feat]["cmap"] = self.cmap_pha
+
             else:
                 vmin, vmax = self.levels_qpi_pha
             self.img_info[feat]["kwargs"]["levels"] = (vmin, vmax)
