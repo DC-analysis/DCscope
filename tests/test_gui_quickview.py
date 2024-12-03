@@ -657,7 +657,7 @@ def test_contour_display_qpi_amp(qtbot):
               qv.imageView_image_amp.levelMin]
 
     # the red pixel should be in the amp image
-    assert np.sum(np.isin(image_with_contour, ch_red))
+    assert not np.sum(np.all(image_with_contour == ch_red, axis=-1))
 
     # now uncheck the contour
     qtbot.mouseClick(qv.checkBox_image_contour,
@@ -672,7 +672,7 @@ def test_contour_display_qpi_amp(qtbot):
                               image_without_contour)
 
     # the red pixel should not be in the amp image
-    assert not np.sum(np.isin(image_without_contour, ch_red))
+    assert not np.sum(np.all(image_without_contour == ch_red, axis=-1))
 
 
 def test_contour_display_qpi_pha(qtbot):
@@ -720,7 +720,7 @@ def test_contour_display_qpi_pha(qtbot):
 
     # the cmap's lowest value changed to black, and we use this value
     #  for the contour
-    assert np.sum(np.isin(image_with_contour, lowest_cmap_val))
+    assert not np.sum(np.all(image_with_contour == lowest_cmap_val, axis=-1))
 
     # now uncheck the contour
     qtbot.mouseClick(qv.checkBox_image_contour,
@@ -734,7 +734,8 @@ def test_contour_display_qpi_pha(qtbot):
     assert not np.array_equal(image_with_contour,
                               image_without_contour)
     # there is one pixel actually set at the lowest value during auto-contrast
-    assert not np.sum(np.isin(image_without_contour, lowest_cmap_val))
+    assert not np.sum(np.all(
+        image_without_contour == lowest_cmap_val, axis=-1))
 
 
 def test_isoelasticity_lines_with_lut_selection(qtbot):
