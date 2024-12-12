@@ -551,6 +551,65 @@ def test_auto_contrast_qpi(qtbot):
         assert not np.array_equal(image_with_contrast, image_without_contrast)
 
 
+def test_auto_contrast_vmin_vmax_qpi(qtbot):
+    """auto contrast should change the vmin and vmax displayed to the user"""
+
+    # Create main window
+    mw = ShapeOut2()
+    qtbot.addWidget(mw)
+
+    path = datapath / "blood_rbc_qpi_data.rtdc"
+
+    mw.add_dataslot(paths=[path])
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Activate dataslots
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+
+    # Activate
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView-window
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # Check if QuickView-window is open
+    assert mw.toolButton_quick_view.isChecked(), "Quickview not Open"
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open event tool of QuickView
+    event_tool = qv.toolButton_event
+    qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # Test if checkbox is visible and checked by default
+    assert qv.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
+    assert qv.checkBox_image_contrast.isChecked(), (
+        "Checkbox is not checked by default")
+    # turn off image contour, because our design currently changes the levels
+    qtbot.mouseClick(qv.checkBox_image_contour,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert not qv.checkBox_image_contour.isChecked(), (
+        "Checkbox should be unchecked")
+
+    # Test if data changes when CheckBox is unchecked
+    qtbot.mouseClick(qv.checkBox_image_contrast,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert not qv.checkBox_image_contrast.isChecked(), (
+        "Checkbox should be unchecked")
+    assert qv.img_info["qpi_pha"]["kwargs"]["levels"] == (-3.14, +3.14)
+
+    # apply auto-contrast
+    qtbot.mouseClick(qv.checkBox_image_contrast,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert qv.checkBox_image_contrast.isChecked(), (
+        "Checkbox should be checked")
+    assert qv.img_info["qpi_pha"]["kwargs"]["levels"] == (-3.13, +3.13)
+
+
 def test_contour_display(qtbot):
     """The contours should be a specific colour depending on the image"""
 

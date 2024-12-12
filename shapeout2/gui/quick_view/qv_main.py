@@ -337,7 +337,8 @@ class QuickView(QtWidgets.QWidget):
 
         elif feat == "qpi_pha":
             if state["event"]["image auto contrast"]:
-                vmin, vmax = cellimg.min(), cellimg.max()
+                vmin, vmax = self._vmin_max_around_zero(cellimg)
+
                 if state["event"]["image contour"]:
                     # offset required for auto-contrast with contour
                     # two times the contrast range, divided by the cmap length
@@ -363,6 +364,12 @@ class QuickView(QtWidgets.QWidget):
             cellimg = self._convert_to_rgb(cellimg)
 
         return cellimg
+
+    def _vmin_max_around_zero(self, cellimg):
+        vmin_abs, vmax_abs = np.abs(cellimg.min()), np.abs(cellimg.max())
+        v_largest = (vmax_abs if vmax_abs >= vmin_abs else vmin_abs)
+        vmin, vmax = -v_largest, v_largest
+        return vmin, vmax
 
     def display_contour(self, ds, event, state, cellimg, feat):
         """Add the contour to the image if requested"""
