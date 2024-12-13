@@ -168,6 +168,14 @@ class QRangeSlider(QtWidgets.QWidget, Ui_Form):
         self.setEnd(self._INT_NUM)
         self.setDrawValues(False)
 
+    @QtCore.pyqtSlot(object)
+    def resizeEvent(self, event):
+        # The geometry changed and `self.width` is different now. Adjust
+        # the entire range slider to reflect the new values.
+        self.setStart(self.start())
+        self.setEnd(self.end())
+        super(QRangeSlider, self).resizeEvent(event)
+
     def min(self):
         return getattr(self, '__min', None)
 
@@ -221,7 +229,7 @@ class QRangeSlider(QtWidgets.QWidget, Ui_Form):
         setattr(self, '__drawValues', draw)
 
     def getRange(self):
-        return (self.start(), self.end())
+        return self.start(), self.end()
 
     def setRange(self, start, end):
         self.setStart(start)

@@ -1,5 +1,7 @@
 2.20.0
  - feat: display and handle quantitative phase imaging data
+ - fix: filter range control not updating limits, displaying value "100" (#183)
+ - fix: filter range control not updating handles when resized
 2.19.1
  - fix: "buyukurganci-2022" was not actually the default viscosity model
  - ref: remove distutils dependency

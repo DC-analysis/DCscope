@@ -75,13 +75,7 @@ class RangeControl(QtWidgets.QWidget):
 
     def __setstate__(self, state):
         self.checkBox.setChecked(state["active"])
-        self.doubleSpinBox_min.blockSignals(True)
-        self.doubleSpinBox_max.blockSignals(True)
-        self.doubleSpinBox_min.setValue(state["start"])
-        self.doubleSpinBox_max.setValue(state["end"])
-        self.doubleSpinBox_min.blockSignals(False)
-        self.doubleSpinBox_max.blockSignals(False)
-        self.map_spin_values_to_range_slider()
+        self.setSpinRange(state["start"], state["end"])
 
     def check_boundary(self, old_value):
         """Make sure boundaries are properly set in the UI
@@ -98,42 +92,46 @@ class RangeControl(QtWidgets.QWidget):
         return new_value
 
     @QtCore.pyqtSlot(float, float)
-    def map_spin_values_to_range_slider(self, vmin=None, vmax=None):
+    def map_spin_values_to_range_slider(self):
+        """Read values from spin controls and update the slider UI"""
+        # spin values
+        smin = self.doubleSpinBox_min.value()
+        smax = self.doubleSpinBox_max.value()
         # limits
         lmin = self.minimum
         lmax = self.maximum
-        # spin values
-        if vmin is None:
-            vmin = self.doubleSpinBox_min.value()
-        if vmax is None:
-            vmax = self.doubleSpinBox_max.value()
-        # range slider limits
+
+        # current range slider limits [a.u.]
         rmin = self.range_slider.min()
         rmax = self.range_slider.max()
-        # compute values
-        dr = rmax - rmin
-        dl = lmax - lmin
-        if dl * dr == 0:
+        # ranges for translating to handle widths
+        dr = rmax - rmin  # handle range
+        dl = lmax - lmin  # value range
+        # range slider handles (not the limits)
+        if dl == 0:
             hmin = hmax = 0
         else:
-            hmin = rmin + (vmin - lmin) / dl * dr
-            hmax = rmax - (lmax - vmax) / dl * dr
+            hmin = rmin + (smin - lmin) * dr / dl
+            hmax = rmax - (lmax - smax) * dr / dl
         if hmin < rmin:
             hmin = 0
         if hmax > rmax:
             hmax = self.range_slider._INT_NUM
-        self.range_slider.blockSignals(True)
-        self.range_slider.setRange(hmin, hmax)
-        self.range_slider.blockSignals(False)
+
         # make range selection stick tight to edges
         if hmin < 10:
             hmin = 0
         if hmin > self.range_slider._INT_NUM - 10:
             hmax = self.range_slider._INT_NUM
+
+        self.range_slider.update()
+        self.range_slider.blockSignals(True)
+        self.range_slider.setRange(hmin, hmax)
+        self.range_slider.blockSignals(False)
         return hmin, hmax
 
     @QtCore.pyqtSlot(int, int)
-    def map_range_slider_to_spin_values(self, hmin=None, hmax=None):
+    def map_range_slider_to_spin_values(self):
         """Return the respective value of the current range
 
         Range limits are defined by
@@ -147,25 +145,18 @@ class RangeControl(QtWidgets.QWidget):
         rmin = self.range_slider.min()
         rmax = self.range_slider.max()
         # range slider handles
-        if hmin is None:
-            hmin = self.range_slider.start()
-        if hmax is None:
-            hmax = self.range_slider.end()
+        hmin = self.range_slider.start()
+        hmax = self.range_slider.end()
         # compute values
         dr = rmax - rmin
         dl = lmax - lmin
-        vmin = lmin + (hmin - rmin) / dr * dl
-        vmax = lmax - (rmax - hmax) / dr * dl
+        vmin = lmin + (hmin - rmin) * dl / dr
+        vmax = lmax - (rmax - hmax) * dl / dr
 
         vmin = self.check_boundary(vmin)
         vmax = self.check_boundary(vmax)
 
-        self.doubleSpinBox_min.blockSignals(True)
-        self.doubleSpinBox_max.blockSignals(True)
-        self.doubleSpinBox_min.setValue(vmin)
-        self.doubleSpinBox_max.setValue(vmax)
-        self.doubleSpinBox_min.blockSignals(False)
-        self.doubleSpinBox_max.blockSignals(False)
+        self.setSpinRange(vmin, vmax)
         return vmin, vmax
 
     def is_active(self):
@@ -221,6 +212,9 @@ class RangeControl(QtWidgets.QWidget):
             limit of the spin controls is larger, giving the user
             a broader range.
         """
+        if vmin == vmax:
+            return
+
         self.minimum = vmin
         self.maximum = vmax
 
@@ -277,3 +271,38 @@ class RangeControl(QtWidgets.QWidget):
             self.doubleSpinBox_max.setDecimals(dec)
             self.doubleSpinBox_min.setSingleStep(10**-dec)
             self.doubleSpinBox_max.setSingleStep(10**-dec)
+
+    def setSpinRange(self, vmin, vmax):
+        """Set values of left and right spin controls (not the limits)
+
+        Extends the range if necessary
+        """
+        limits_changed = False
+
+        if vmin < self.minimum:
+            limit_min = np.floor(vmin)
+            limits_changed = True
+        else:
+            limit_min = self.minimum
+
+        if vmax > self.maximum:
+            limit_max = np.ceil(vmax)
+            limits_changed = True
+        else:
+            limit_max = self.maximum
+
+        if limits_changed:
+            self.setLimits(limit_min, limit_max)
+
+        self.doubleSpinBox_min.blockSignals(True)
+        self.doubleSpinBox_max.blockSignals(True)
+        self.doubleSpinBox_min.setValue(vmin)
+        self.doubleSpinBox_max.setValue(vmax)
+        self.doubleSpinBox_min.blockSignals(False)
+        self.doubleSpinBox_max.blockSignals(False)
+
+        self.range_slider.blockSignals(True)
+        self.map_spin_values_to_range_slider()
+        self.range_slider.blockSignals(False)
+
+        self.range_changed.emit(vmin, vmax)
