@@ -1,5 +1,6 @@
-2.19.1
+2.20.0
  - feat: display and handle quantitative phase imaging data
+2.19.1
  - fix: "buyukurganci-2022" was not actually the default viscosity model
  - ref: remove distutils dependency
  - docs: add developer's section

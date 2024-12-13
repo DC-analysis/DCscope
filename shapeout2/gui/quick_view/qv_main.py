@@ -367,7 +367,7 @@ class QuickView(QtWidgets.QWidget):
 
     def _vmin_max_around_zero(self, cellimg):
         vmin_abs, vmax_abs = np.abs(cellimg.min()), np.abs(cellimg.max())
-        v_largest = (vmax_abs if vmax_abs >= vmin_abs else vmin_abs)
+        v_largest = max(vmax_abs, vmin_abs)
         vmin, vmax = -v_largest, v_largest
         return vmin, vmax
 
