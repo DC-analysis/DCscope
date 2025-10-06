@@ -1117,3 +1117,86 @@ def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot):
     # Since the feature is not available in dataset-2, it should be set
     # to "deform" (first option in default choice)
     assert qv.comboBox_y.currentData() == "deform", "Check manual selection"
+
+
+def test_cache_selected_event_using_dataslot_issue_196(qtbot):
+    """Event selection should be cached when switching between datasets"""
+
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # add dataslots
+    path1 = datapath / "calibration_beads_47.rtdc"
+    path2 = datapath / "blood_rbc_qpi_data.rtdc"
+    mw.add_dataslot(paths=[path1, path2])
+
+    assert len(mw.pipeline.slot_ids) == 2, "we added that"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Get the slot_id of the first data slot
+    slot_id1 = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+
+    # activate dataslot-1
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+
+    # did that work?
+    assert mw.toolButton_quick_view.isChecked()
+
+    # selected events
+    slot1_event = 3
+    slot2_event = 6
+
+    # Get QuickView instance
+    qv = mw.widget_quick_view
+
+    # Open plot (settings) tool of QuickView
+    plot_tool = qv.toolButton_settings
+    qtbot.mouseClick(plot_tool, QtCore.Qt.MouseButton.LeftButton)
+
+    # select an event index in slot1
+    qv.show_event(slot1_event)
+
+    # check whether event 4 is saved in cache dict
+    assert qv._dataset_event_plot_indices_cache["Dataslot_1"] == slot1_event
+
+    # Do we have the correct event shown?
+    assert qv.spinBox_event.value()-1 == slot1_event
+
+    # Get the slot_id the second data slot
+    slot_id2 = mw.pipeline.slot_ids[1]
+    # Activate data slot-2
+    em2 = mw.block_matrix.get_widget(slot_id2, filt_id)
+    qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    em2 = mw.block_matrix.get_widget(slot_id2, filt_id)
+    qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
+
+    # select an event index in slot2
+    qv.show_event(slot2_event)
+
+    # Do we have the correct event shown?
+    assert qv.spinBox_event.value()-1 == slot2_event
+
+    # check whether slot2_event is exists in cache dict
+    assert qv._dataset_event_plot_indices_cache["Dataslot_2"] == slot2_event
+
+    # now switch back to slot1 and check event
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+    qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    em1 = mw.block_matrix.get_widget(slot_id1, filt_id)
+    qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
+
+    # Do we still have the correct event shown?
+    assert qv.spinBox_event.value()-1 == slot1_event
+
+    # check whether slot1_event is still exists in cache dict
+    assert qv._dataset_event_plot_indices_cache["Dataslot_1"] == slot1_event

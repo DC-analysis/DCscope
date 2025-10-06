@@ -1,3 +1,5 @@
+2.22.3
+ - fix: cache selected event per dataset in QuickView (#196)
 2.22.2
  - fix: error message dialog limited to traceback length of three
  - fix: copy error text to clipboard did not work in error message dialog
