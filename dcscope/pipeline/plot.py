@@ -60,7 +60,7 @@ STATE_OPTIONS = {
     "identifier": str,
     "layout": {
         "column count": int,
-        "division": ["each", "merge", "multiscatter+contour"],
+        "division": ["each", "merge", "multiscatter+contour", "onlycontours"],
         "label plots": bool,
         "name": str,
         "size x": float,
