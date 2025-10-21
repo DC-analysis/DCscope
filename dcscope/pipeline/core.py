@@ -545,6 +545,8 @@ class Pipeline(object):
             num_plots = 1
         elif div == "multiscatter+contour":
             num_plots = num_scat + 1
+        elif div == "onlycontours":
+            num_plots = 1
         else:
             raise ValueError(f"Unrecognized division: '{div}'")
 

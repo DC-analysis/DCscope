@@ -41,6 +41,7 @@ class PlotPanel(QtWidgets.QWidget):
         self.comboBox_division.addItem("One plot per dataset", "each")
         self.comboBox_division.addItem("Scatter plots and joint contour plot",
                                        "multiscatter+contour")
+        self.comboBox_division.addItem("Only contour plots", "onlycontours")
         self.comboBox_division.setCurrentIndex(2)
 
         # signals
