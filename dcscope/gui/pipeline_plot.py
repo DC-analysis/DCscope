@@ -224,6 +224,19 @@ class PipelinePlot(QtWidgets.QWidget):
                            colspan=1)
             pp.redraw(dslist, slot_states, plot_state_contour)
 
+        elif lay["division"] == "onlycontours":
+            # contour plots
+            plot_state_contour = copy.deepcopy(plot_state)
+            plot_state_contour["scatter"]["enabled"] = False
+            pp = PipelinePlotItem(parent=linner)
+            self.plot_items.append(pp)
+            linner.addItem(item=pp,
+                           row=None,
+                           col=None,
+                           rowspan=1,
+                           colspan=1)
+            pp.redraw(dslist, slot_states, plot_state_contour)
+
         # colorbar
         colorbar_kwds = {}
 
