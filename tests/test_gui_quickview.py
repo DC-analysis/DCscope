@@ -237,6 +237,66 @@ def test_no_events_issue_37(qtbot):
     mw.close()
 
 
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')  # 0-div in kde-methods
+@pytest.mark.filterwarnings('ignore::dclab.features.emodulus.'
+                            + 'YoungsModulusLookupTableExceededWarning')
+def test_no_events_issue_223_nan(qtbot):
+    """https://github.com/DC-analysis/DCscope/issues/223
+
+    "ValueError: zero-size array to reduction operation minimum
+    which has no identity" when all values are NaN.
+    """
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # add a dataslot
+    path = datapath / "extreme_shear.rtdc"
+    mw.add_dataslot(paths=[path, path])
+
+    assert len(mw.pipeline.slot_ids) == 2, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # activate a dataslot
+    slot_id = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em = mw.block_matrix.get_widget(slot_id, filt_id)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)  # activate
+    # did that work?
+    assert mw.pipeline.is_element_active(slot_id, filt_id)
+
+    # in quick view, set the Y-Axis to Young's modulus
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+    qv = mw.widget_quick_view
+    idx_emod = qv.comboBox_y.findData("emodulus")
+    qv.comboBox_y.setCurrentIndex(idx_emod)
+
+    # activate KDE coloring
+    idx_color = qv.comboBox_hue.findData("kde")
+    qv.comboBox_hue.setCurrentIndex(idx_color)
+    assert qv.comboBox_hue.currentData() == "kde"
+    qv.checkBox_hue.setChecked(True)
+
+    # set the Young's modulus LUT model to "HE-3D-FEM-22"
+    fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    sv = mw.widget_ana_view.widget_slot
+    mw.widget_ana_view.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.tab_slot)
+    idx_lut = sv.comboBox_lut.findData("HE-3D-FEM-22")
+    sv.comboBox_lut.setCurrentIndex(idx_lut)
+    qtbot.mouseClick(sv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    # did that work?
+    assert sv.comboBox_lut.currentData() == "HE-3D-FEM-22"
+
+    # sanity checks
+    assert len(qv.widget_scatter.data_y) == 15
+    assert np.all(np.isnan(qv.widget_scatter.data_y))
+    assert not np.all(np.isnan(qv.widget_scatter.data_x))
+
+    mw.close()
+
+
 def test_remove_dataset_h5py_error(qtbot):
     """Removing an activated dataset and activating Quick View fails
 
