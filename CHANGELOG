@@ -1,5 +1,6 @@
 2.23.1
  - fix: QuickView plotting failed for all-NaN coordinate data (#223)
+ - build: remove pin scipy==1.11.4
 2.23.0
  - feat: add zoom-in functionality for contour plots (#211)
  - fix: cache selected event per dataset in QuickView (#196)

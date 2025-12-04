@@ -1,3 +1,2 @@
 # Any additional requirements for building the application
 pyinstaller
-scipy==1.11.4  # had problems with pyinstaller (scipy.special._cdflib not found)
