@@ -321,53 +321,38 @@ def test_zoomin_contours(qtbot):
     mw = DCscope()
     qtbot.addWidget(mw)
 
-    # Add test datasets
-    paths = [
-        datapath / "artificial_with_image_bg.rtdc",
-        datapath / "blood_rbc_leukocytes.rtdc",
-        datapath / "calibration_beads_47.rtdc"
-        ]
-
-    mw.add_dataslot(paths=paths)
-
-    # Add a plot
+    # Add test dataset and create plot
+    slot_id = mw.add_dataslot(paths=[datapath / "calibration_beads_47.rtdc"])
     plot_id = mw.add_plot()
 
-    # Activate analysis view
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    # Activate slot-plot pair
+    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+    # Get range before zoom-in
+    mw.add_plot_window(plot_id)
+    plot_widget = mw.subwindows_plots[plot_id].widget()
+    view_range_before = plot_widget.plot_items[-1].getViewBox().viewRange()
+    x_range_before = view_range_before[0]
+    y_range_before = view_range_before[1]
 
     # Switch to plot tab
     mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
     pv = mw.widget_ana_view.widget_plot
 
-    # Enable contours and zoom-in
-    # pv.checkBox_contour.setChecked(True)
+    # Enable contour zoom-in and apply
     pv.checkBox_zoomin.setChecked(True)
-
-    # Apply changes
     qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
-    # Open the plot window
-    mw.add_plot_window(plot_id)
-
-    # Get the plot widget
+    # Get range after zoom-in
     plot_widget = mw.subwindows_plots[plot_id].widget()
+    view_range_after = plot_widget.plot_items[-1].getViewBox().viewRange()
+    x_range_after = view_range_after[0]
+    y_range_after = view_range_after[1]
 
-    # Get the plot items from the pipeline plot
-    if plot_widget.plot_items:
-        # Get the first plot item (in case there are multiple due to division)
-        plot_item = plot_widget.plot_items[0]
-
-        # Get the current view range
-        x_range = plot_item.getViewBox().viewRange()[0]
-        y_range = plot_item.getViewBox().viewRange()[1]
-
-        # Verify that zoom was applied
-        assert np.all(np.isfinite(x_range))
-        assert np.all(np.isfinite(y_range))
-        assert x_range[0] != 0 or x_range[1] != 1
-        assert y_range[0] != 0 or y_range[1] != 1
+    # Verify zoom-in reduced both X and Y ranges
+    assert x_range_after[1] < x_range_before[1], "x-max should decrease"
+    assert y_range_after[1] < y_range_before[1], "y-max should decrease"
 
 
 def test_only_contours_division(qtbot):
@@ -392,6 +377,9 @@ def test_only_contours_division(qtbot):
 
     # Get the initial plot state
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
+
+    # Verify there is only one plot
+    assert len(mw.pipeline.plot_ids) == 1, "Should have exactly one plot"
 
     # Verify initial division mode
     assert plot_state["layout"]["division"] == "multiscatter+contour"
@@ -446,7 +434,7 @@ def test_contour_plot_with_invalid_percentiles(qtbot):
     # Set contour percentiles to extreme values (edge cases)
     # 100% percentile is at the maximum KDE value
     pv.doubleSpinBox_perc_1.setValue(100.0)  # Maximum percentile
-    pv.doubleSpinBox_perc_2.setValue(99.0)   # Near maximum
+    pv.doubleSpinBox_perc_2.setValue(100.0)   # Near maximum
 
     # Apply changes
     qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
@@ -457,7 +445,7 @@ def test_contour_plot_with_invalid_percentiles(qtbot):
 
     # Check that percentiles were set
     assert con["percentiles"][0] == 100.0
-    assert con["percentiles"][1] == 99.0
+    assert con["percentiles"][1] == 100.0
     assert con["enabled"] is True
 
     # Open the plot window to verify rendering works
