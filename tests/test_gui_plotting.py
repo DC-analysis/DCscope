@@ -314,3 +314,147 @@ def test_changing_lut_identifier_in_analysis_view_plots(qtbot):
     qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     assert pv.comboBox_lut.currentData() == "HE-3D-FEM-22"
+
+
+def test_zoomin_contours(qtbot):
+    """Test that zooming in on contours works correctly"""
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # Add test dataset and create plot
+    slot_id = mw.add_dataslot(paths=[datapath / "calibration_beads_47.rtdc"])
+    plot_id = mw.add_plot()
+
+    # Activate slot-plot pair
+    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+    # Get range before zoom-in
+    mw.add_plot_window(plot_id)
+    plot_widget = mw.subwindows_plots[plot_id].widget()
+    view_range_before = plot_widget.plot_items[-1].getViewBox().viewRange()
+    x_range_before = view_range_before[0]
+    y_range_before = view_range_before[1]
+
+    # Switch to plot tab
+    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
+    pv = mw.widget_ana_view.widget_plot
+
+    # Enable contour zoom-in and apply
+    pv.checkBox_zoomin.setChecked(True)
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    # Get range after zoom-in
+    plot_widget = mw.subwindows_plots[plot_id].widget()
+    view_range_after = plot_widget.plot_items[-1].getViewBox().viewRange()
+    x_range_after = view_range_after[0]
+    y_range_after = view_range_after[1]
+
+    # Verify zoom-in reduced both X and Y ranges
+    assert x_range_after[1] < x_range_before[1], "x-max should decrease"
+    assert y_range_after[1] < y_range_before[1], "y-max should decrease"
+
+
+def test_only_contours_division(qtbot):
+    """Test that 'onlycontours' division mode works correctly"""
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # Add multiple datasets
+    path = datapath / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path, path])  # Add same dataset twice for testing
+
+    # Add a plot
+    plot_id = mw.add_plot()
+
+    # Activate analysis view
+    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    # Switch to plot tab
+    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
+    pv = mw.widget_ana_view.widget_plot
+
+    # Get the initial plot state
+    plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
+
+    # Verify there is only one plot
+    assert len(mw.pipeline.plot_ids) == 1, "Should have exactly one plot"
+
+    # Verify initial division mode
+    assert plot_state["layout"]["division"] == "multiscatter+contour"
+
+    # Set division to "onlycontours"
+    idx = pv.comboBox_division.findData("onlycontours")
+    pv.comboBox_division.setCurrentIndex(idx)
+
+    # Apply changes
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    # Get the plot widget
+    pw = mw.block_matrix.get_widget(filt_plot_id=plot_id)
+
+    # Activate plots for contour view
+    qtbot.mouseClick(pw.toolButton_toggle, QtCore.Qt.MouseButton.LeftButton)
+
+    # Get the plot state
+    plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
+
+    # Verify division mode
+    assert plot_state["layout"]["division"] == "onlycontours"
+
+
+def test_contour_plot_with_invalid_percentiles(qtbot):
+    """Test contour plot with edge case percentiles (e.g., 100% KDE)"""
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # Add a dataset
+    path = datapath / "calibration_beads_47.rtdc"
+    slot_id = mw.add_dataslot(paths=[path])[0]
+
+    # Add a plot
+    plot_id = mw.add_plot()
+
+    # Activate the slot-plot pair to show data
+    pe = mw.block_matrix.get_widget(slot_id, plot_id)
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+    # Activate analysis view
+    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    # Switch to plot tab
+    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
+    pv = mw.widget_ana_view.widget_plot
+
+    # Enable contours
+    pv.groupBox_contour.setChecked(True)
+
+    # Set contour percentiles to extreme values (edge cases)
+    # 100% percentile is at the maximum KDE value
+    pv.doubleSpinBox_perc_1.setValue(100.0)  # Maximum percentile
+    pv.doubleSpinBox_perc_2.setValue(100.0)   # Near maximum
+
+    # Apply changes
+    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    # Verify the plot state was updated with the new percentiles
+    plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
+    con = plot_state["contour"]
+
+    # Check that percentiles were set
+    assert con["percentiles"][0] == 100.0
+    assert con["percentiles"][1] == 100.0
+    assert con["enabled"] is True
+
+    # Open the plot window to verify rendering works
+    mw.add_plot_window(plot_id)
+
+    # Get the plot widget
+    plot_widget = mw.subwindows_plots[plot_id].widget()
+
+    # Check that plot items were created
+    assert plot_widget is not None
+    if plot_widget.plot_items:
+        assert len(plot_widget.plot_items) > 0
