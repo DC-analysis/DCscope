@@ -1,5 +1,6 @@
 2.24.0
  - feat: add contour-only plotting mode (#210)
+ - setup: bump dclab to 0.67.3 (data export, downsampling with NaNs)
 2.23.1
  - fix: QuickView plotting failed for all-NaN coordinate data (#223)
  - build: remove pin scipy==1.11.4
