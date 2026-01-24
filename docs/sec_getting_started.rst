@@ -12,11 +12,7 @@ DCscope can be installed via multiple channels.
    (i.e. ``DCscope_X.Y.Z_win_64bit_setup.exe``) from the official
    `release page <https://github.com/DC-analysis/DCscope/releases/latest>`__. 
 
-2. **macOS:** Download the latest version
-   (``DCscope_X.Y.Z.dmg`` or ``DCscope_X.Y.Z.pkg``) from the official
-   `release page <https://github.com/DC-analysis/DCscope/releases/latest>`__. 
-
-3. **Python 3.8 with pip:** DCscope can easily be installed with
+2. **Python 3.8 with pip:** DCscope can easily be installed with
    `pip <https://pip.pypa.io/en/stable/quickstart/>`__:
 
    .. code:: bash
@@ -25,6 +21,16 @@ DCscope can be installed via multiple channels.
 
    To start DCscope, simply run ``python3 -m dcscope``
    or ``dcscope`` in a command shell. 
+
+
+.. note::
+
+    There used to be macOS builds, but many users reported they were not
+    working. Since the GitHub Actions build pipeline works (executable
+    binary runs), this is either a CPU architecture issue or some kind of
+    macOS safeguard (software signing?). At the moment, we don't have the
+    resources to look into this, but we would greatly appreciate help in the
+    form of a pull request.
 
 
 Update

@@ -1,3 +1,5 @@
+2.24.1
+ - build: disable non-functional macOS builds
 2.24.0
  - feat: add contour-only plotting mode (#210)
  - setup: bump dclab to 0.67.3 (data export, downsampling with NaNs)
