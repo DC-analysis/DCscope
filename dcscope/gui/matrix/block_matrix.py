@@ -34,6 +34,34 @@ class BlockMatrix(QtWidgets.QWidget):
         self.plot_matrix.matrix_changed.connect(self.on_matrix_changed)
         self.plot_matrix.plot_modify_clicked.connect(self.plot_modify_clicked)
 
+        self.setMouseTracking(True)
+
+    def setMouseTracking(self, flag):
+        """Set mouse tracking recursively
+
+        This is necessary for `BlockMatrix.mouseMoveEvent` to work
+        throughout its children.
+        """
+        def recursive_set(parent):
+            for child in parent.findChildren(QtCore.QObject):
+                try:
+                    child.setMouseTracking(flag)
+                except BaseException:
+                    pass
+                recursive_set(child)
+        QtWidgets.QWidget.setMouseTracking(self, flag)
+        recursive_set(self)
+
+    def mouseMoveEvent(self, e):
+        p = self.mapToGlobal(e.pos())
+        # Get the global position of the mouse event
+        widget_under_mouse = QtWidgets.QApplication.widgetAt(p)
+
+        QtWidgets.QToolTip.showText(e.pos(),
+                                    widget_under_mouse.toolTip(),
+                                    widget_under_mouse,
+                                    msecShowTime=60000)
+
     def read_pipeline_state(self):
         state = self.data_matrix.read_pipeline_state()
         statep = self.plot_matrix.read_pipeline_state()

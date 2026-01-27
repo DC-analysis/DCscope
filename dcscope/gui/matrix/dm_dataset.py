@@ -49,6 +49,18 @@ class MatrixDataset(QtWidgets.QWidget):
             self.update_content()
         else:
             self.write_pipeline_state(state)
+        self.setMouseTracking(True)
+
+    def setMouseTracking(self, flag):
+        def recursive_set(parent):
+            for child in parent.findChildren(QtCore.QObject):
+                try:
+                    child.setMouseTracking(flag)
+                except BaseException:
+                    pass
+                recursive_set(child)
+        QtWidgets.QWidget.setMouseTracking(self, flag)
+        recursive_set(self)
 
     def read_pipeline_state(self):
         state = {"path": self.path,

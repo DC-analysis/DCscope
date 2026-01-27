@@ -20,6 +20,23 @@ class MatrixElement(QtWidgets.QWidget):
         self.invalid = False
 
         self.update_content()
+        self.setMouseTracking(True)
+
+    def setMouseTracking(self, flag):
+        """Set mouse tracking recursively
+
+        This is necessary for `BlockMatrix.mouseMoveEvent` to work
+        throughout its children.
+        """
+        def recursive_set(parent):
+            for child in parent.findChildren(QtCore.QObject):
+                try:
+                    child.setMouseTracking(flag)
+                except BaseException:
+                    pass
+                recursive_set(child)
+        QtWidgets.QWidget.setMouseTracking(self, flag)
+        recursive_set(self)
 
     def read_pipeline_state(self):
         state = {"active": self.active and not self.invalid,

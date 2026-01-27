@@ -20,6 +20,23 @@ class PlotMatrix(QtWidgets.QWidget):
 
         # used for toggling between all active, all inactive and semi state
         self.semi_states_plot = {}
+        self.setMouseTracking(True)
+
+    def setMouseTracking(self, flag):
+        """Set mouse tracking recursively
+
+        This is necessary for `BlockMatrix.mouseMoveEvent` to work
+        throughout its children.
+        """
+        def recursive_set(parent):
+            for child in parent.findChildren(QtCore.QObject):
+                try:
+                    child.setMouseTracking(flag)
+                except BaseException:
+                    pass
+                recursive_set(child)
+        QtWidgets.QWidget.setMouseTracking(self, flag)
+        recursive_set(self)
 
     def read_pipeline_state(self):
         """State of the current plot matrix"""
