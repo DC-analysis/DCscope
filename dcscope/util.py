@@ -1,7 +1,25 @@
+import os.path
+
 # hashobj is imported from several other submodules in DCscope.
 # Would we need to add additional functionalities in the future, which
 # are not within the scope of dclab, then we can patch this method here.
 from dclab.util import hashobj  # noqa: F401
+
+
+def strip_common_prefix_suffix(string_list: list[str]) -> list[str]:
+    sl = string_list
+
+    # cut common prefixes
+    prefix = os.path.commonprefix(sl)
+    sl = [n[len(prefix):] for n in sl]
+
+    # cut common suffixes
+    sl = [n[::-1] for n in sl]  # reverse order
+    suffix = os.path.commonprefix(sl)
+    sl = [n[len(suffix):] for n in sl]
+
+    sl = [n[::-1] for n in sl]  # reverse order
+    return sl
 
 
 def get_valid_filename(value):

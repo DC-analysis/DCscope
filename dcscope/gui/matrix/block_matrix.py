@@ -20,6 +20,8 @@ class BlockMatrix(QtWidgets.QWidget):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 
+        self.pipeline = None
+
         self._old_state = {}
         # Signals
         # DataMatrix
@@ -40,6 +42,13 @@ class BlockMatrix(QtWidgets.QWidget):
             for plot in statep["elements"][ss]:
                 state["elements"][ss][plot] = statep["elements"][ss][plot]
         return state
+
+    def set_pipeline(self, pipeline):
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
+
+        self.data_matrix.set_pipeline(self.pipeline)
 
     def write_pipeline_state(self, state):
         # DataMatrix
@@ -138,4 +147,5 @@ class BlockMatrix(QtWidgets.QWidget):
 
     def update(self, *args, **kwargs):
         self.scrollArea_block.update()
+        self.data_matrix.update_names()
         super(BlockMatrix, self).update(*args, **kwargs)

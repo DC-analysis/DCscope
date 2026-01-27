@@ -19,6 +19,8 @@ class DataMatrix(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         super(DataMatrix, self).__init__(*args, **kwargs)
 
+        self.pipeline = None
+
         self.glo = None
         self._reset_layout()
 
@@ -205,7 +207,9 @@ class DataMatrix(QtWidgets.QWidget):
 
     def add_dataset(self, slot_id=None, state=None):
         """Add a dataset to the DataMatrix"""
-        md = MatrixDataset(identifier=slot_id, state=state)
+        md = MatrixDataset(pipeline=self.pipeline,
+                           identifier=slot_id,
+                           state=state)
         self.glo.addWidget(md, self.num_datasets+1, 0)
         md.active_toggled.connect(self.toggle_dataset_active)
         md.enabled_toggled.connect(self.toggle_dataset_enable)
@@ -440,6 +444,11 @@ class DataMatrix(QtWidgets.QWidget):
             self.matrix_changed.emit()
             self.changed_quickview()
 
+    def set_pipeline(self, pipeline):
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
+
     @QtCore.pyqtSlot()
     def toggle_dataset_active(self):
         """Switch between all active, all inactive, previous state
@@ -560,6 +569,13 @@ class DataMatrix(QtWidgets.QWidget):
             mstate["enabled"] = np.logical_and(enabled, denabled)
             me.write_pipeline_state(mstate)
         self.publish_matrix()
+
+    def update_names(self):
+        nrows = self.glo.rowCount()
+        for ii in range(1, nrows):
+            item = self.glo.itemAtPosition(ii, 0)
+            if item is not None:
+                item.widget().update_content()
 
     def update_content(self):
         ncols = self.glo.columnCount()

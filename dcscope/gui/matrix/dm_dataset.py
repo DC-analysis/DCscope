@@ -3,7 +3,6 @@ import importlib.resources
 from PyQt6 import uic, QtWidgets, QtCore, QtGui
 
 from ... import meta_tool
-from ... import pipeline
 
 
 class MatrixDataset(QtWidgets.QWidget):
@@ -12,7 +11,7 @@ class MatrixDataset(QtWidgets.QWidget):
     option_action = QtCore.pyqtSignal(str)
     modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, identifier=None, state=None, *args, **kwargs):
+    def __init__(self, pipeline, identifier=None, state=None, *args, **kwargs):
         """Create a new dataset matrix element
 
         Specify either an existing Dataslot identifier or a
@@ -23,6 +22,8 @@ class MatrixDataset(QtWidgets.QWidget):
             "dcscope.gui.matrix") / "dm_dataset.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
+
+        self.pipeline = pipeline
 
         # options button
         menu = QtWidgets.QMenu()
@@ -41,7 +42,7 @@ class MatrixDataset(QtWidgets.QWidget):
         self.toolButton_modify.clicked.connect(self.on_modify)
 
         if state is None:
-            slot = pipeline.Dataslot._instances[identifier]
+            slot = self.pipeline.get_slot(identifier)
             self.identifier = identifier
             self.path = slot.path
             # set tooltip/label
@@ -93,8 +94,8 @@ class MatrixDataset(QtWidgets.QWidget):
             tip = meta_tool.get_repr(self.path, append_path=True)
             self.setToolTip(tip)
             self.label.setToolTip(tip)
-            slot = pipeline.Dataslot._instances[self.identifier]
-            name = slot.name
+            slot_index = self.pipeline.slot_ids.index(self.identifier)
+            name = self.pipeline.reduced_sample_names[slot_index]
             self.set_label_string(name)
             # Set region image
             region = meta_tool.get_info(self.path,

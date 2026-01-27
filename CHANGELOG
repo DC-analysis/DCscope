@@ -1,4 +1,7 @@
 2.24.1
+ - enh: reduce sample names in block matrix (strip common prefix and suffix)
+ - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
+ - ref: raise ValueError in unreachable case in DataSlot creation
  - build: disable non-functional macOS builds
 2.24.0
  - feat: add contour-only plotting mode (#210)

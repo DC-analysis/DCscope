@@ -69,6 +69,9 @@ class DCscope(QtWidgets.QMainWindow):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 
+        # pipeline
+        self.pipeline = None
+
         # update check
         self._update_thread = None
         self._update_worker = None
@@ -107,7 +110,7 @@ class DCscope(QtWidgets.QMainWindow):
                 s3_secret_access_key
 
         #: Analysis pipeline
-        self.pipeline = pipeline.Pipeline()
+        self.set_pipeline()
         #: Extensions
         store_path = pathlib.Path(
             QStandardPaths.writableLocation(
@@ -454,6 +457,7 @@ class DCscope(QtWidgets.QMainWindow):
             self.block_matrix.add_dataset(slot_id=slot_id)
             slot_ids.append(slot_id)
 
+        self.pipeline.compute_reduced_sample_names()
         self.setUpdatesEnabled(True)
         self.repaint()
 
@@ -1047,6 +1051,13 @@ class DCscope(QtWidgets.QMainWindow):
     def reload_pipeline(self):
         """Convenience function for reloading the current pipeline"""
         self.adopt_pipeline(self.pipeline.__getstate__())
+
+    def set_pipeline(self):
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline.Pipeline()
+
+        self.block_matrix.set_pipeline(self.pipeline)
 
 
 def excepthook(etype, value, trace):

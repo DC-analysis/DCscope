@@ -5,6 +5,7 @@ import dclab
 import numpy as np
 
 from ..idiom import SLOPING_FEATURES
+from ..util import strip_common_prefix_suffix
 
 from .dataslot import Dataslot
 from .filter import Filter
@@ -32,6 +33,8 @@ class Pipeline(object):
         self.slots = []
         #: individual element states
         self.element_states = {}
+
+        self._reduced_sample_names = []
 
         self.reset()
         #: previous state (see __setstate__)
@@ -105,6 +108,13 @@ class Pipeline(object):
     @property
     def paths(self):
         return [ds.path for ds in self.slots]
+
+    @property
+    def reduced_sample_names(self):
+        """Return reduced sample names for all slots"""
+        if len(self.slots) != len(self._reduced_sample_names):
+            self.compute_reduced_sample_names()
+        return self._reduced_sample_names
 
     def add_filter(self, filt=None, index=None):
         """Add a filter to the pipeline
@@ -213,8 +223,11 @@ class Pipeline(object):
             state = slot
             if state["identifier"] in Dataslot._instances:
                 slot = Dataslot._instances[slot["identifier"]]
+                slot.pipeline = self
             else:
-                slot = Dataslot()
+                raise ValueError(f"Please specify a path or a dictionary "
+                                 f"containing a valid Dataslot identifier "
+                                 f"to instantiate a Dataslot. Got '{slot}'")
             slot.__setstate__(state)
 
         self.slots.insert(index, slot)
@@ -275,6 +288,56 @@ class Pipeline(object):
                     plot_state["contour"][f"spacing {ax}"] = spacing
         if old_plot_state != plot_state:
             plot.__setstate__(plot_state)
+
+    def compute_reduced_sample_names(self,
+                                     slot_indices: list[int] = None,
+                                     ) -> list[str]:
+        """Return a list of reduced sample names for the given indices
+
+        The algorithm removes common prefixes and suffixes from sample names.
+        If there are no unique differences, the file name and the path name
+        are used.
+
+        The motivation is to make comparisons easier when there are a lot
+        of common characters.
+
+        Parameters
+        ----------
+        slot_indices: list[int]
+            indices to work with; use all if set to None; If set to None,
+            the `reduced_sample_names` property is updated.
+
+        Returns
+        -------
+        name: list[str]
+            unique names for each of the indices
+        """
+        if slot_indices is None:
+            slot_indices = list(range(len(self.slots)))
+            set_property = True
+        else:
+            set_property = False
+
+        slots = [self.slots[ii] for ii in slot_indices]
+
+        names = [s.name for s in slots]
+        names = strip_common_prefix_suffix(names)
+
+        if len(np.unique(names)) != len(names):
+            # Sample names are not unique. Add the file names.
+            names = [(n + s.path.name) for s, n in zip(slots, names)]
+            names = strip_common_prefix_suffix(names)
+
+        if len(np.unique(names)) != len(slots):
+            # File names are not unique as well. Use the full paths as instead.
+            names = [str(s.path) for s in slots]
+            names = strip_common_prefix_suffix(names)
+
+        if set_property:
+            self._reduced_sample_names.clear()
+            self._reduced_sample_names += names
+
+        return names
 
     def get_dataset(self, slot_index, filt_index=-1, apply_filter=True):
         """Return dataset with all filters updated (optionally applied)
