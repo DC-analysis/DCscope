@@ -52,6 +52,15 @@ class LogPanel(QtWidgets.QWidget):
         ds_idx = self.listWidget_dataset.currentRow()
         if ds_idx >= 0:
             ds = self._pipeline.slots[ds_idx].get_dataset()
+            if len(ds.logs) == 0:
+                self.listWidget_log_name.clear()
+                self.textEdit.clear()
+                return
+
+            if log_index >= len(ds.logs):
+                self.on_select_log(0)
+                return
+
             lines = ds.logs[list(ds.logs.keys())[log_index]]
 
             if lines[0].strip() == "{" and lines[-1].strip() == "}":

@@ -1,4 +1,5 @@
 2.24.1
+ - fix: IndexError when trying to view the logs of a log-less dataset
  - enh: reduce sample names in block matrix (strip common prefix and suffix)
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
  - ref: raise ValueError in unreachable case in DataSlot creation
