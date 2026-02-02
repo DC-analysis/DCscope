@@ -791,11 +791,17 @@ class QuickView(QtWidgets.QWidget):
                    ]
         for b in toblock:
             b.blockSignals(True)
+
         # show extra data
         show_event = False
         show_poly = False
         show_settings = False
         sender = self.sender()
+
+        if sender in toblock:
+            # prevent a tool buttons from unchecking itself
+            sender.setChecked(True)
+
         if sender == self.toolButton_event:
             show_event = self.toolButton_event.isChecked()
         elif sender == self.toolButton_poly:

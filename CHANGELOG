@@ -1,5 +1,6 @@
 2.25.0
  - fix: IndexError when trying to view the logs of a log-less dataset
+ - fix: prevent unchecking toolButtons for tool selection in QuickView
  - enh: reduce sample names in block matrix (strip common prefix and suffix)
  - enh: instantaneous tool tips in block matrix
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
