@@ -35,7 +35,7 @@ dependencies = [
     "numpy>=1.21",  # CVE-2021-33430
     "pygments",
     "pyqt6",
-    "pyqtgraph==0.13.6",
+    "pyqtgraph==0.14.0",
     "requests>=2.31.0",  # CVE-2023-32681
     "scipy>=1.10.0",  # CVE-2023-25399
 ]

@@ -5,6 +5,7 @@
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
  - ref: raise ValueError in unreachable case in DataSlot creation
  - ref: restructure pipeline management through signaling
+ - setup: bump pyqtgraph to 0.14.0
  - build: disable non-functional macOS builds
 2.24.0
  - feat: add contour-only plotting mode (#210)
