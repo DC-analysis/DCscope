@@ -104,7 +104,6 @@ class Preferences(QtWidgets.QDialog):
         """Read configuration or set default parameters"""
         for key, widget, default in self.config_pairs:
             value = self.settings.value(key, default)
-            value = value or default
             if isinstance(widget, QtWidgets.QCheckBox):
                 widget.setChecked(bool(int(value)))
             elif isinstance(widget, QtWidgets.QLineEdit):
