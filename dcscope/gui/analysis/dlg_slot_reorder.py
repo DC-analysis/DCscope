@@ -34,9 +34,10 @@ class DlgSlotReorder(QtWidgets.QDialog):
             idx = int(text.split(":", 1)[0])
             indices.append(idx)
         # reorder pipeline and send pipeline_changed signal
-        self.pipeline.reorder_slots(indices)
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            self.pipeline.reorder_slots(indices)
+            state = self.pipeline.__getstate__()
+            self.pipeline_changed.emit(state)
 
     @QtCore.pyqtSlot()
     def on_move_item(self):

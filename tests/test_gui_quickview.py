@@ -278,16 +278,19 @@ def test_no_events_issue_223_nan(qtbot):
     qv.checkBox_hue.setChecked(True)
 
     # set the Young's modulus LUT model to "HE-3D-FEM-22"
-    fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    se = mw.block_matrix.get_widget(slot_id=slot_id)
+    qtbot.mouseClick(se.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
     sv = mw.widget_ana_view.widget_slot
     mw.widget_ana_view.tabWidget.setCurrentWidget(
         mw.widget_ana_view.tab_slot)
     idx_lut = sv.comboBox_lut.findData("HE-3D-FEM-22")
     sv.comboBox_lut.setCurrentIndex(idx_lut)
     qtbot.mouseClick(sv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
     # did that work?
     assert sv.comboBox_lut.currentData() == "HE-3D-FEM-22"
+
+    assert mw.pipeline.slots[0].config["emodulus"]["emodulus lut"] == "HE-3D-FEM-22"
 
     # sanity checks
     assert len(qv.widget_scatter.data_y) == 15

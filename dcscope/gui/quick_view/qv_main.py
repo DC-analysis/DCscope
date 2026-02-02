@@ -1,5 +1,6 @@
 import collections
 import importlib.resources
+import logging
 import pathlib
 from typing import Dict, Literal, Tuple
 
@@ -24,10 +25,18 @@ AXES_DEFAULT_CHOICES_Y = [
 ]
 
 
+logger = logging.getLogger(__name__)
+
+
 class QuickView(QtWidgets.QWidget):
     polygon_filter_created = QtCore.pyqtSignal()
     polygon_filter_modified = QtCore.pyqtSignal()
     polygon_filter_about_to_be_deleted = QtCore.pyqtSignal(int)
+
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         self._hover_ds_id = None
@@ -37,6 +46,9 @@ class QuickView(QtWidgets.QWidget):
             "dcscope.gui.quick_view") / "qv_main.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
+
+        self.pipeline = None
+        self.current_pipeline_element = None
 
         ref = importlib.resources.files(
             "dcscope.gui.quick_view") / "qv_style.css"
@@ -202,6 +214,36 @@ class QuickView(QtWidgets.QWidget):
         self.slot = None
 
         self._statistics_cache = collections.OrderedDict()
+
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        qv = data.get("quickview")
+        if qv is not None:
+            ds = self.pipeline.get_dataset(slot_index=qv["slot_index"],
+                                           filt_index=qv["filt_index"])
+            self.show_rtdc(rtdc_ds=ds,
+                           slot=self.pipeline.slots[qv["slot_index"]])
+            self.current_pipeline_element = qv
+
+        if data.get("pipeline"):
+            # fetch the slot from the pipeline
+            if self.current_pipeline_element is not None:
+                slot_id = self.current_pipeline_element["slot_id"]
+                filt_id = self.current_pipeline_element["filt_id"]
+                try:
+                    slot_index = self.pipeline.slot_ids.index(slot_id)
+                    filt_index = self.pipeline.filter_ids.index(filt_id)
+                    ds = self.pipeline.get_dataset(slot_index=slot_index,
+                                                   filt_index=filt_index)
+                    self.show_rtdc(rtdc_ds=ds,
+                                   slot=self.pipeline.slots[slot_index])
+                except BaseException:
+                    logger.debug(f"Could not find element for QuickView: "
+                                 f"{self.current_pipeline_element}")
+                    self.current_pipeline_element = None
+                    self.enable_interface(False)
 
     def read_pipeline_state(self):
         plot = {
@@ -852,6 +894,11 @@ class QuickView(QtWidgets.QWidget):
                         break
             else:
                 self.plot()
+
+    def set_pipeline(self, pipeline):
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
 
     @show_wait_cursor
     @QtCore.pyqtSlot(int)

@@ -1,27 +1,36 @@
-import copy
-
 from PyQt6 import QtCore, QtWidgets
 
-from ... import pipeline
-
-from .pm_element import MatrixElement
+from .pm_element import PlotMatrixElement
 from .pm_plot import MatrixPlot
 
 
 class PlotMatrix(QtWidgets.QWidget):
     plot_modify_clicked = QtCore.pyqtSignal(str)
-    matrix_changed = QtCore.pyqtSignal()
+
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
+    # child widgets receive this after pp_mod_recv is received
+    pp_mod_recv_child = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(PlotMatrix, self).__init__(*args, **kwargs)
 
-        self.glo = None
-        self._reset_layout(init=True)
+        self.pipeline = None
 
-        # used for toggling between all active, all inactive and semi state
-        self.semi_states_plot = {}
+        # add grid layout
+        self.glo = QtWidgets.QGridLayout()
+        self.glo.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.glo.setSpacing(2)
+        self.glo.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.glo)
+
         self.setMouseTracking(True)
 
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    # Qt widget overrides
     def setMouseTracking(self, flag):
         """Set mouse tracking recursively
 
@@ -38,67 +47,7 @@ class PlotMatrix(QtWidgets.QWidget):
         QtWidgets.QWidget.setMouseTracking(self, flag)
         recursive_set(self)
 
-    def read_pipeline_state(self):
-        """State of the current plot matrix"""
-        # plots
-        plots = []
-        for pw in self.plot_widgets:
-            pw_state = pw.read_pipeline_state()
-            plot = pipeline.Plot._instances[pw_state["identifier"]]
-            plots.append(plot.__getstate__())
-        # elements
-        mestates = {}
-        dm = self.data_matrix
-        for dw in dm.dataset_widgets:
-            idict = {}
-            for pw in self.plot_widgets:
-                me = self.get_matrix_element(dw.identifier, pw.identifier)
-                idict[pw.identifier] = me.read_pipeline_state()["active"]
-            mestates[dw.identifier] = idict
-        state = {"elements": mestates,
-                 "plots": plots}
-        return state
-
-    def write_pipeline_state(self, state):
-        self.setUpdatesEnabled(False)
-        self.blockSignals(True)
-        self.clear()
-        # plot states
-        for jj in range(len(state["plots"])):
-            plot_id = state["plots"][jj]["identifier"]
-            pw_state = {"identifier": plot_id,
-                        "name": state["plots"][jj]["layout"]["name"],
-                        }
-            self.add_plot(state=pw_state)
-        # make sure elements exist
-        self.fill_elements()
-        # element states
-        for slot_id in state["elements"]:
-            ds_d = state["elements"][slot_id]
-            for plot_id in ds_d:
-                el = self.get_matrix_element(slot_id, plot_id)
-                el_state = el.read_pipeline_state()
-                el_state["active"] = ds_d[plot_id]
-                el.write_pipeline_state(el_state)
-        self.blockSignals(False)
-        self.setUpdatesEnabled(True)
-
-    def _reset_layout(self, init=False):
-        if self.glo is not None:
-            # send old layout to Nirvana eventually
-            layout = self.glo
-            self.glo = None
-            self.old_layout = QtWidgets.QWidget()
-            self.old_layout.setLayout(layout)
-            self.old_layout.hide()
-            self.old_layout.deleteLater()
-        # add new layout
-        self.glo = QtWidgets.QGridLayout()
-        self.glo.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
-        self.glo.setSpacing(2)
-        self.glo.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.glo)
-
+    # properties
     @property
     def data_matrix(self):
         for ch in self.parent().children():
@@ -110,59 +59,64 @@ class PlotMatrix(QtWidgets.QWidget):
 
     @property
     def element_widget_dict(self):
+        """Dictionary of all widgets in the plot matrix, keys are indices"""
         els = {}
-        for ii, ws in enumerate(self.data_matrix.dataset_widgets):
+        for ii, slot_id in enumerate(self.pipeline.slot_ids):
             elsd = {}
-            for jj, wf in enumerate(self.plot_widgets):
+            for jj, plot_id in enumerate(self.pipeline.plot_ids):
                 it = self.glo.itemAtPosition(ii+1, jj)
-                elsd[wf.identifier] = it.widget()
-            els[ws.identifier] = elsd
+                elsd[plot_id] = it.widget()
+            els[slot_id] = elsd
         return els
 
-    @property
-    def element_width(self):
-        """Data matrix element width (without 2px spacing)"""
-        return self.data_matrix.element_width
+    # other methods
+    def fill_matrix(self):
+        # add widgets
+        for ii in range(self.pipeline.num_slots):
+            # plot matrix element row
+            erow = ii + 1
 
-    @property
-    def num_datasets(self):
-        dm = self.data_matrix
-        return dm.num_datasets
+            for jj in range(self.pipeline.num_plots):
+                # plot matrix element column
+                ecol = jj
 
-    @property
-    def num_plots(self):
-        count = 0
-        for jj in range(self.glo.columnCount()):
-            if self.glo.itemAtPosition(0, jj) is not None:
-                count += 1
-        return count
+                if self.glo.itemAtPosition(0, ecol) is None:
+                    # first row contains plot information
+                    pm = MatrixPlot(pipeline=self.pipeline,
+                                    plot_index=jj)
+                    self.glo.addWidget(pm, 0, ecol)
+                    self.pp_mod_recv_child.connect(pm.pp_mod_recv)
+                    pm.modify_clicked.connect(self.plot_modify_clicked.emit)
+                    pm.pp_mod_send.connect(self.pp_mod_send)
 
-    @property
-    def plot_widgets(self):
-        plots = []
-        for jj in range(self.glo.columnCount()):
-            item = self.glo.itemAtPosition(0, jj)
-            if item is not None:
-                ps = item.widget()
-                plots.append(ps)
-        return plots
+                if self.glo.itemAtPosition(erow, ecol) is None:
+                    # These are data matrix elements
+                    me = PlotMatrixElement(pipeline=self.pipeline,
+                                           slot_index=ii,
+                                           plot_index=jj)
+                    self.glo.addWidget(me, erow, ecol)
+                    self.pp_mod_recv_child.connect(me.pp_mod_recv)
+                    me.pp_mod_send.connect(self.pp_mod_send)
 
-    def add_plot(self, identifier=None, state=None):
-        self.setUpdatesEnabled(False)
-        mp = MatrixPlot(identifier=identifier, state=state)
-        mp.option_action.connect(self.on_option_plot)
-        mp.active_toggled.connect(self.toggle_plot_active)
-        mp.modify_clicked.connect(self.plot_modify_clicked.emit)
-        self.glo.addWidget(mp, 0, self.num_plots)
-        self.fill_elements()
-        self.adjust_size()
-        self.setUpdatesEnabled(True)
-        self.publish_matrix()
-        return mp
+        # remove rows
+        for ii in range(self.pipeline.num_slots + 1, self.glo.rowCount()):
+            for jj in range(0, self.glo.columnCount()):
+                item = self.glo.itemAtPosition(ii, jj)
+                if item is not None:
+                    item.widget().abolish()
+                    self.glo.removeItem(item)
 
-    def adjust_size(self):
-        ncols = self.num_plots
-        nrows = self.data_matrix.num_datasets
+        # remove columns
+        for jj in range(self.pipeline.num_plots, self.glo.columnCount()):
+            for ii in range(0, self.glo.rowCount()):
+                item = self.glo.itemAtPosition(ii, jj)
+                if item is not None:
+                    item.widget().abolish()
+                    self.glo.removeItem(item)
+
+        # adjust size
+        ncols = self.pipeline.num_plots
+        nrows = self.pipeline.num_slots + 1
         if ncols and nrows:
             width1 = self.glo.itemAt(0).widget().width()
             width = (width1 + 2)*ncols - 2
@@ -174,53 +128,28 @@ class PlotMatrix(QtWidgets.QWidget):
             self.setMinimumSize(width, height)
             self.setFixedSize(width, height)
 
-    @QtCore.pyqtSlot()
-    def changed_element(self):
-        self.publish_matrix()
+        self.update()
 
-    def clear(self):
-        """Reset layout"""
-        self._reset_layout()
-        self.semi_states_plot = {}
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            # Something in the pipeline changed. Make sure that we have
+            # enough columns and rows.
+            self.fill_matrix()
+            # let all child widgets know the change
+            self.pp_mod_recv_child.emit(data)
 
-    def fill_elements(self):
-        # add widgets
-        for ii in range(self.num_datasets):
-            for jj in range(self.num_plots):
-                if self.glo.itemAtPosition(ii+1, jj) is None:
-                    me = MatrixElement()
-                    me.element_changed.connect(self.changed_element)
-                    self.glo.addWidget(me, ii+1, jj)
-        # make sure enabled/disabled is honored
-        dstate = self.data_matrix.read_pipeline_state()
-        pstate = self.read_pipeline_state()
-        for slot_state in dstate["slots"]:
-            slot_id = slot_state["identifier"]
-            if slot_id not in dstate["slots used"]:
-                for plot_state in pstate["plots"]:
-                    plot_id = plot_state["identifier"]
-                    me = self.get_matrix_element(slot_id, plot_id)
-                    mstate = me.read_pipeline_state()
-                    mstate["enabled"] = False
-                    me.write_pipeline_state(mstate)
-
-    def get_matrix_element(self, dataset_id, plot_id):
-        """Return matrix element matching dataset and plot identifiers"""
-        ncols = self.glo.columnCount()
-        nrows = self.glo.rowCount()
-        for ii in range(1, nrows):
-            dw = self.data_matrix.glo.itemAtPosition(ii, 0).widget()
-            if dw.identifier == dataset_id:
-                for jj in range(ncols):
-                    f = self.glo.itemAtPosition(0, jj).widget()
-                    if f.identifier == plot_id:
-                        break
-                else:
-                    raise KeyError("Plot '{}' not found!".format(plot_id))
-                break
-        else:
-            raise KeyError("Dataset '{}' not found!".format(dataset_id))
-        return self.glo.itemAtPosition(ii, jj).widget()
+    # Other methods
+    @property
+    def plot_widgets(self):
+        plots = []
+        for jj in range(self.glo.columnCount()):
+            item = self.glo.itemAtPosition(0, jj)
+            if item is not None:
+                ps = item.widget()
+                plots.append(ps)
+        return plots
 
     def get_plot_index(self, plot_id):
         for ii, pw in enumerate(self.plot_widgets):
@@ -238,96 +167,7 @@ class PlotMatrix(QtWidgets.QWidget):
         else:
             return pw.read_pipeline_state()
 
-    @QtCore.pyqtSlot(str)
-    def on_option_plot(self, option):
-        """Plot option logic (remove, duplicate)"""
-        pw_state = self.sender().read_pipeline_state()
-        plot_id = pw_state["identifier"]
-        plot_index = self.get_plot_index(plot_id)
-        state = self.read_pipeline_state()
-        if option == "remove":
-            state["plots"].pop(plot_index)
-            for ds_key in state["elements"]:
-                state["elements"][ds_key].pop(plot_id)
-        else:  # duplicate
-            plot = pipeline.Plot()
-            new_state = copy.deepcopy(state["plots"][plot_index])
-            new_state["identifier"] = plot.identifier
-            new_state["layout"]["name"] = plot.name
-            state["plots"].insert(plot_index+1, new_state)
-            plot.__setstate__(new_state)
-        self.write_pipeline_state(state)
-        self.publish_matrix()
-
-    def publish_matrix(self):
-        """Publish state via self.matrix_changed signal for Pipeline"""
-        if not self.signalsBlocked():
-            self.matrix_changed.emit()
-
-    @QtCore.pyqtSlot(bool)
-    def toggle_dataset_enable(self, enabled):
-        sender = self.sender()
-        sid = sender.identifier
-        state = self.read_pipeline_state()
-        for p_key in state["elements"][sid]:
-            # update element widget
-            me = self.get_matrix_element(sid, p_key)
-            mstate = me.read_pipeline_state()
-            mstate["enabled"] = enabled
-            me.write_pipeline_state(mstate)
-        self.publish_matrix()
-
-    @QtCore.pyqtSlot()
-    def toggle_plot_active(self):
-        """Switch between all active, all inactive, previous state
-
-        Modifies the matrix elements for a plot/column,
-        which is defined by the signal sender :class:`MatrixPlot`.
-        Cyclic toggling order: semi -> all -> none
-        """
-        sender = self.sender()
-        plot_id = sender.identifier
-
-        states = self.read_pipeline_state()["elements"]
-        state = {}
-        for slot_id in states:
-            state[slot_id] = states[slot_id][plot_id]
-
-        num_actives = sum(list(state.values()))
-
-        # update state according to the scheme in the docstring
-        if num_actives == 0:
-            if plot_id in self.semi_states_plot:
-                # use semi state
-                oldstate = self.semi_states_plot[plot_id]
-                for slot_id in oldstate:
-                    if slot_id in state:
-                        state[slot_id] = oldstate[slot_id]
-            else:
-                # toggle all to active
-                for slot_id in state:
-                    state[slot_id] = True
-        elif num_actives == len(state):
-            # toggle all to inactive
-            for slot_id in state:
-                state[slot_id] = False
-        else:
-            # save semi state
-            self.semi_states_plot[plot_id] = copy.deepcopy(state)
-            # toggle all to active
-            for slot_id in state:
-                state[slot_id] = True
-
-        for slot_id in state:
-            me = self.get_matrix_element(slot_id, plot_id)
-            me.set_active(state[slot_id])
-        self.publish_matrix()
-
-    def update_content(self):
-        ncols = self.glo.columnCount()
-        nrows = self.glo.rowCount()
-        for ii in range(nrows):
-            for jj in range(ncols):
-                item = self.glo.itemAtPosition(ii, jj)
-                if item is not None:
-                    item.widget().update_content()
+    def set_pipeline(self, pipeline):
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline

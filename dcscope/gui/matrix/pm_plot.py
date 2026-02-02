@@ -1,20 +1,28 @@
+import copy
 import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
-from ... import pipeline
-
 
 class MatrixPlot(QtWidgets.QWidget):
-    active_toggled = QtCore.pyqtSignal()
-    option_action = QtCore.pyqtSignal(str)
     modify_clicked = QtCore.pyqtSignal(str)
 
-    def __init__(self, identifier=None, state=None, *args, **kwargs):
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
+
+    def __init__(self, pipeline, plot_index, *args, **kwargs):
         super(MatrixPlot, self).__init__(*args, **kwargs)
         ref = importlib.resources.files("dcscope.gui.matrix") / "pm_plot.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
+
+        self.pipeline = pipeline
+        self.plot_index = plot_index
+        self.identifier = None
+        self.name = None
+        self.active = False
 
         # options button
         menu = QtWidgets.QMenu()
@@ -23,19 +31,15 @@ class MatrixPlot(QtWidgets.QWidget):
         self.toolButton_opt.setMenu(menu)
 
         # toggle all active, all inactive, semi state
-        self.toolButton_toggle.clicked.connect(self.active_toggled.emit)
+        self.toolButton_toggle.clicked.connect(self.on_active_toggled)
         self.toolButton_modify.clicked.connect(self.on_modify)
 
-        if state is None:
-            plot = pipeline.Plot._instances[identifier]
-            self.identifier = identifier
-            self.name = plot.name
-            # set tooltip/label
-            self.update_content()
-        else:
-            self.write_pipeline_state(state)
         self.setMouseTracking(True)
 
+        # signal received
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    # Qt method overrides
     def setMouseTracking(self, flag):
         """Set mouse tracking recursively
 
@@ -52,6 +56,40 @@ class MatrixPlot(QtWidgets.QWidget):
         QtWidgets.QWidget.setMouseTracking(self, flag)
         recursive_set(self)
 
+    @QtCore.pyqtSlot()
+    def on_active_toggled(self):
+        self.active = not self.active
+        plot_id = self.pipeline.plot_ids[self.plot_index]
+        with self.pipeline.lock:
+            for slot_id in self.pipeline.slot_ids:
+                self.pipeline.set_element_active(
+                    slot_id=slot_id,
+                    filt_plot_id=plot_id,
+                    active=self.active
+                )
+            self.pp_mod_send.emit({"pipeline": {"plot_toggled": plot_id}})
+
+    # Other methods
+    def abolish(self):
+        self.pp_mod_send.disconnect()
+        self.pp_mod_recv.disconnect()
+        self.modify_clicked.disconnect()
+        self.hide()
+        self.deleteLater()
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data: dict):
+        pp_dict = data.get("pipeline", {})
+        if pp_dict:
+            state = self.pipeline.plots[self.plot_index].__getstate__()
+            # widget state
+            wd_state = self.read_pipeline_state()
+            # pipeline state with same keys as widget state
+            pp_state = {"name": state["layout"]["name"],
+                        "identifier": state["identifier"]}
+            if wd_state != pp_state:
+                self.write_pipeline_state(pp_state)
+
     def read_pipeline_state(self):
         state = {"name": self.name,
                  "identifier": self.identifier,
@@ -63,21 +101,24 @@ class MatrixPlot(QtWidgets.QWidget):
         self.name = state["name"]
         self.update_content()
 
-    @property
-    def name(self):
-        plot = pipeline.Plot._instances[self.identifier]
-        return plot.name
-
-    @name.setter
-    def name(self, text):
-        plot = pipeline.Plot._instances[self.identifier]
-        plot.name = text
-
     def action_duplicate(self):
-        self.option_action.emit("duplicate")
+        with self.pipeline.lock:
+            plot = self.pipeline.plots[self.plot_index]
+            new_id = self.pipeline.add_plot(
+                index=self.plot_index+1)
+            # use original state
+            new_state = copy.deepcopy(
+                self.pipeline.get_plot(plot.identifier).__getstate__())
+            # only set the new identifier (issue #96)
+            new_state["identifier"] = new_id
+            self.pipeline.get_plot(new_id).__setstate__(new_state)
+            self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
 
     def action_remove(self):
-        self.option_action.emit("remove")
+        with self.pipeline.lock:
+            plot_id = self.pipeline.plot_ids[self.plot_index]
+            self.pipeline.remove_plot(plot_id)
+            self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
 
     def on_modify(self):
         self.modify_clicked.emit(self.identifier)

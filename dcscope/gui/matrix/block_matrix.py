@@ -1,16 +1,21 @@
-import copy
 import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
+from ..helpers import connect_pp_mod_signals
+
 
 class BlockMatrix(QtWidgets.QWidget):
     pipeline_changed = QtCore.pyqtSignal(dict)
-    quickviewed = QtCore.pyqtSignal(int, int)
 
     filter_modify_clicked = QtCore.pyqtSignal(str)
     plot_modify_clicked = QtCore.pyqtSignal(str)
     slot_modify_clicked = QtCore.pyqtSignal(str)
+
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         """Helper class that wraps DataMatrix and PlotMatrix"""
@@ -25,17 +30,20 @@ class BlockMatrix(QtWidgets.QWidget):
         self._old_state = {}
         # Signals
         # DataMatrix
-        self.data_matrix.matrix_changed.connect(self.on_matrix_changed)
+        self.data_matrix.pp_mod_send.connect(self.on_matrix_changed)
         self.data_matrix.filter_modify_clicked.connect(
             self.filter_modify_clicked)
         self.data_matrix.slot_modify_clicked.connect(self.slot_modify_clicked)
-        self.data_matrix.quickviewed.connect(self.quickviewed)
         # PlotMatrix
-        self.plot_matrix.matrix_changed.connect(self.on_matrix_changed)
+        self.plot_matrix.pp_mod_send.connect(self.on_matrix_changed)
         self.plot_matrix.plot_modify_clicked.connect(self.plot_modify_clicked)
+
+        connect_pp_mod_signals(self, self.plot_matrix)
+        connect_pp_mod_signals(self, self.data_matrix)
 
         self.setMouseTracking(True)
 
+    # Qt widget overrides
     def setMouseTracking(self, flag):
         """Set mouse tracking recursively
 
@@ -62,43 +70,13 @@ class BlockMatrix(QtWidgets.QWidget):
                                     widget_under_mouse,
                                     msecShowTime=60000)
 
-    def read_pipeline_state(self):
-        state = self.data_matrix.read_pipeline_state()
-        statep = self.plot_matrix.read_pipeline_state()
-        state["plots"] = statep["plots"]
-        for ss in statep["elements"]:
-            for plot in statep["elements"][ss]:
-                state["elements"][ss][plot] = statep["elements"][ss][plot]
-        return state
-
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
             raise ValueError("Pipeline can only be set once")
         self.pipeline = pipeline
 
         self.data_matrix.set_pipeline(self.pipeline)
-
-    def write_pipeline_state(self, state):
-        # DataMatrix
-        stated = copy.deepcopy(state)
-        stated.pop("plots")
-        for slot_state in state["slots"]:
-            slot_id = slot_state["identifier"]
-            for plot_state in state["plots"]:
-                plot_id = plot_state["identifier"]
-                stated["elements"][slot_id].pop(plot_id)
-        self.data_matrix.write_pipeline_state(stated)
-        # PlotMatrix
-        statep = copy.deepcopy(state)
-        statep.pop("filters")
-        statep.pop("filters used")
-        statep.pop("slots used")
-        for slot_state in state["slots"]:
-            slot_id = slot_state["identifier"]
-            for filt_state in state["filters"]:
-                filt_id = filt_state["identifier"]
-                statep["elements"][slot_id].pop(filt_id)
-        self.plot_matrix.write_pipeline_state(statep)
+        self.plot_matrix.set_pipeline(self.pipeline)
 
     def add_dataset(self, *args, **kwargs):
         self.data_matrix.add_dataset(*args, **kwargs)
@@ -108,15 +86,6 @@ class BlockMatrix(QtWidgets.QWidget):
 
     def add_plot(self, *args, **kwargs):
         self.plot_matrix.add_plot(*args, **kwargs)
-
-    def adopt_pipeline(self, pipeline_state):
-        self.write_pipeline_state(pipeline_state)
-
-    def enable_quickview(self, view):
-        self.data_matrix.enable_quickview(view)
-
-    def get_quickview_indices(self):
-        return self.data_matrix.get_quickview_indices()
 
     def get_widget(self, slot_id=None, filt_plot_id=None):
         """Convenience function for testing"""
@@ -170,10 +139,9 @@ class BlockMatrix(QtWidgets.QWidget):
             em.update_content()
 
     def on_matrix_changed(self):
-        state = self.read_pipeline_state()
+        state = self.pipeline.__getstate__()
         self.pipeline_changed.emit(state)
 
     def update(self, *args, **kwargs):
         self.scrollArea_block.update()
-        self.data_matrix.update_names()
         super(BlockMatrix, self).update(*args, **kwargs)

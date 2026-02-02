@@ -3,24 +3,59 @@ import importlib.resources
 from PyQt6 import uic, QtWidgets, QtCore
 
 
-class MatrixElement(QtWidgets.QWidget):
-    _quick_view_instance = None
-    quickview_selected = QtCore.pyqtSignal()
-    element_changed = QtCore.pyqtSignal()
+class DataMatrixElement(QtWidgets.QWidget):
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
-    def __init__(self, *args, **kwargs):
-        super(MatrixElement, self).__init__(*args, **kwargs)
+    def __init__(self, pipeline, slot_index, filt_index, *args, **kwargs):
+        super(DataMatrixElement, self).__init__(*args, **kwargs)
         ref = importlib.resources.files(
             "dcscope.gui.matrix") / "dm_element.ui"
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 
+        self.pipeline = pipeline
+
+        self.slot_index = slot_index
+        self.filt_index = filt_index
+
         self.active = False
         self.enabled = True
-        self.invalid = False
+        self.quickview = False
+        self.quickview_dict = None
 
-        self.update_content()
         self.setMouseTracking(True)
+
+        # signal received
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    # Qt method overrides
+    def mousePressEvent(self, event):
+        # toggle selection
+        if not self.invalid:
+            if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
+                # Let everyone know that this widget gets quickview
+                qv_dict = {
+                    "slot_index": self.slot_index,
+                    "slot_id": self.pipeline.slot_ids[self.slot_index],
+                    "filt_index": self.filt_index,
+                    "filt_id": self.pipeline.filter_ids[self.filt_index],
+                    }
+                self.pp_mod_send.emit({"quickview": qv_dict})
+            else:
+                # Activate or deactivate this filter
+                with self.pipeline.lock:
+                    slot_id = self.pipeline.slot_ids[self.slot_index]
+                    filter_id = self.pipeline.filter_ids[self.filt_index]
+                    self.pipeline.set_element_active(slot_id,
+                                                     filter_id,
+                                                     not self.active)
+                    self.pp_mod_send.emit(
+                        {"pipeline": {"filter_ray_change": slot_id}})
+
+            event.accept()
 
     def setMouseTracking(self, flag):
         """Set mouse tracking recursively
@@ -38,44 +73,69 @@ class MatrixElement(QtWidgets.QWidget):
         QtWidgets.QWidget.setMouseTracking(self, flag)
         recursive_set(self)
 
+    # Properties
+    @property
+    def invalid(self):
+        return not self.pipeline.is_element_valid(
+            slot_id=self.pipeline.slot_ids[self.slot_index],
+            filt_plot_id=self.pipeline.filter_ids[self.filt_index]
+        )
+
+    # Other methods
+    def abolish(self):
+        self.pp_mod_send.disconnect()
+        self.pp_mod_recv.disconnect()
+        self.hide()
+        self.deleteLater()
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data: dict):
+        qv_dict = data.get("quickview", {})
+
+        if qv_dict:
+            # every instance must know where quick view is set
+            self.quickview_dict = qv_dict
+
+        pp_dict = data.get("pipeline", {})
+        if pp_dict or qv_dict:
+            slot_id = self.pipeline.slot_ids[self.slot_index]
+            filter_id = self.pipeline.filter_ids[self.filt_index]
+            state = {
+                "active": self.pipeline.element_states[slot_id][filter_id],
+                "enabled": (
+                    self.pipeline.filters[self.filt_index].filter_used
+                    and self.pipeline.slots[self.slot_index].slot_used
+                ),
+            }
+
+            if state != self.read_pipeline_state():
+                self.write_pipeline_state(state)
+
+            if self.quickview_dict:
+                # Determine whether we have the QuickView
+                is_quickview = (filter_id == self.quickview_dict["filt_id"]
+                                and slot_id == self.quickview_dict["slot_id"])
+
+                if is_quickview != self.quickview:
+                    self.quickview = is_quickview
+                    self.update_content()
+
     def read_pipeline_state(self):
         state = {"active": self.active and not self.invalid,
-                 "enabled": self.enabled,
-                 "invalid": self.invalid}
+                 "enabled": self.enabled}
         return state
 
     def write_pipeline_state(self, state):
-        self.active = state["active"] and not state["invalid"]
+        self.active = state["active"]
         self.enabled = state["enabled"]
-        self.invalid = state["invalid"]
         self.update_content()
-
-    def has_quickview(self):
-        curinst = MatrixElement._quick_view_instance
-        if curinst is self:
-            quickview = True
-        else:
-            quickview = False
-        return quickview
-
-    def mousePressEvent(self, event):
-        # toggle selection
-        if not self.invalid:
-            if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
-                quickview = not self.has_quickview()
-            else:
-                self.active = not self.active
-                quickview = False
-                self.element_changed.emit()
-            self.update_content(quickview)
-            event.accept()
 
     def set_active(self, b=True):
         state = self.read_pipeline_state()
         state["active"] = b
         self.write_pipeline_state(state)
 
-    def update_content(self, quickview=False):
+    def update_content(self):
         if self.invalid:
             color = "#DCDCDC"  # gray
             label = "invalid"
@@ -98,31 +158,13 @@ class MatrixElement(QtWidgets.QWidget):
             tooltip = "Click to activate"
 
         if not self.invalid:
-            if self.has_quickview():
-                do_quickview = True
-            elif quickview:
-                curinst = MatrixElement._quick_view_instance
-                # reset color of old quick view instance
-                if curinst is not None and self is not curinst:
-                    MatrixElement._quick_view_instance = None
-                    try:
-                        curinst.update_content()
-                    except RuntimeError:
-                        # element has been deleted
-                        pass
-                MatrixElement._quick_view_instance = self
-                do_quickview = True
-            else:
-                do_quickview = False
-            if do_quickview:
+            if self.quickview:
                 color = "#F0A1D6"
                 label += "\n(QV)"
-                self.quickview_selected.emit()
             else:
                 tooltip += "\nShift+Click for Quick View"
 
         self.label.setText(label)
         self.setToolTip(tooltip)
         self.label.setToolTip(tooltip)
-        self.setStyleSheet(
-            "background-color:{};color:black".format(color))
+        self.setStyleSheet(f"background-color:{color};color:black")

@@ -1,4 +1,5 @@
 import copy
+import threading
 import warnings
 
 import dclab
@@ -33,6 +34,8 @@ class Pipeline(object):
         self.slots = []
         #: individual element states
         self.element_states = {}
+
+        self.lock = threading.Lock()
 
         self._reduced_sample_names = []
 
@@ -359,7 +362,7 @@ class Pipeline(object):
             raise ValueError(
                 f"`slot_index` must be an integer, got '{slot_index}'")
         slot = self.slots[slot_index]
-        if filt_index is None or (filt_index == -1 and len(self.slots) == 0):
+        if filt_index is None or (filt_index == -1 and len(self.filters) == 0):
             # return the unfiltered dataset
             ds = slot.get_dataset()
         else:
@@ -483,6 +486,7 @@ class Pipeline(object):
             max_filter_index = len(self.filters) - 1
         for filt_id in self.filter_ids[:max_filter_index + 1]:
             if (self.is_element_active(slot_id, filt_id)
+                and self.is_element_valid(slot_id, filt_id)
                     and filt_id in self.filters_used):
                 filters.append(self.get_filter(filt_id))
         return filters
@@ -568,10 +572,11 @@ class Pipeline(object):
             slot_id = slot.identifier
             if (self.element_states[slot_id][plot_id]
                     and slot_id in self.slots_used):
-                ds = self.get_dataset(slot_index=slot_index,
-                                      apply_filter=apply_filter)
-                datasets.append(ds)
-                states.append(slot.__getstate__())
+                if self.is_element_valid(slot_id, plot_id):
+                    ds = self.get_dataset(slot_index=slot_index,
+                                          apply_filter=apply_filter)
+                    datasets.append(ds)
+                    states.append(slot.__getstate__())
         return datasets, states
 
     def get_plot_col_row_count(self, plot_id, pipeline_state=None):
@@ -642,6 +647,31 @@ class Pipeline(object):
 
     def is_element_active(self, slot_id, filt_plot_id):
         return self.element_states[slot_id][filt_plot_id]
+
+    def is_element_valid(self, slot_id, filt_plot_id):
+        ds = self.get_slot(slot_id).get_dataset()
+        if filt_plot_id in self.filter_ids:
+            filt = self.get_filter(filt_plot_id)
+            # box filters
+            for feat in filt.boxdict:
+                if feat not in ds.features:
+                    return False
+            else:
+                # polygon filters
+                for pid in filt.polylist:
+                    pf = dclab.PolygonFilter.get_instance_from_id(pid)
+                    if (pf.axes[0] not in ds.features
+                            or pf.axes[1] not in ds.features):
+                        return False
+            return True
+        elif filt_plot_id in self.plot_ids:
+            plot_index = self.plot_ids.index(filt_plot_id)
+            plot_state = self.plots[plot_index].__getstate__()
+            return (plot_state["general"]["axis x"] in ds
+                    and plot_state["general"]["axis y"] in ds)
+        else:
+            raise ValueError(
+                f"Unknown filter or plot identifier: `{filt_plot_id}`")
 
     def remove_filter(self, filt_id):
         """Remove a filter by filter identifier"""

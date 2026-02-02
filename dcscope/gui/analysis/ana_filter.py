@@ -201,9 +201,10 @@ class FilterPanel(QtWidgets.QWidget):
         new_filt.__setstate__(new_state)
         # determine the filter position
         pos = self.pipeline.filter_ids.index(filt_state["identifier"])
-        self.pipeline.add_filter(new_filt, index=pos+1)
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            self.pipeline.add_filter(new_filt, index=pos+1)
+            state = self.pipeline.__getstate__()
+            self.pipeline_changed.emit(state)
 
     def on_remove_filter(self):
         filt_state = self.read_pipeline_state()

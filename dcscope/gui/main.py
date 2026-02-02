@@ -1,4 +1,5 @@
 import importlib.resources
+import json
 import logging
 import pathlib
 import signal
@@ -23,6 +24,7 @@ from . import bulk
 from . import compute
 from . import dcor
 from . import export
+from .helpers import connect_pp_mod_signals
 from . import pipeline_plot
 from . import preferences
 from . import quick_view
@@ -56,6 +58,10 @@ logger = logging.getLogger(__name__)
 
 class DCscope(QtWidgets.QMainWindow):
     plots_changed = QtCore.pyqtSignal()
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *arguments):
         """Initialize DCscope
@@ -71,6 +77,7 @@ class DCscope(QtWidgets.QMainWindow):
 
         # pipeline
         self.pipeline = None
+        self.widget_quick_view = None
 
         # update check
         self._update_thread = None
@@ -109,8 +116,6 @@ class DCscope(QtWidgets.QMainWindow):
             dclab.rtdc_dataset.fmt_s3.S3_SECRET_ACCESS_KEY = \
                 s3_secret_access_key
 
-        #: Analysis pipeline
-        self.set_pipeline()
         #: Extensions
         store_path = pathlib.Path(
             QStandardPaths.writableLocation(
@@ -177,7 +182,7 @@ class DCscope(QtWidgets.QMainWindow):
         self.mdiArea.cascadeSubWindows()
         # BLOCK MATRIX (wraps DataMatrix and PlotMatrix)
         # BlockMatrix appearance
-        self.toolButton_dm.clicked.connect(self.on_data_matrix)
+        self.toolButton_dm.clicked.connect(self.on_block_matrix)
         self.splitter.splitterMoved.connect(self.on_splitter)
         # BlockMatrix Actions
         self.actionNewFilter.triggered.connect(self.add_filter)
@@ -191,12 +196,11 @@ class DCscope(QtWidgets.QMainWindow):
         self.toolButton_new_plot.setEnabled(False)
         self.block_matrix.toolButton_new_plot.setEnabled(False)
         # BlockMatrix other signals
-        self.block_matrix.pipeline_changed.connect(self.adopt_pipeline)
         self.block_matrix.slot_modify_clicked.connect(self.on_modify_slot)
         self.block_matrix.filter_modify_clicked.connect(self.on_modify_filter)
         self.block_matrix.plot_modify_clicked.connect(self.on_modify_plot)
+
         # ANALYSIS VIEW
-        self.widget_ana_view.set_pipeline(self.pipeline)
         # filter signals
         self.widget_ana_view.filter_changed.connect(self.adopt_filter)
         self.widget_ana_view.pipeline_changed.connect(self.adopt_pipeline)
@@ -210,16 +214,28 @@ class DCscope(QtWidgets.QMainWindow):
         self.widget_quick_view.polygon_filter_modified.connect(
             self.widget_ana_view.widget_filter.update_polygon_filters)
         self.widget_quick_view.polygon_filter_modified.connect(
-            self.on_quickview_refresh)  # might be an active filter (#26)
+            self.on_pipeline_changed)  # might be an active filter (#26)
         self.widget_quick_view.polygon_filter_modified.connect(
             self.plots_changed)  # might be an active filter (#26)
         # This is important, because if metadata such as emodulus recipe
         # is changed, the QuickView must be updated as well.
-        self.plots_changed.connect(self.widget_quick_view.plot)
+        self.plots_changed.connect(self.on_pipeline_changed)
+
         # plot signals
         self.widget_ana_view.plot_changed.connect(self.adopt_plot)
         # slot signals
         self.widget_ana_view.slot_changed.connect(self.adopt_slot)
+        # filter signals
+        self.widget_ana_view.filter_changed.connect(self.adopt_filter)
+
+        # Top of the pipeline modification hierarchy
+        self.pp_mod_send.connect(self.on_pp_mod_recv)
+        connect_pp_mod_signals(self, self.block_matrix)
+        connect_pp_mod_signals(self, self.widget_quick_view)
+
+        # Set analysis pipeline
+        self.set_pipeline()
+
         # if "--version" was specified, print the version and exit
         if "--version" in arguments:
             print(version)
@@ -244,6 +260,7 @@ class DCscope(QtWidgets.QMainWindow):
         # check for updates
         do_update = int(self.settings.value("check for updates", 1))
         self.on_action_check_update(do_update)
+
         # finalize
         self.show()
         self.raise_()
@@ -273,7 +290,10 @@ class DCscope(QtWidgets.QMainWindow):
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(dict)
-    def adopt_pipeline(self, pipeline_state):
+    def adopt_pipeline(self, pipeline_state=None):
+        if pipeline_state is None:
+            pipeline_state = self.pipeline.__getstate__()
+
         # If the number of subplots within a plot changed, update the
         # plot size accordingly.
         for plot_index, plot_id in enumerate(self.pipeline.plot_ids):
@@ -295,42 +315,18 @@ class DCscope(QtWidgets.QMainWindow):
                     lay["size y"] += 200*(new_nrow-old_nrow)
         # set the new state of the pipeline
         self.pipeline.__setstate__(pipeline_state)
+
         # update BlockMatrix
         if self.sender() != self.block_matrix:
             # Update BlockMatrix
             self.setUpdatesEnabled(False)
-            self.block_matrix.adopt_pipeline(pipeline_state)
+            self.block_matrix.pp_mod_recv.emit({"pipeline": "adopt"})
             self.setUpdatesEnabled(True)
-        # trigger redraw
-        self.block_matrix.update()
-        # Invalidate block matrix elements that do not make sense due to
-        # filtering or plotting features.
-        invalid_dm = []
-        invalid_pm = []
-        for slot_index, slot in enumerate(self.pipeline.slots):
-            ds = self.pipeline.get_dataset(slot_index=slot_index,
-                                           filt_index=None)
-            for filt in self.pipeline.filters:
-                # box filters
-                for feat in filt.boxdict:
-                    if feat not in ds.features:
-                        invalid_dm.append((slot.identifier, filt.identifier))
-                        break
-                else:
-                    # polygon filters
-                    for pid in filt.polylist:
-                        pf = dclab.PolygonFilter.get_instance_from_id(pid)
-                        if (pf.axes[0] not in ds.features
-                                or pf.axes[1] not in ds.features):
-                            invalid_dm.append((slot.identifier,
-                                               filt.identifier))
-                            break
-            for plot in self.pipeline.plots:
-                plot_state = plot.__getstate__()
-                if (plot_state["general"]["axis x"] not in ds
-                        or plot_state["general"]["axis x"] not in ds):
-                    invalid_pm.append((slot.identifier, plot.identifier))
-        self.block_matrix.invalidate_elements(invalid_dm, invalid_pm)
+
+        # Update QuickView
+        if self.sender() != self.widget_quick_view:
+            self.widget_quick_view.pp_mod_recv.emit({"pipeline": "adopt"})
+
         # Update AnalysisView
         self.widget_ana_view.set_pipeline(self.pipeline)
         # Update QuickView choices
@@ -366,7 +362,6 @@ class DCscope(QtWidgets.QMainWindow):
             self.toolButton_new_plot.setEnabled(False)
             self.block_matrix.toolButton_new_plot.setEnabled(False)
         # redraw
-        self.block_matrix.update()
         self.mdiArea.update()
         self.subwindows["analysis_view"].update()
 
@@ -384,7 +379,7 @@ class DCscope(QtWidgets.QMainWindow):
         self.adopt_pipeline(state)
 
     @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(dict)
+    @QtCore.pyqtSlot(object)
     def adopt_slot(self, slot_state):
         slot_id = slot_state["identifier"]
         state = self.pipeline.__getstate__()
@@ -454,7 +449,7 @@ class DCscope(QtWidgets.QMainWindow):
                     failed_paths.append(path)
                 continue
 
-            self.block_matrix.add_dataset(slot_id=slot_id)
+            self.pp_mod_send.emit({"pipeline": {"slot_add": slot_id}})
             slot_ids.append(slot_id)
 
         self.pipeline.compute_reduced_sample_names()
@@ -465,8 +460,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.widget_ana_view.widget_filter.update_box_ranges()
         # Update dataslot in analysis view
         self.widget_ana_view.widget_slot.update_content()
-        # redraw
-        self.block_matrix.update()
 
         if failed_paths:
             failed_text = ("The following files could not be loaded. You can "
@@ -484,21 +477,17 @@ class DCscope(QtWidgets.QMainWindow):
     def add_filter(self):
         """Add a filter using tool buttons"""
         filt_id = self.pipeline.add_filter()
-        self.block_matrix.add_filter(identifier=filt_id)
         self.widget_ana_view.widget_filter.update_content()
-        # redraw
-        self.block_matrix.update()
+        self.pp_mod_send.emit({"pipeline": {"filter_add": filt_id}})
         return filt_id
 
     @QtCore.pyqtSlot()
     def add_plot(self):
         plot_id = self.pipeline.add_plot()
-        self.block_matrix.add_plot(identifier=plot_id)
         self.add_plot_window(plot_id)
         # update UI contents
         self.widget_ana_view.widget_plot.update_content()
-        # redraw
-        self.block_matrix.update()
+        self.pp_mod_send.emit({"pipeline": {"filter_add": plot_id}})
         return plot_id
 
     @QtCore.pyqtSlot()
@@ -566,12 +555,7 @@ class DCscope(QtWidgets.QMainWindow):
         sub.setWidget(self.widget_ana_view)
         self.subwindows["analysis_view"] = sub
         # signals
-        self.toolButton_ana_view.clicked.connect(sub.setVisible)
-        self.block_matrix.quickviewed.connect(
-            self.widget_ana_view.on_quickview)
-        # applying a new filter triggers updating QuickView
-        self.widget_ana_view.widget_filter.pushButton_apply.clicked.connect(
-            self.on_quickview_refresh)
+        self.toolButton_ana_view.toggled.connect(sub.setVisible)
         sub.hide()
         self.mdiArea.addSubWindow(sub)
 
@@ -581,8 +565,7 @@ class DCscope(QtWidgets.QMainWindow):
         sub.setWidget(self.widget_quick_view)
         self.subwindows["quick_view"] = sub
         # signals
-        self.toolButton_quick_view.clicked.connect(self.on_quickview)
-        self.block_matrix.quickviewed.connect(self.on_quickview_show_dataset)
+        self.toolButton_quick_view.toggled.connect(sub.setVisible)
         sub.hide()
         self.mdiArea.addSubWindow(sub)
 
@@ -867,7 +850,6 @@ class DCscope(QtWidgets.QMainWindow):
         dlg = preferences.Preferences(self)
         dlg.setWindowTitle("DCscope Preferences")
         dlg.feature_changed.connect(self.plots_changed)
-        dlg.feature_changed.connect(self.on_quickview_refresh)
         dlg.exec()
 
     @QtCore.pyqtSlot()
@@ -910,7 +892,7 @@ class DCscope(QtWidgets.QMainWindow):
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot()
-    def on_data_matrix(self):
+    def on_block_matrix(self):
         """Show/hide data matrix (User clicked Data Matrix button)"""
         if self.toolButton_dm.isChecked():
             self.splitter.setSizes([200, 1000])
@@ -919,7 +901,6 @@ class DCscope(QtWidgets.QMainWindow):
         # redraw
         self.splitter.update()
         self.mdiArea.update()
-        self.block_matrix.update()
 
     @QtCore.pyqtSlot()
     def on_new_polygon_filter(self):
@@ -930,11 +911,16 @@ class DCscope(QtWidgets.QMainWindow):
             msg.setWindowTitle("No dataset loaded")
             msg.exec()
         else:
-            slot_index, _ = self.block_matrix.get_quickview_indices()
-            if slot_index is None:
-                # show the first dataset
-                self.on_quickview_show_dataset(0, 0)
-            self.on_quickview(view=True)
+            self.toolButton_quick_view.setChecked(True)
+            if not self.widget_quick_view.current_pipeline_element:
+                # select the first item in the pipeline
+                self.pp_mod_send.emit({"quickview": {
+                    "slot_index": 0,
+                    "filt_index": 0,
+                    "slot_id": self.pipeline.slot_ids[0],
+                    "filt_id": self.pipeline.filter_ids[0],
+                }})
+
             self.widget_quick_view.on_poly_create()
             # adjusts QuickView size correctly
             self.widget_quick_view.on_tool()
@@ -978,67 +964,26 @@ class DCscope(QtWidgets.QMainWindow):
         self.mdiArea.update()
         self.subwindows["analysis_view"].update()
 
-    @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(bool)
-    def on_quickview(self, view=True):
-        """Show/Hide QuickView (User clicked the QuickView button)"""
-        self.subwindows["quick_view"].setVisible(view)
-        self.block_matrix.enable_quickview(view)
-        # redraw
-        self.mdiArea.update()
-        if view:
-            self.subwindows["quick_view"].update()
-
-    @widgets.show_wait_cursor
     @QtCore.pyqtSlot()
-    def on_quickview_refresh(self):
-        """Refresh quickview with the currently shown dataset"""
-        slot_index, filt_index = self.block_matrix.get_quickview_indices()
-        if slot_index is not None:
-            self.on_quickview_show_dataset(slot_index, filt_index,
-                                           update_ana_filter=False)
+    def on_pipeline_changed(self):
+        self.pp_mod_recv.emit(
+            {"pipeline": f"top level change by {self.sender()}"})
 
-    @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(int, int)
-    def on_quickview_show_dataset(self,
-                                  slot_index: int,
-                                  filt_index: int,
-                                  update_ana_filter: bool = True):
-        """Update QuickView dataset (User selected new dataset)
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """Log modification information and send them on their way"""
+        for key in data:
+            logger.info(f"Signal '{key}': {json.dumps(data[key])}")
 
-        Parameters
-        ----------
-        slot_index: int
-            Index of the slot in `self.pipeline`
-        filt_index: int
-            Index of the filter in `self.pipeline`
-        update_ana_filter: bool
-            Whether to update the filter panel in the analysis view.
-            If True, matches the filter displayed in the panel to
-            the one where QuickView is currently set active. If
-            False, nothing is changed.
-        """
-        if slot_index < 0 or filt_index < 0:
-            return
-        try:
-            ds = self.pipeline.get_dataset(slot_index=slot_index,
-                                           filt_index=filt_index,
-                                           apply_filter=True)
-        except IndexError:
-            # There is no such slot.
-            return
+        self.pp_mod_recv.emit(data)
 
-        slot = self.pipeline.slots[slot_index]
-        # update quick view subwindow
-        self.widget_quick_view.show_rtdc(ds, slot)
-        # show quick view subwindow
-        if not self.subwindows["quick_view"].isVisible():
-            self.toolButton_quick_view.toggle()
-            self.subwindows["quick_view"].setVisible(True)
-        if update_ana_filter:
-            # update FilterPanel
-            filt_id = self.pipeline.filters[filt_index].identifier
-            self.widget_ana_view.widget_filter.show_filter(filt_id=filt_id)
+        qv = data.get("quickview")
+        if qv:
+            if not self.subwindows["quick_view"].isVisible():
+                self.toolButton_quick_view.setChecked(True)
+                self.subwindows["quick_view"].setVisible(True)
+
+        self.adopt_pipeline()
 
     @QtCore.pyqtSlot()
     def on_splitter(self):
@@ -1058,6 +1003,8 @@ class DCscope(QtWidgets.QMainWindow):
         self.pipeline = pipeline.Pipeline()
 
         self.block_matrix.set_pipeline(self.pipeline)
+        self.widget_quick_view.set_pipeline(self.pipeline)
+        self.widget_ana_view.set_pipeline(self.pipeline)
 
 
 def excepthook(etype, value, trace):
