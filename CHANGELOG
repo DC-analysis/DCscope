@@ -6,6 +6,7 @@
  - ref: raise ValueError in unreachable case in DataSlot creation
  - ref: restructure pipeline management through signaling
  - setup: bump pyqtgraph to 0.14.0
+ - tests: fix manual tests (session file broken)
  - build: disable non-functional macOS builds
 2.24.0
  - feat: add contour-only plotting mode (#210)

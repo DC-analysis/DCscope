@@ -290,7 +290,8 @@ def test_no_events_issue_223_nan(qtbot):
     # did that work?
     assert sv.comboBox_lut.currentData() == "HE-3D-FEM-22"
 
-    assert mw.pipeline.slots[0].config["emodulus"]["emodulus lut"] == "HE-3D-FEM-22"
+    assert mw.pipeline.slots[0].config["emodulus"]["emodulus lut"] \
+           == "HE-3D-FEM-22"
 
     # sanity checks
     assert len(qv.widget_scatter.data_y) == 15
