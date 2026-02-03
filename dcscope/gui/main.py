@@ -292,17 +292,6 @@ class DCscope(QtWidgets.QMainWindow):
         # set the new state of the pipeline
         self.pipeline.__setstate__(pipeline_state)
 
-        # update BlockMatrix
-        if self.sender() != self.block_matrix:
-            # Update BlockMatrix
-            self.setUpdatesEnabled(False)
-            self.block_matrix.pp_mod_recv.emit({"pipeline": "adopt"})
-            self.setUpdatesEnabled(True)
-
-        # Update QuickView
-        if self.sender() != self.widget_quick_view:
-            self.widget_quick_view.pp_mod_recv.emit({"pipeline": "adopt"})
-
         # Update QuickView choices
         self.widget_quick_view.update_feature_choices()
         # update list of polygon filters in Quick View
@@ -613,8 +602,9 @@ class DCscope(QtWidgets.QMainWindow):
         else:
             yes = True
         if yes:
-            session.clear_session(self.pipeline)
-            self.reload_pipeline()
+            with self.pipeline.lock:
+                session.clear_session(self.pipeline)
+                self.pp_mod_send.emit({"pipeline": "cleared"})
             self.setWindowTitle(f"DCscope {version}")
         return yes
 
@@ -631,9 +621,12 @@ class DCscope(QtWidgets.QMainWindow):
         else:
             yes = True
         if yes:
-            for slot_id in self.pipeline.slot_ids:
-                self.pipeline.remove_slot(slot_id)
-            self.reload_pipeline()
+            with self.pipeline.lock:
+                slot_ids = list(self.pipeline.slot_ids)
+                for slot_id in slot_ids:
+                    self.pipeline.remove_slot(slot_id)
+                self.pp_mod_send.emit(
+                    {"pipeline": {"slots_removed": slot_ids}})
         return yes
 
     @QtCore.pyqtSlot()
@@ -743,9 +736,10 @@ class DCscope(QtWidgets.QMainWindow):
             path, _ = QtWidgets.QFileDialog.getOpenFileName(
                 self, 'Select Filter', '', 'Filters formats (*.poly *.sof)')
         if path:
-            session.import_filters(path, self.pipeline)
-            # update UI
-            self.reload_pipeline()
+            with self.pipeline.lock:
+                session.import_filters(path, self.pipeline)
+                self.pp_mod_send.emit(
+                    {"pipeline": {"filters_imported": str(path)}})
 
     @QtCore.pyqtSlot()
     def on_action_open(self, path=None):
@@ -759,31 +753,35 @@ class DCscope(QtWidgets.QMainWindow):
                 'DCscope session (*.so2)',
                 QtWidgets.QFileDialog.Option.DontUseNativeDialog)
         if path:
-            search_paths = []
-            while True:
-                try:
-                    with widgets.ShowWaitCursor():
-                        session.open_session(path, self.pipeline, search_paths)
-                except session.DataFileNotFoundError as e:
-                    missds = "\r".join([str(pp) for pp in e.missing_paths])
-                    msg = QtWidgets.QMessageBox()
-                    msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
-                    msg.setText("Some datasets were not found! "
-                                + "Please specify a search location.")
-                    msg.setWindowTitle(
-                        "Missing {} dataset(s)".format(len(e.missing_paths)))
-                    msg.setDetailedText("Missing files: \n\n" + missds)
-                    msg.exec()
-                    spath = QtWidgets.QFileDialog.getExistingDirectory(
-                        self, 'Data search path')
-                    if spath:
-                        search_paths.append(spath)
+            with self.pipeline.lock:
+                search_paths = []
+                while True:
+                    try:
+                        with widgets.ShowWaitCursor():
+                            session.open_session(path=path,
+                                                 pipeline=self.pipeline,
+                                                 search_paths=search_paths)
+                    except session.DataFileNotFoundError as e:
+                        missds = "\r".join([str(pp) for pp in e.missing_paths])
+                        msg = QtWidgets.QMessageBox()
+                        msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+                        msg.setText("Some datasets were not found! "
+                                    + "Please specify a search location.")
+                        msg.setWindowTitle(
+                            f"Missing {len(e.missing_paths)} dataset(s)")
+                        msg.setDetailedText("Missing files: \n\n" + missds)
+                        msg.exec()
+                        spath = QtWidgets.QFileDialog.getExistingDirectory(
+                            self, 'Data search path')
+                        if spath:
+                            search_paths.append(spath)
+                        else:
+                            break
                     else:
                         break
-                else:
-                    break
-            self.show()
-            self.reload_pipeline()
+                self.show()
+                self.pp_mod_send.emit(
+                    {"pipeline": {"session_opened": str(path)}})
             self.setWindowTitle(
                 f"{pathlib.Path(path).name} [DCscope {version}]")
 
@@ -934,11 +932,6 @@ class DCscope(QtWidgets.QMainWindow):
             self.toolButton_dm.setChecked(False)
         else:
             self.toolButton_dm.setChecked(True)
-
-    @QtCore.pyqtSlot()
-    def reload_pipeline(self):
-        """Convenience function for reloading the current pipeline"""
-        self.adopt_pipeline(self.pipeline.__getstate__())
 
     def set_pipeline(self):
         if self.pipeline is not None:
