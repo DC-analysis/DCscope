@@ -194,6 +194,10 @@ class FilterPanel(QtWidgets.QWidget):
             if self.isVisible():
                 self.update_content()
 
+        if data.get("filter"):
+            # filter changes without pipeline changes (e.g. PolygonFilter)
+            self.update_polygon_filters()
+
     @QtCore.pyqtSlot()
     def on_remove_filter(self):
         with self.pipeline.lock:

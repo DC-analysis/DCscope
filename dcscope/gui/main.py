@@ -206,19 +206,11 @@ class DCscope(QtWidgets.QMainWindow):
         # polygon filter creation
         self.widget_quick_view.polygon_filter_about_to_be_deleted.connect(
             self.on_remove_polygon_filter_from_pipeline)
-        self.widget_quick_view.polygon_filter_modified.connect(
-            self.on_pipeline_changed)  # might be an active filter (#26)
-        self.widget_quick_view.polygon_filter_modified.connect(
-            self.plots_changed)  # might be an active filter (#26)
 
         # ANALYSIS VIEW
         # polygon filter creation
         self.widget_ana_view.widget_filter.request_new_polygon_filter.connect(
             self.on_new_polygon_filter)
-        self.widget_quick_view.polygon_filter_created.connect(
-            self.widget_ana_view.widget_filter.update_polygon_filters)
-        self.widget_quick_view.polygon_filter_modified.connect(
-            self.widget_ana_view.widget_filter.update_polygon_filters)
         # This is important, because if metadata such as emodulus recipe
         # is changed, the QuickView must be updated as well.
         self.plots_changed.connect(self.on_pipeline_changed)
@@ -270,10 +262,6 @@ class DCscope(QtWidgets.QMainWindow):
         if pipeline_state is None:
             pipeline_state = self.pipeline.__getstate__()
 
-        # Update QuickView choices
-        self.widget_quick_view.update_feature_choices()
-        # update list of polygon filters in Quick View
-        self.widget_quick_view.update_polygon_panel()
         # Show Plot Windows
         # create and show
         for plot_state in pipeline_state["plots"]:

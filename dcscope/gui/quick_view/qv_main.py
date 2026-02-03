@@ -29,8 +29,6 @@ logger = logging.getLogger(__name__)
 
 
 class QuickView(QtWidgets.QWidget):
-    polygon_filter_created = QtCore.pyqtSignal()
-    polygon_filter_modified = QtCore.pyqtSignal()
     polygon_filter_about_to_be_deleted = QtCore.pyqtSignal(int)
 
     # widgets emit these whenever they changed the pipeline
@@ -244,6 +242,8 @@ class QuickView(QtWidgets.QWidget):
                                  f"{self.current_pipeline_element}")
                     self.current_pipeline_element = None
                     self.enable_interface(False)
+
+            self.update_polygon_panel()
 
     def read_pipeline_state(self):
         plot = {
@@ -700,9 +700,9 @@ class QuickView(QtWidgets.QWidget):
         self.widget_scatter.activate_scatter_mode()
         self.update_polygon_panel()
         if mode == "create":
-            self.polygon_filter_created.emit()
+            self.pp_mod_send.emit({"filter": "polygon_filter_created"})
         elif mode == "modify":
-            self.polygon_filter_modified.emit()
+            self.pp_mod_send.emit({"pipeline": "polygon_filter_modified"})
 
     @QtCore.pyqtSlot()
     def on_poly_done_delete(self):
