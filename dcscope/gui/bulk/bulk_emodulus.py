@@ -14,7 +14,7 @@ from dcscope.gui.widgets import show_wait_cursor
 
 class BulkActionEmodulus(QtWidgets.QDialog):
     #: Emitted when the pipeline is to be changed
-    pipeline_changed = QtCore.pyqtSignal(dict)
+    pp_mod_send = QtCore.pyqtSignal(dict)
 
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(BulkActionEmodulus, self).__init__(parent=parent,
@@ -84,8 +84,10 @@ class BulkActionEmodulus(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot()
     def on_ok(self):
-        self.set_emodulus_properties()
-        self.update_ui()
+        with self.pipeline.lock:
+            self.set_emodulus_properties()
+            self.pp_mod_send.emit(
+                {"pipeline": {"feature_changed": "emodulus"}})
 
     @QtCore.pyqtSlot()
     def on_cb_medium(self):
@@ -170,11 +172,6 @@ class BulkActionEmodulus(QtWidgets.QDialog):
             state["emodulus"]["emodulus lut"] = lut
 
             slot.__setstate__(state)
-
-    def update_ui(self):
-        """Update all relevant parts of the main user interface"""
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
 
     def update_viscosity(self):
         """Update viscosity shown"""

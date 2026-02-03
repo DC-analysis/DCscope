@@ -580,7 +580,7 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_action_compute_emodulus(self):
         dlg = bulk.BulkActionEmodulus(self, pipeline=self.pipeline)
-        dlg.pipeline_changed.connect(self.adopt_pipeline)
+        dlg.pp_mod_send.connect(self.pp_mod_send)
         dlg.exec()
 
     @QtCore.pyqtSlot()
