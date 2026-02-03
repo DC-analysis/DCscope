@@ -43,6 +43,10 @@ class TablesPanel(QtWidgets.QWidget):
 
     Visualize tables stored in the .rtdc file
     """
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(TablesPanel, self).__init__(*args, **kwargs)
@@ -51,9 +55,10 @@ class TablesPanel(QtWidgets.QWidget):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
         # current DCscope pipeline
-        self._pipeline = None
+        self.pipeline = None
         self._selected_table = None
         self._selected_graphs = []
+
         self.legend = pg.LegendItem((80, 60),
                                     offset=(40, 20))
         self.legend.setParentItem(self.graphicsView_lines.graphicsItem())
@@ -66,11 +71,15 @@ class TablesPanel(QtWidgets.QWidget):
             self.on_select_table)
         self.listWidget_table_graphs.itemSelectionChanged.connect(
             self.on_select_graphs)
-        self.update_content()
 
-    @property
-    def pipeline(self):
-        return self._pipeline
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            if self.isVisible():
+                self.update_content()
 
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
@@ -78,7 +87,7 @@ class TablesPanel(QtWidgets.QWidget):
         self.listWidget_table_name.clear()
         self.listWidget_table_graphs.clear()
         if ds_idx >= 0:
-            ds = self._pipeline.slots[ds_idx].get_dataset()
+            ds = self.pipeline.slots[ds_idx].get_dataset()
             table_names = list(ds.tables.keys())
             self.listWidget_table_name.blockSignals(True)
             for table in table_names:
@@ -97,7 +106,7 @@ class TablesPanel(QtWidgets.QWidget):
         """Show the tables of the dataset in the right-hand list widget"""
         ds_idx = self.listWidget_dataset.currentRow()
         if ds_idx >= 0 and table_index >= 0:
-            ds = self._pipeline.slots[ds_idx].get_dataset()
+            ds = self.pipeline.slots[ds_idx].get_dataset()
             self._selected_table = list(ds.tables.keys())[table_index]
             table = ds.tables[self._selected_table]
             names = table[:].dtype.names
@@ -149,7 +158,7 @@ class TablesPanel(QtWidgets.QWidget):
             new_selection = [it.data() for it in items]
             if new_selection:
                 self._selected_graphs = new_selection
-            ds = self._pipeline.slots[ds_idx].get_dataset()
+            ds = self.pipeline.slots[ds_idx].get_dataset()
             table = ds.tables[list(ds.tables.keys())[table_index]]
             table_data = table[:]
             names = table_data.dtype.names
@@ -183,7 +192,9 @@ class TablesPanel(QtWidgets.QWidget):
             self.listWidget_table_graphs.clear()
 
     def set_pipeline(self, pipeline):
-        self._pipeline = pipeline
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
 
     def show_graph(self, x_vals, graph_list):
         self.graphicsView_lines.clear()
@@ -209,17 +220,17 @@ class TablesPanel(QtWidgets.QWidget):
         self.plainTextEdit_raw.setPlainText(s.getvalue())
 
     def update_content(self, slot_index=None, **kwargs):
-        if self._pipeline and self._pipeline.slots:
+        if self.pipeline and self.pipeline.slots:
             self.setEnabled(True)
             self.setUpdatesEnabled(False)
             self.listWidget_dataset.clear()
             self.listWidget_table_name.clear()
-            for slot in self._pipeline.slots:
+            for slot in self.pipeline.slots:
                 self.listWidget_dataset.addItem(slot.name)
             self.setUpdatesEnabled(True)
             if slot_index is None or slot_index < 0:
                 slot_index = max(0, self.listWidget_dataset.currentRow())
-            slot_index = min(slot_index, self._pipeline.num_slots - 1)
+            slot_index = min(slot_index, self.pipeline.num_slots - 1)
             self.listWidget_dataset.setCurrentRow(slot_index)
         else:
             self.setEnabled(False)

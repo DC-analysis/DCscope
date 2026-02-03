@@ -9,6 +9,11 @@ from ... import meta_tool
 
 
 class MetaPanel(QtWidgets.QWidget):
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
+
     def __init__(self, *args, **kwargs):
         super(MetaPanel, self).__init__(*args, **kwargs)
         ref = importlib.resources.files(
@@ -16,39 +21,59 @@ class MetaPanel(QtWidgets.QWidget):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 
+        self.pipeline = None
+
         self.comboBox_slots.currentIndexChanged.connect(self.update_content)
-        self.pipeline_state = None
-        self.update_content()
 
-    @property
-    def current_slot_state(self):
-        if self.pipeline_state is not None:
-            slot_index = self.comboBox_slots.currentIndex()
-            slot_state = self.pipeline_state["slots"][slot_index]
-        else:
-            slot_state = None
-        return slot_state
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
-    @property
-    def slot_ids(self):
-        """List of slot identifiers"""
-        if self.pipeline_state is not None:
-            ids = [ss["identifier"] for ss in self.pipeline_state["slots"]]
-        else:
-            ids = []
-        return ids
-
-    @property
-    def slot_names(self):
-        """List of slot names"""
-        if self.pipeline_state is not None:
-            nms = [ss["name"] for ss in self.pipeline_state["slots"]]
-        else:
-            nms = []
-        return nms
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            if self.isVisible():
+                self.update_content()
 
     def set_pipeline(self, pipeline):
-        self.pipeline_state = pipeline.__getstate__()
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
+
+    def update_content(self, slot_index=None, **kwargs):
+        if self.pipeline and self.pipeline.slots:
+            self.setEnabled(True)
+            # update combobox
+            self.comboBox_slots.blockSignals(True)
+            if slot_index is None or slot_index < 0:
+                slot_index = max(0, self.comboBox_slots.currentIndex())
+            slot_index = min(slot_index, len(self.pipeline.slot_ids) - 1)
+
+            self.comboBox_slots.clear()
+            self.comboBox_slots.addItems(
+                [ss.name for ss in self.pipeline.slots])
+            self.comboBox_slots.setCurrentIndex(slot_index)
+            self.comboBox_slots.blockSignals(False)
+            # populate content
+            slot_path = self.pipeline.slots[slot_index].path
+            cfg = meta_tool.get_rtdc_config(slot_path)
+            self.update_info_box(self.groupBox_experiment, cfg,
+                                 "experiment")
+            self.update_info_box(self.groupBox_pipeline, cfg,
+                                 "pipeline")
+            self.update_info_box(self.groupBox_fluorescence, cfg,
+                                 "fluorescence")
+            self.update_info_box(self.groupBox_imaging, cfg,
+                                 "imaging")
+            self.update_info_box(self.groupBox_online_contour, cfg,
+                                 "online_contour")
+            self.update_info_box(self.groupBox_online_filter, cfg,
+                                 "online_filter")
+            self.update_info_box(self.groupBox_setup, cfg,
+                                 "setup")
+            self.update_info_box(self.groupBox_user, cfg,
+                                 "user")
+        else:
+            self.setEnabled(False)
 
     def update_info_box(self, group_box, config, section):
         """Populate an individual group box with keyword-value pairs"""
@@ -83,41 +108,6 @@ class MetaPanel(QtWidgets.QWidget):
         else:
             group_box.hide()
         self.update()
-
-    def update_content(self, slot_index=None, **kwargs):
-        if self.slot_ids:
-            self.setEnabled(True)
-            # update combobox
-            self.comboBox_slots.blockSignals(True)
-            if slot_index is None or slot_index < 0:
-                slot_index = max(0, self.comboBox_slots.currentIndex())
-            slot_index = min(slot_index, len(self.slot_ids) - 1)
-
-            self.comboBox_slots.clear()
-            self.comboBox_slots.addItems(self.slot_names)
-            self.comboBox_slots.setCurrentIndex(slot_index)
-            self.comboBox_slots.blockSignals(False)
-            # populate content
-            slot_state = self.pipeline_state["slots"][slot_index]
-            cfg = meta_tool.get_rtdc_config(slot_state["path"])
-            self.update_info_box(self.groupBox_experiment, cfg,
-                                 "experiment")
-            self.update_info_box(self.groupBox_pipeline, cfg,
-                                 "pipeline")
-            self.update_info_box(self.groupBox_fluorescence, cfg,
-                                 "fluorescence")
-            self.update_info_box(self.groupBox_imaging, cfg,
-                                 "imaging")
-            self.update_info_box(self.groupBox_online_contour, cfg,
-                                 "online_contour")
-            self.update_info_box(self.groupBox_online_filter, cfg,
-                                 "online_filter")
-            self.update_info_box(self.groupBox_setup, cfg,
-                                 "setup")
-            self.update_info_box(self.groupBox_user, cfg,
-                                 "user")
-        else:
-            self.setEnabled(False)
 
 
 def format_config_key_value(section, key, value):

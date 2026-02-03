@@ -1,4 +1,3 @@
-import copy
 import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
@@ -20,12 +19,13 @@ class FilterPanel(QtWidgets.QWidget):
     name, etc. Their `__getstate__` and `__setstate__`
     functions are compatible.
     """
-    #: Emitted when a dcscope.pipeline.Filter is to be changed
-    filter_changed = QtCore.pyqtSignal(dict)
-    #: Emitted when the pipeline is to be changed
-    pipeline_changed = QtCore.pyqtSignal(dict)
     #: Emitted when the user wants to create a new polygon filter
     request_new_polygon_filter = QtCore.pyqtSignal()
+
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(FilterPanel, self).__init__(*args, **kwargs)
@@ -34,7 +34,8 @@ class FilterPanel(QtWidgets.QWidget):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
         # current DCscope pipeline
-        self._pipeline = None
+        self.pipeline = None
+
         self.setUpdatesEnabled(False)
         #: contains the range widgets for the box filters
         self._box_range_controls = {}
@@ -50,10 +51,11 @@ class FilterPanel(QtWidgets.QWidget):
         self.toolButton_moreless.clicked.connect(self.on_moreless)
         self.label_box_edit.setVisible(False)
         self._box_edit_view = False
-        self.update_content()
         self.setUpdatesEnabled(True)
 
-    def read_pipeline_state(self):
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    def read_filter_state(self):
         state = {
             "filter used": self.checkBox_enable.isChecked(),
             "identifier": self.current_filter.identifier,
@@ -76,7 +78,7 @@ class FilterPanel(QtWidgets.QWidget):
         state["polygon filters"] = pflist
         return state
 
-    def write_pipeline_state(self, state):
+    def write_filter_state(self, state):
         if self.current_filter.identifier != state["identifier"]:
             raise ValueError("Filter identifier mismatch!")
         self.checkBox_enable.setChecked(state["filter used"])
@@ -162,19 +164,6 @@ class FilterPanel(QtWidgets.QWidget):
             ids = []
         return ids
 
-    @property
-    def filter_names(self):
-        """List of filter names"""
-        if self.pipeline is not None:
-            nms = [filt.name for filt in self.pipeline.filters]
-        else:
-            nms = []
-        return nms
-
-    @property
-    def pipeline(self):
-        return self._pipeline
-
     def get_features_labels(self):
         """Wrapper around pipeline with default features if empty"""
         if self.pipeline is not None and self.pipeline.num_slots != 0:
@@ -191,27 +180,28 @@ class FilterPanel(QtWidgets.QWidget):
             labs = [it[0] for it in lf]
         return feats, labs
 
+    @QtCore.pyqtSlot()
     def on_duplicate_filter(self):
-        # determine the new filter state
-        filt_state = self.read_pipeline_state()
-        new_state = copy.deepcopy(filt_state)
-        new_filt = Filter()
-        new_state["identifier"] = new_filt.identifier
-        new_state["name"] = new_filt.name
-        new_filt.__setstate__(new_state)
-        # determine the filter position
-        pos = self.pipeline.filter_ids.index(filt_state["identifier"])
         with self.pipeline.lock:
-            self.pipeline.add_filter(new_filt, index=pos+1)
-            state = self.pipeline.__getstate__()
-            self.pipeline_changed.emit(state)
+            filt_id = self.current_filter.identifier
+            new_id = self.pipeline.duplicate_filter(filt_id)
+            self.pp_mod_send.emit({"pipeline": {"filter_created": new_id}})
 
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            if self.isVisible():
+                self.update_content()
+
+    @QtCore.pyqtSlot()
     def on_remove_filter(self):
-        filt_state = self.read_pipeline_state()
-        self.pipeline.remove_filter(filt_state["identifier"])
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            filt_id = self.current_filter.identifier
+            self.pipeline.remove_filter(filt_id)
+            self.pp_mod_send.emit({"pipeline": {"filter_removed": filt_id}})
 
+    @QtCore.pyqtSlot()
     def on_moreless(self):
         """User wants to choose box filters"""
         if not self._box_edit_view:
@@ -246,20 +236,23 @@ class FilterPanel(QtWidgets.QWidget):
             self.update_box_ranges()
 
     def set_pipeline(self, pipeline):
-        self._pipeline = pipeline
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
 
     def show_filter(self, filt_id):
         self.update_content(filt_index=self.filter_ids.index(filt_id))
 
+    @QtCore.pyqtSlot()
     def update_content(self, filt_index=None, **kwargs):
-        if self.filter_ids:
+        if self.pipeline and self.pipeline.filters:
             # remember the previous filter index and make sure it is sane
             prev_index = self.comboBox_filters.currentIndex()
             if prev_index is None or prev_index < 0:
                 prev_index = len(self.filter_ids) - 1
 
             self.setEnabled(True)
-            self.update_polygon_filters(update_state=False)
+            self.update_polygon_filters()
             # update combobox
             self.comboBox_filters.blockSignals(True)
             if filt_index is None or filt_index < 0:
@@ -268,13 +261,14 @@ class FilterPanel(QtWidgets.QWidget):
             filt_index = min(filt_index, len(self.filter_ids) - 1)
 
             self.comboBox_filters.clear()
-            self.comboBox_filters.addItems(self.filter_names)
+            self.comboBox_filters.addItems(
+                [filt.name for filt in self.pipeline.filters])
             self.comboBox_filters.setCurrentIndex(filt_index)
             self.comboBox_filters.blockSignals(False)
             # populate content
             filt = Filter.get_filter(identifier=self.filter_ids[filt_index])
             state = filt.__getstate__()
-            self.write_pipeline_state(state)
+            self.write_filter_state(state)
             self.update_box_ranges()
         else:
             self.setEnabled(False)
@@ -300,7 +294,7 @@ class FilterPanel(QtWidgets.QWidget):
                         # reset range to limits
                         rc.reset_range()
 
-    def update_polygon_filters(self, update_state=True):
+    def update_polygon_filters(self):
         """Update the layout containing the polygon filters"""
         self.verticalLayout_poly.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         # clear layout
@@ -329,14 +323,14 @@ class FilterPanel(QtWidgets.QWidget):
             button.clicked.connect(self.request_new_polygon_filter)
             self.verticalLayout_poly.addWidget(label)
             self.verticalLayout_poly.addWidget(button)
-        # update current filters
-        if update_state and self.current_filter is not None:
-            self.write_pipeline_state(self.current_filter.__getstate__())
 
+    @QtCore.pyqtSlot()
     def write_filter(self):
         """Update the dcscope.pipeline.Filter instance"""
         # get current index
-        filter_state = self.read_pipeline_state()
-        # this signal will update the main pipeline which will trigger
-        # a call to `set_pipeline` and `update_content`.
-        self.filter_changed.emit(filter_state)
+        with self.pipeline.lock:
+            filter_state = self.read_filter_state()
+            filt_id = filter_state["identifier"]
+            filt_index = self.pipeline.filter_ids.index(filt_id)
+            self.pipeline.filters[filt_index].__setstate__(filter_state)
+            self.pp_mod_send.emit({"pipeline": {"filter_modified": filt_id}})

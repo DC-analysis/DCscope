@@ -1,4 +1,3 @@
-import copy
 import importlib.resources
 import warnings
 
@@ -10,16 +9,15 @@ import numpy as np
 from PyQt6 import uic, QtCore, QtWidgets
 
 from ... import meta_tool
-from ...pipeline import Dataslot
 
 from .dlg_slot_reorder import DlgSlotReorder
 
 
 class SlotPanel(QtWidgets.QWidget):
-    #: Emitted when a dcscope.pipeline.Dataslot is to be changed
-    slot_changed = QtCore.pyqtSignal(dict)
-    #: Emitted when the pipeline is to be changed
-    pipeline_changed = QtCore.pyqtSignal(dict)
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(SlotPanel, self).__init__(*args, **kwargs)
@@ -29,7 +27,8 @@ class SlotPanel(QtWidgets.QWidget):
             uic.loadUi(path_ui, self)
 
         # current DCscope pipeline
-        self._pipeline = None
+        self.pipeline = None
+
         # signals
         self.toolButton_reorder.clicked.connect(self.on_reorder_slots)
         self.toolButton_anew.clicked.connect(self.on_anew_slot)
@@ -49,7 +48,7 @@ class SlotPanel(QtWidgets.QWidget):
         self._update_emodulus_lut_choices()
         self._update_emodulus_visc_model_choices()
 
-        self.update_content()
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
     def read_pipeline_state(self):
         slot_state = self.current_slot_state
@@ -303,16 +302,12 @@ class SlotPanel(QtWidgets.QWidget):
 
     @property
     def current_slot_state(self):
-        if self.slot_ids:
+        if self.pipeline and self.pipeline.slots:
             slot_index = self.comboBox_slots.currentIndex()
             slot_state = self.pipeline.slots[slot_index].__getstate__()
         else:
             slot_state = None
         return slot_state
-
-    @property
-    def pipeline(self):
-        return self._pipeline
 
     @property
     def slot_ids(self):
@@ -344,45 +339,50 @@ class SlotPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_anew_slot(self):
-        slot_state = self.read_pipeline_state()
-        new_slot = Dataslot(slot_state["path"])
-        pos = self.pipeline.slot_ids.index(slot_state["identifier"])
-        self.pipeline.add_slot(new_slot, index=pos + 1)
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            slot_state = self.read_pipeline_state()
+            pos = self.pipeline.slot_ids.index(slot_state["identifier"])
+            new_id = self.pipeline.add_slot(path=slot_state["path"],
+                                            index=pos + 1,
+                                            )
+            self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
 
     @QtCore.pyqtSlot()
     def on_duplicate_slot(self):
-        # determine the new filter state
-        slot_state = self.read_pipeline_state()
-        new_state = copy.deepcopy(slot_state)
-        new_slot = Dataslot(slot_state["path"])
-        new_state["identifier"] = new_slot.identifier
-        new_state["name"] = new_slot.name
-        new_slot.__setstate__(new_state)
-        # determine the filter position
-        pos = self.pipeline.slot_ids.index(slot_state["identifier"])
-        self.pipeline.add_slot(new_slot, index=pos + 1)
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            # determine the new filter state
+            slot_state = self.read_pipeline_state()
+            new_id = self.pipeline.duplicate_slot(slot_state["identifier"])
+            self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            if self.isVisible():
+                self.update_content()
 
     @QtCore.pyqtSlot()
     def on_remove_slot(self):
-        slot_state = self.read_pipeline_state()
-        self.pipeline.remove_slot(slot_state["identifier"])
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            slot_state = self.read_pipeline_state()
+            slot_id = slot_state["identifier"]
+            self.pipeline.remove_slot(slot_id)
+            self.pp_mod_send.emit({"pipeline": {"slot_created": slot_id}})
 
     @QtCore.pyqtSlot()
     def on_reorder_slots(self):
         """Open dialog for reordering slots"""
         dlg = DlgSlotReorder(self.pipeline, self)
-        dlg.pipeline_changed.connect(self.pipeline_changed)
+        dlg.pp_mod_send.connect(self.pp_mod_send)
         dlg.exec()
 
     @QtCore.pyqtSlot()
     def on_ui_changed(self):
-        """Called when the user modifies the medium or temperature options"""
+        """Called when the user m
+        index: int
+            index of the slot in the pipeline;
+            indexing starts at "0".odifies the medium or temperature options"""
         medium = self.comboBox_medium.currentData()
         tselec = self.comboBox_temp.currentData()
         medium_key = ALIAS_MEDIA.get(medium, medium)
@@ -466,7 +466,9 @@ class SlotPanel(QtWidgets.QWidget):
             self.doubleSpinBox_visc.setReadOnly(False)
 
     def set_pipeline(self, pipeline):
-        self._pipeline = pipeline
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
 
     def show_slot(self, slot_id):
         self.update_content(slot_index=self.slot_ids.index(slot_id))
@@ -498,7 +500,9 @@ class SlotPanel(QtWidgets.QWidget):
 
     def write_slot(self):
         """Update the dcscope.pipeline.Dataslot instance"""
-        slot_state = self.read_pipeline_state()
-        # this signal will update the main pipeline which will trigger
-        # a call to `set_pipeline` and `update_content`.
-        self.slot_changed.emit(slot_state)
+        with self.pipeline.lock:
+            slot_state = self.read_pipeline_state()
+            slot_id = slot_state["identifier"]
+            slot_index = self.pipeline.slot_ids.index(slot_id)
+            self.pipeline.slots[slot_index].__setstate__(slot_state)
+            self.pp_mod_send.emit({"pipeline": {"slot_changed": slot_id}})

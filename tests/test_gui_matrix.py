@@ -98,6 +98,7 @@ def test_matrix_slots_duplicate_issue_96(qtbot):
 
     # See if that worked
     assert mw.pipeline.slots[0].name == "A Unique Name"
+    assert len(mw.pipeline.slot_ids) == 1
 
     # Now duplicate the dataset
     swid = mw.block_matrix.get_widget(slot_id=mw.pipeline.slots[0].identifier)

@@ -4,7 +4,7 @@ from PyQt6 import uic, QtCore, QtWidgets
 
 
 class DlgSlotReorder(QtWidgets.QDialog):
-    pipeline_changed = QtCore.pyqtSignal(dict)
+    pp_mod_send = QtCore.pyqtSignal(dict)
 
     def __init__(self, pipeline, *args, **kwargs):
         super(DlgSlotReorder, self).__init__(*args, **kwargs)
@@ -36,8 +36,7 @@ class DlgSlotReorder(QtWidgets.QDialog):
         # reorder pipeline and send pipeline_changed signal
         with self.pipeline.lock:
             self.pipeline.reorder_slots(indices)
-            state = self.pipeline.__getstate__()
-            self.pipeline_changed.emit(state)
+            self.pp_mod_send.emit({"pipeline": "order_changed"})
 
     @QtCore.pyqtSlot()
     def on_move_item(self):

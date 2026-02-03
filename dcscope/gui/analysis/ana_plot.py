@@ -1,4 +1,3 @@
-import copy
 import importlib.resources
 
 import dclab
@@ -18,10 +17,10 @@ COLORMAPS = STATE_OPTIONS["scatter"]["colormap"]
 
 
 class PlotPanel(QtWidgets.QWidget):
-    #: Emitted when a dcscope.pipeline.Plot is to be changed
-    plot_changed = QtCore.pyqtSignal(dict)
-    #: Emitted when the pipeline is to be changed
-    pipeline_changed = QtCore.pyqtSignal(dict)
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(PlotPanel, self).__init__(*args, **kwargs)
@@ -31,7 +30,7 @@ class PlotPanel(QtWidgets.QWidget):
             uic.loadUi(path_ui, self)
 
         # current DCscope pipeline
-        self._pipeline = None
+        self.pipeline = None
         self._init_controls()
         self.update_content()
 
@@ -65,7 +64,9 @@ class PlotPanel(QtWidgets.QWidget):
         # automatically set spacing
         self.toolButton_spacing_auto.clicked.connect(self.on_spacing_auto)
 
-    def read_pipeline_state(self):
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    def read_plot_state(self):
         rx = self.widget_range_x.read_pipeline_state()
         ry = self.widget_range_y.read_pipeline_state()
 
@@ -135,7 +136,7 @@ class PlotPanel(QtWidgets.QWidget):
         }
         return state
 
-    def write_pipeline_state(self, state):
+    def write_plot_state(self, state):
         if self.current_plot.identifier != state["identifier"]:
             raise ValueError("Plot identifier mismatch!")
         toblock = [
@@ -387,15 +388,10 @@ class PlotPanel(QtWidgets.QWidget):
     def current_plot(self):
         if self.plot_ids:
             plot_index = self.comboBox_plots.currentIndex()
-            plot_id = self.plot_ids[plot_index]
-            plot = Plot.get_instances()[plot_id]
+            plot = self.pipeline.plots[plot_index]
         else:
             plot = None
         return plot
-
-    @property
-    def pipeline(self):
-        return self._pipeline
 
     @property
     def plot_ids(self):
@@ -429,7 +425,7 @@ class PlotPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_axis_changed(self):
-        gen = self.read_pipeline_state()["general"]
+        gen = self.read_plot_state()["general"]
         if self.sender() == self.comboBox_axis_x:
             self._set_range_xy_state(axis_x=gen["axis x"])
             self._set_contour_spacing_auto(axis_x=gen["axis x"])
@@ -458,7 +454,7 @@ class PlotPanel(QtWidgets.QWidget):
         old_ncol, old_nrow = self.pipeline.get_plot_col_row_count(plot_id)
         # new parameters
         new_pipeline_state = self.pipeline.__getstate__()
-        new_pipeline_state["plots"][plot_index] = self.read_pipeline_state()
+        new_pipeline_state["plots"][plot_index] = self.read_plot_state()
         new_ncol, new_nrow = self.pipeline.get_plot_col_row_count(
             plot_id, new_pipeline_state)
         # size x (minimum of 400)
@@ -497,25 +493,24 @@ class PlotPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_plot_duplicated(self):
-        # determine the new filter state
-        plot_state = self.read_pipeline_state()
-        new_state = copy.deepcopy(plot_state)
-        new_plot = Plot()
-        new_state["identifier"] = new_plot.identifier
-        new_state["layout"]["name"] = new_plot.name
-        new_plot.write_pipeline_state(new_state)
-        # determine the filter position
-        pos = self.pipeline.plot_ids.index(plot_state["identifier"])
-        self.pipeline.add_plot(new_plot, index=pos+1)
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            plot_id = self.current_plot.identifier
+            new_id = self.pipeline.duplicate_plot(plot_id)
+            self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
 
     @QtCore.pyqtSlot()
     def on_plot_removed(self):
-        plot_state = self.read_pipeline_state()
-        self.pipeline.remove_plot(plot_state["identifier"])
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
+        with self.pipeline.lock:
+            plot_id = self.current_plot.identifier
+            self.pipeline.remove_plot(plot_id)
+            self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            if self.isVisible():
+                self.update_content()
 
     @QtCore.pyqtSlot()
     @show_wait_cursor
@@ -525,7 +520,7 @@ class PlotPanel(QtWidgets.QWidget):
         plot_id = self.current_plot.identifier
         # Get all datasets belonging to this plot.
         datasets, _ = self.pipeline.get_plot_datasets(plot_id)
-        state = self.read_pipeline_state()
+        state = self.read_plot_state()
         gen = state["general"]
         # initial guess
         # sensible start parameters
@@ -533,7 +528,7 @@ class PlotPanel(QtWidgets.QWidget):
                                        axis_y=gen["axis y"])
 
         # retrieve state with updated spacings
-        state = self.read_pipeline_state()
+        state = self.read_plot_state()
         phi_conv = np.deg2rad(23)
 
         for ii in range(15):  # hard-limit is 15 iterations
@@ -565,10 +560,10 @@ class PlotPanel(QtWidgets.QWidget):
                 "Could not automatically determine contour spacing")
 
         # set the final spacing
-        new_state = self.read_pipeline_state()
+        new_state = self.read_plot_state()
         new_state["contour"]["spacing x"] = state["contour"]["spacing x"]
         new_state["contour"]["spacing y"] = state["contour"]["spacing y"]
-        self.write_pipeline_state(new_state)
+        self.write_plot_state(new_state)
 
     @QtCore.pyqtSlot()
     def on_range_changed(self):
@@ -579,7 +574,9 @@ class PlotPanel(QtWidgets.QWidget):
         self.update_content(plot_index=self.plot_ids.index(plot_id))
 
     def set_pipeline(self, pipeline):
-        self._pipeline = pipeline
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
 
     def update_content(self, plot_index=None, **kwargs):
         if self.plot_ids:
@@ -627,14 +624,16 @@ class PlotPanel(QtWidgets.QWidget):
             # populate content
             plot = Plot.get_plot(identifier=self.plot_ids[plot_index])
             state = plot.__getstate__()
-            self.write_pipeline_state(state)
+            self.write_plot_state(state)
         else:
             self.setEnabled(False)
 
     def write_plot(self):
         """Update the dcscope.pipeline.Plot instance"""
-        # get current index
-        plot_state = self.read_pipeline_state()
-        # this signal will update the main pipeline which will trigger
-        # a call to `set_pipeline` and `update_content`.
-        self.plot_changed.emit(plot_state)
+        with self.pipeline.lock:
+            # get current index
+            plot_state = self.read_plot_state()
+            plot_id = plot_state["identifier"]
+            plot_index = self.pipeline.plot_ids.index(plot_id)
+            self.pipeline.plots[plot_index].__setstate__(plot_state)
+            self.pp_mod_send.emit({"pipeline": {"plot_changed": plot_id}})

@@ -30,7 +30,7 @@ def test_filter_min_max_inf(qtbot):
     # change the slot names
     for ii, slot in enumerate(mw.pipeline.slots):
         slot.name = "slot numero {}".format(ii)
-        mw.adopt_slot(slot.__getstate__())
+        mw.pp_mod_send.emit({"pipeline": {"slot_changed": slot.identifier}})
 
     # sanity checks
     assert mw.pipeline.slots[0].name == "slot numero 0"
@@ -39,7 +39,7 @@ def test_filter_min_max_inf(qtbot):
 
     # create reorder dialog manually
     dlg = DlgSlotReorder(mw.pipeline, mw)
-    dlg.pipeline_changed.connect(mw.adopt_pipeline)
+    dlg.pp_mod_send.connect(mw.pp_mod_send)
     # reorder plots
     dlg.listWidget.setCurrentRow(0)
     dlg.toolButton_down.clicked.emit()

@@ -9,6 +9,10 @@ class LogPanel(QtWidgets.QWidget):
 
     Visualizes logs stored in the .rtdc file
     """
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(LogPanel, self).__init__(*args, **kwargs)
@@ -17,24 +21,29 @@ class LogPanel(QtWidgets.QWidget):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
         # current DCscope pipeline
-        self._pipeline = None
+        self.pipeline = None
         self._selected_log = None
+
         self.listWidget_dataset.currentRowChanged.connect(
             self.on_select_dataset)
         self.listWidget_log_name.currentRowChanged.connect(
             self.on_select_log)
-        self.update_content()
 
-    @property
-    def pipeline(self):
-        return self._pipeline
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        """We received a signal that something changed"""
+        if data.get("pipeline"):
+            if self.isVisible():
+                self.update_content()
 
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
         """Show the logs of the dataset in the right-hand list widget"""
         self.listWidget_log_name.clear()
         if ds_idx >= 0:
-            ds = self._pipeline.slots[ds_idx].get_dataset()
+            ds = self.pipeline.slots[ds_idx].get_dataset()
             log_names = list(ds.logs.keys())
             for log in log_names:
                 self.listWidget_log_name.addItem(log)
@@ -51,7 +60,7 @@ class LogPanel(QtWidgets.QWidget):
         """Show the logs of the dataset in the right-hand list widget"""
         ds_idx = self.listWidget_dataset.currentRow()
         if ds_idx >= 0:
-            ds = self._pipeline.slots[ds_idx].get_dataset()
+            ds = self.pipeline.slots[ds_idx].get_dataset()
             if len(ds.logs) == 0:
                 self.listWidget_log_name.clear()
                 self.textEdit.clear()
@@ -109,20 +118,22 @@ class LogPanel(QtWidgets.QWidget):
             self.textEdit.clear()
 
     def set_pipeline(self, pipeline):
-        self._pipeline = pipeline
+        if self.pipeline is not None:
+            raise ValueError("Pipeline can only be set once")
+        self.pipeline = pipeline
 
     def update_content(self, slot_index=None, **kwargs):
-        if self._pipeline and self._pipeline.slots:
+        if self.pipeline and self.pipeline.slots:
             self.setEnabled(True)
             self.setUpdatesEnabled(False)
             self.listWidget_dataset.clear()
             self.listWidget_log_name.clear()
-            for slot in self._pipeline.slots:
+            for slot in self.pipeline.slots:
                 self.listWidget_dataset.addItem(slot.name)
             self.setUpdatesEnabled(True)
             if slot_index is None or slot_index < 0:
                 slot_index = max(0, self.listWidget_dataset.currentRow())
-            slot_index = min(slot_index, self._pipeline.num_slots - 1)
+            slot_index = min(slot_index, self.pipeline.num_slots - 1)
             self.listWidget_dataset.setCurrentRow(slot_index)
         else:
             self.setEnabled(False)

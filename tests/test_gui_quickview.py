@@ -107,6 +107,11 @@ def test_duplicate_polygon_filter_issue_148(qtbot):
     fv = mw.widget_ana_view.widget_filter
     mw.widget_ana_view.tabWidget.setCurrentWidget(
         mw.widget_ana_view.tab_filter)
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    assert mw.widget_ana_view.tab_filter.isVisible()
     cb = fv._polygon_checkboxes[pf.unique_id]
     assert not cb.isChecked()
     assert cb.isEnabled()
@@ -129,6 +134,9 @@ def test_duplicate_polygon_filter_issue_148(qtbot):
     qtbot.mouseClick(cb, QtCore.Qt.MouseButton.LeftButton)
     qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     assert not cb.isChecked()
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # Make sure we only have one polygon filter
     assert len(dclab.PolygonFilter.instances) == 1, "this worked before"
@@ -410,12 +418,20 @@ def test_translate_polygon_filter_issue_115(qtbot):
     mw.widget_ana_view.tabWidget.setCurrentWidget(
         mw.widget_ana_view.tab_filter)
     cb = fv._polygon_checkboxes[pf.unique_id]
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     assert not cb.isChecked()
     assert cb.isEnabled()
     assert cb.isVisible()
     qtbot.mouseClick(cb, QtCore.Qt.MouseButton.LeftButton)
     assert cb.isChecked()
     qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -497,8 +513,18 @@ def test_update_polygon_filter_issue_26(qtbot):
     fv = mw.widget_ana_view.widget_filter
     mw.widget_ana_view.tabWidget.setCurrentWidget(
         mw.widget_ana_view.tab_filter)
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    assert mw.widget_ana_view.tab_filter.isVisible()
+
     cb = fv._polygon_checkboxes[pf.unique_id]
     qtbot.mouseClick(cb, QtCore.Qt.MouseButton.LeftButton)
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+
     assert cb.isChecked()
     qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # did that work?

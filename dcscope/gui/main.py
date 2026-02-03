@@ -180,6 +180,7 @@ class DCscope(QtWidgets.QMainWindow):
         self.init_quick_view()
         self.init_analysis_view()
         self.mdiArea.cascadeSubWindows()
+
         # BLOCK MATRIX (wraps DataMatrix and PlotMatrix)
         # BlockMatrix appearance
         self.toolButton_dm.clicked.connect(self.on_block_matrix)
@@ -191,7 +192,8 @@ class DCscope(QtWidgets.QMainWindow):
             self.add_dataslot)
         self.block_matrix.toolButton_new_filter.clicked.connect(
             self.add_filter)
-        self.block_matrix.toolButton_new_plot.clicked.connect(self.add_plot)
+        self.block_matrix.toolButton_new_plot.clicked.connect(
+            self.add_plot)
         # BlockMatrix default state
         self.toolButton_new_plot.setEnabled(False)
         self.block_matrix.toolButton_new_plot.setEnabled(False)
@@ -200,38 +202,32 @@ class DCscope(QtWidgets.QMainWindow):
         self.block_matrix.filter_modify_clicked.connect(self.on_modify_filter)
         self.block_matrix.plot_modify_clicked.connect(self.on_modify_plot)
 
-        # ANALYSIS VIEW
-        # filter signals
-        self.widget_ana_view.filter_changed.connect(self.adopt_filter)
-        self.widget_ana_view.pipeline_changed.connect(self.adopt_pipeline)
+        # QUICK VIEW
         # polygon filter creation
-        self.widget_ana_view.widget_filter.request_new_polygon_filter.connect(
-            self.on_new_polygon_filter)
         self.widget_quick_view.polygon_filter_about_to_be_deleted.connect(
             self.on_remove_polygon_filter_from_pipeline)
-        self.widget_quick_view.polygon_filter_created.connect(
-            self.widget_ana_view.widget_filter.update_polygon_filters)
-        self.widget_quick_view.polygon_filter_modified.connect(
-            self.widget_ana_view.widget_filter.update_polygon_filters)
         self.widget_quick_view.polygon_filter_modified.connect(
             self.on_pipeline_changed)  # might be an active filter (#26)
         self.widget_quick_view.polygon_filter_modified.connect(
             self.plots_changed)  # might be an active filter (#26)
+
+        # ANALYSIS VIEW
+        # polygon filter creation
+        self.widget_ana_view.widget_filter.request_new_polygon_filter.connect(
+            self.on_new_polygon_filter)
+        self.widget_quick_view.polygon_filter_created.connect(
+            self.widget_ana_view.widget_filter.update_polygon_filters)
+        self.widget_quick_view.polygon_filter_modified.connect(
+            self.widget_ana_view.widget_filter.update_polygon_filters)
         # This is important, because if metadata such as emodulus recipe
         # is changed, the QuickView must be updated as well.
         self.plots_changed.connect(self.on_pipeline_changed)
-
-        # plot signals
-        self.widget_ana_view.plot_changed.connect(self.adopt_plot)
-        # slot signals
-        self.widget_ana_view.slot_changed.connect(self.adopt_slot)
-        # filter signals
-        self.widget_ana_view.filter_changed.connect(self.adopt_filter)
 
         # Top of the pipeline modification hierarchy
         self.pp_mod_send.connect(self.on_pp_mod_recv)
         connect_pp_mod_signals(self, self.block_matrix)
         connect_pp_mod_signals(self, self.widget_quick_view)
+        connect_pp_mod_signals(self, self.widget_ana_view)
 
         # Set analysis pipeline
         self.set_pipeline()
@@ -267,26 +263,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.activateWindow()
         self.showMaximized()
         self.setWindowState(QtCore.Qt.WindowState.WindowActive)
-
-    @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(dict)
-    def adopt_filter(self, filt_state):
-        filt_id = filt_state["identifier"]
-        state = self.pipeline.__getstate__()
-        for ii in range(len(state["filters"])):
-            if state["filters"][ii]["identifier"] == filt_id:
-                state["filters"][ii] = filt_state
-                # make sure filters are enabled/disabled
-                if (filt_state["filter used"]
-                        and filt_id not in state["filters used"]):
-                    state["filters used"].append(filt_id)
-                elif (not filt_state["filter used"]
-                      and filt_id in state["filters used"]):
-                    state["filters used"].remove(filt_id)
-                break
-        else:
-            raise ValueError("Filter not in pipeline: {}".format(filt_id))
-        self.adopt_pipeline(state)
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(dict)
@@ -327,8 +303,6 @@ class DCscope(QtWidgets.QMainWindow):
         if self.sender() != self.widget_quick_view:
             self.widget_quick_view.pp_mod_recv.emit({"pipeline": "adopt"})
 
-        # Update AnalysisView
-        self.widget_ana_view.set_pipeline(self.pipeline)
         # Update QuickView choices
         self.widget_quick_view.update_feature_choices()
         # update list of polygon filters in Quick View
@@ -364,39 +338,6 @@ class DCscope(QtWidgets.QMainWindow):
         # redraw
         self.mdiArea.update()
         self.subwindows["analysis_view"].update()
-
-    @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(dict)
-    def adopt_plot(self, plot_state):
-        plot_id = plot_state["identifier"]
-        state = self.pipeline.__getstate__()
-        for ii in range(len(state["plots"])):
-            if state["plots"][ii]["identifier"] == plot_id:
-                state["plots"][ii] = plot_state
-                break
-        else:
-            raise ValueError("Plot not in pipeline: {}".format(plot_id))
-        self.adopt_pipeline(state)
-
-    @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(object)
-    def adopt_slot(self, slot_state):
-        slot_id = slot_state["identifier"]
-        state = self.pipeline.__getstate__()
-        for ii in range(len(state["slots"])):
-            if state["slots"][ii]["identifier"] == slot_id:
-                state["slots"][ii] = slot_state
-                # make sure filters are enabled/disabled
-                if (slot_state["slot used"]
-                        and slot_id not in state["slots used"]):
-                    state["slots used"].append(slot_id)
-                elif (not slot_state["slot used"]
-                      and slot_id in state["slots used"]):
-                    state["slots used"].remove(slot_id)
-                break
-        else:
-            raise ValueError("Slot not in pipeline: {}".format(slot_id))
-        self.adopt_pipeline(state)
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot()
@@ -556,6 +497,8 @@ class DCscope(QtWidgets.QMainWindow):
         self.subwindows["analysis_view"] = sub
         # signals
         self.toolButton_ana_view.toggled.connect(sub.setVisible)
+        self.toolButton_ana_view.toggled.connect(
+            self.widget_ana_view.on_visible)
         sub.hide()
         self.mdiArea.addSubWindow(sub)
 
@@ -586,7 +529,7 @@ class DCscope(QtWidgets.QMainWindow):
     def on_action_change_dataset_order(self):
         """Show dialog for changing dataset order"""
         dlg = analysis.DlgSlotReorder(self.pipeline, self)
-        dlg.pipeline_changed.connect(self.adopt_pipeline)
+        dlg.pp_mod_send.connect(self.pp_mod_send)
         dlg.exec()
 
     @QtCore.pyqtSlot(bool)

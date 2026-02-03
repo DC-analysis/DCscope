@@ -2,12 +2,14 @@ import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
 
+from ..helpers import connect_pp_mod_signals
+
 
 class AnalysisView(QtWidgets.QWidget):
-    filter_changed = QtCore.pyqtSignal(dict)
-    plot_changed = QtCore.pyqtSignal(dict)
-    slot_changed = QtCore.pyqtSignal(dict)
-    pipeline_changed = QtCore.pyqtSignal(dict)
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
         super(AnalysisView, self).__init__(*args, **kwargs)
@@ -24,7 +26,6 @@ class AnalysisView(QtWidgets.QWidget):
             self.widget_meta,
             self.widget_filter,
             self.widget_log,
-            self.widget_meta,
             self.widget_plot,
             self.widget_slot,
             self.widget_tables
@@ -33,29 +34,26 @@ class AnalysisView(QtWidgets.QWidget):
         self.setWindowTitle("Analysis View")
         self.setMinimumSize(self.sizeHint())
         # Signals
-        self.widget_filter.filter_changed.connect(self.filter_changed)
-        self.widget_filter.pipeline_changed.connect(self.pipeline_changed)
-        self.widget_plot.plot_changed.connect(self.plot_changed)
-        self.widget_plot.pipeline_changed.connect(self.pipeline_changed)
-        self.widget_slot.slot_changed.connect(self.slot_changed)
-        self.widget_slot.pipeline_changed.connect(self.pipeline_changed)
         self.tabWidget.setCurrentIndex(0)
         self.tabWidget.currentChanged.connect(self.update_content)
 
-    @QtCore.pyqtSlot(int, int)
-    def on_quickview(self, slot_index, filt_index):
-        """Signal from the block matrix"""
-        self._quickview_filt_index = filt_index
-        self._quickview_slot_index = slot_index
-        self.update_content()
+        for pw in self.page_widgets:
+            connect_pp_mod_signals(self, pw)
+
+    @QtCore.pyqtSlot(bool)
+    def on_visible(self, visible):
+        if visible:
+            self.update_content()
 
     def set_pipeline(self, pipeline):
         self._quickview_filt_index = min(self._quickview_filt_index,
                                          len(pipeline.filters) - 1)
         self._quickview_slot_index = min(self._quickview_slot_index,
                                          len(pipeline.slots) - 1)
+
         for widget in self.page_widgets:
             widget.set_pipeline(pipeline)
+
         self.update_content()
 
     @QtCore.pyqtSlot()
