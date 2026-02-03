@@ -7,6 +7,7 @@
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
  - ref: raise ValueError in unreachable case in DataSlot creation
  - ref: restructure pipeline management through signaling
+ - ref: move slot, plot, and filter duplication to `Pipeline` class
  - setup: bump pyqtgraph to 0.14.0
  - tests: fix manual tests (session file broken)
  - build: disable non-functional macOS builds

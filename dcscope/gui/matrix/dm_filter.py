@@ -1,4 +1,3 @@
-import copy
 import importlib.resources
 
 from PyQt6 import uic, QtCore, QtWidgets
@@ -115,16 +114,8 @@ class MatrixFilter(QtWidgets.QWidget):
 
     def action_duplicate(self):
         with self.pipeline.lock:
-            filt = self.pipeline.filters[self.filt_index]
-            new_id = self.pipeline.add_filter(
-                index=self.filt_index+1)
-            # use original state
-            new_state = copy.deepcopy(
-                self.pipeline.get_filter(filt.identifier).__getstate__())
-            # only set the new identifier (issue #96)
-            new_state["identifier"] = new_id
-            new_state["name"] = self.pipeline.filters[self.filt_index+1].name
-            self.pipeline.get_filter(new_id).__setstate__(new_state)
+            filt_id = self.pipeline.filter_ids[self.filt_index]
+            new_id = self.pipeline.duplicate_filter(filt_id)
             self.pp_mod_send.emit({"pipeline": {"filter_created": new_id}})
 
     def action_remove(self):

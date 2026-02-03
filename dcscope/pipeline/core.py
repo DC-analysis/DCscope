@@ -207,9 +207,6 @@ class Pipeline(object):
 
         Returns
         -------
-        index: int
-            index of the slot in the pipeline;
-            indexing starts at "0".
         identifier: str
             identifier of the slot
         """
@@ -341,6 +338,48 @@ class Pipeline(object):
             self._reduced_sample_names += names
 
         return names
+
+    def duplicate_filter(self, filter_id):
+        """Duplicate a filter"""
+        filt_index = self.filter_ids.index(filter_id)
+        filt = self.filters[filt_index]
+        new_id = self.add_filter(index=filt_index + 1)
+        # use original state
+        new_state = copy.deepcopy(filt.__getstate__())
+        # only set the new identifier and name (issue #96)
+        new_state["identifier"] = new_id
+        new_state["name"] = self.filters[filt_index + 1].name
+        new_filter = self.filters[filt_index + 1]
+        new_filter.__setstate__(new_state)
+        return new_id
+
+    def duplicate_plot(self, plot_id):
+        """Duplicate a plot"""
+        plot_index = self.plot_ids.index(plot_id)
+        plot = self.plots[plot_index]
+        new_id = self.add_plot(index=plot_index + 1)
+        # use original state
+        new_state = copy.deepcopy(plot.__getstate__())
+        # only set the new identifier (issue #96)
+        new_state["identifier"] = new_id
+        new_state["name"] = self.plots[plot_index + 1].name
+        new_plot = self.plots[plot_index + 1]
+        new_plot.__setstate__(new_state)
+        return new_id
+
+    def duplicate_slot(self, slot_id):
+        """Duplicate a slot"""
+        slot_index = self.slot_ids.index(slot_id)
+        slot = self.slots[slot_index]
+        new_id = self.add_slot(path=slot.path,
+                               index=slot_index + 1)
+        # use original state
+        new_state = copy.deepcopy(slot.__getstate__())
+        # only set the new identifier (issue #96)
+        new_state["identifier"] = new_id
+        new_slot = self.slots[slot_index + 1]
+        new_slot.__setstate__(new_state)
+        return new_id
 
     def get_dataset(self, slot_index, filt_index=-1, apply_filter=True):
         """Return dataset with all filters updated (optionally applied)

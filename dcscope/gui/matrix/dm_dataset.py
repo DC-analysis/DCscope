@@ -1,4 +1,3 @@
-import copy
 import importlib.resources
 
 from PyQt6 import uic, QtWidgets, QtCore, QtGui
@@ -71,16 +70,8 @@ class MatrixDataset(QtWidgets.QWidget):
 
     def action_duplicate(self):
         with self.pipeline.lock:
-            slot = self.pipeline.slots[self.slot_index]
-            new_id = self.pipeline.add_slot(
-                path=self.path,
-                index=self.slot_index+1)
-            # use original state
-            new_state = copy.deepcopy(
-                self.pipeline.get_slot(slot.identifier).__getstate__())
-            # only set the new identifier (issue #96)
-            new_state["identifier"] = new_id
-            self.pipeline.get_slot(new_id).__setstate__(new_state)
+            slot_id = self.pipeline.slot_ids[self.slot_index]
+            new_id = self.pipeline.duplicate_slot(slot_id)
             self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
 
     def action_insert_anew(self):
