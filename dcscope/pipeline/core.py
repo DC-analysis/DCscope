@@ -763,4 +763,30 @@ class Pipeline(object):
 
     def set_element_active(self, slot_id, filt_plot_id, active=True):
         """Activate an element in the block matrix"""
+        old_state = self.__getstate__()
+
         self.element_states[slot_id][filt_plot_id] = active
+
+        # Plots: increase plot width/height if required
+        if filt_plot_id in self.plot_ids:
+            plot_id = filt_plot_id
+            plot_index = self.plot_ids.index(plot_id)
+            try:
+                old_ncol, old_nrow = self.get_plot_col_row_count(
+                    filt_plot_id, pipeline_state=old_state)
+                new_ncol, new_nrow = self.get_plot_col_row_count(
+                    plot_id)
+                plot_state = old_state["plots"][plot_index]
+
+            except (KeyError, IndexError):
+                # the plot was removed
+                pass
+            else:
+                # we are aiming for a square plot aspect ratio
+                plot_width = plot_state["layout"]["size x"] / new_ncol
+                plot_height = plot_state["layout"]["size y"] / new_nrow
+                if plot_width < 200:
+                    plot_state["layout"]["size x"] += 200 * (new_ncol-old_ncol)
+                if plot_height < 200:
+                    plot_state["layout"]["size y"] += 200 * (new_nrow-old_nrow)
+                self.plots[plot_index].__setstate__(plot_state)

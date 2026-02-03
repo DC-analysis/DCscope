@@ -270,28 +270,6 @@ class DCscope(QtWidgets.QMainWindow):
         if pipeline_state is None:
             pipeline_state = self.pipeline.__getstate__()
 
-        # If the number of subplots within a plot changed, update the
-        # plot size accordingly.
-        for plot_index, plot_id in enumerate(self.pipeline.plot_ids):
-            old_ncol, old_nrow = self.pipeline.get_plot_col_row_count(plot_id)
-            try:
-                new_ncol, new_nrow = self.pipeline.get_plot_col_row_count(
-                    plot_id, pipeline_state)
-                lay = pipeline_state["plots"][plot_index]["layout"]
-            except (KeyError, IndexError):
-                # the plot was removed
-                continue
-            else:
-                # we are aiming for a square plot aspect ratio
-                plot_width = lay["size x"] / new_ncol
-                plot_height = lay["size y"] / new_nrow
-                if plot_width < 200:
-                    lay["size x"] += 200 * (new_ncol - old_ncol)
-                if plot_height < 200:
-                    lay["size y"] += 200*(new_nrow-old_nrow)
-        # set the new state of the pipeline
-        self.pipeline.__setstate__(pipeline_state)
-
         # Update QuickView choices
         self.widget_quick_view.update_feature_choices()
         # update list of polygon filters in Quick View
@@ -916,6 +894,8 @@ class DCscope(QtWidgets.QMainWindow):
         for key in data:
             logger.info(f"Signal '{key}': {json.dumps(data[key])}")
 
+        self.adopt_pipeline()
+
         self.pp_mod_recv.emit(data)
 
         qv = data.get("quickview")
@@ -923,8 +903,6 @@ class DCscope(QtWidgets.QMainWindow):
             if not self.subwindows["quick_view"].isVisible():
                 self.toolButton_quick_view.setChecked(True)
                 self.subwindows["quick_view"].setVisible(True)
-
-        self.adopt_pipeline()
 
     @QtCore.pyqtSlot()
     def on_splitter(self):
