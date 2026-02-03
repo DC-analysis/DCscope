@@ -6,8 +6,6 @@ from ..helpers import connect_pp_mod_signals
 
 
 class BlockMatrix(QtWidgets.QWidget):
-    pipeline_changed = QtCore.pyqtSignal(dict)
-
     filter_modify_clicked = QtCore.pyqtSignal(str)
     plot_modify_clicked = QtCore.pyqtSignal(str)
     slot_modify_clicked = QtCore.pyqtSignal(str)
@@ -27,17 +25,16 @@ class BlockMatrix(QtWidgets.QWidget):
 
         self.pipeline = None
 
-        self._old_state = {}
         # Signals
-        # DataMatrix
-        self.data_matrix.pp_mod_send.connect(self.on_matrix_changed)
+        # DataMatrix buttons
         self.data_matrix.filter_modify_clicked.connect(
             self.filter_modify_clicked)
-        self.data_matrix.slot_modify_clicked.connect(self.slot_modify_clicked)
-        # PlotMatrix
-        self.plot_matrix.pp_mod_send.connect(self.on_matrix_changed)
-        self.plot_matrix.plot_modify_clicked.connect(self.plot_modify_clicked)
-        # buttons
+        self.data_matrix.slot_modify_clicked.connect(
+            self.slot_modify_clicked)
+        # PlotMatrix buttons
+        self.plot_matrix.plot_modify_clicked.connect(
+            self.plot_modify_clicked)
+        # Other widgets
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
         connect_pp_mod_signals(self, self.plot_matrix)
@@ -148,10 +145,6 @@ class BlockMatrix(QtWidgets.QWidget):
             em.active = False
             em.invalid = True
             em.update_content()
-
-    def on_matrix_changed(self):
-        state = self.pipeline.__getstate__()
-        self.pipeline_changed.emit(state)
 
     def update(self, *args, **kwargs):
         self.scrollArea_block.update()
