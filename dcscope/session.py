@@ -89,7 +89,9 @@ def export_filters(path, pipeline, filt_ids=None):
     pathlib.Path(path).write_text(dump)
 
 
-def import_filters(path, pipeline, strict=False):
+def import_filters(path: pathlib.Path | str,
+                   pipeline: Pipeline,
+                   strict: bool = False):
     """Load filters from a JSON file into a pipeline
 
     Parameters
