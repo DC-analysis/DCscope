@@ -37,8 +37,9 @@ class BlockMatrix(QtWidgets.QWidget):
         # Other widgets
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
-        connect_pp_mod_signals(self, self.plot_matrix)
+        # plot matrix must be connected after filter matrix (geometry updates)
         connect_pp_mod_signals(self, self.data_matrix)
+        connect_pp_mod_signals(self, self.plot_matrix)
 
         self.setMouseTracking(True)
 

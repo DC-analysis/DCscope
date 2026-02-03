@@ -211,9 +211,6 @@ class DCscope(QtWidgets.QMainWindow):
         # polygon filter creation
         self.widget_ana_view.widget_filter.request_new_polygon_filter.connect(
             self.on_new_polygon_filter)
-        # This is important, because if metadata such as emodulus recipe
-        # is changed, the QuickView must be updated as well.
-        self.plots_changed.connect(self.on_pipeline_changed)
 
         # Top of the pipeline modification hierarchy
         self.pp_mod_send.connect(self.on_pp_mod_recv)
@@ -859,11 +856,6 @@ class DCscope(QtWidgets.QMainWindow):
         # redraw
         self.mdiArea.update()
         self.subwindows["analysis_view"].update()
-
-    @QtCore.pyqtSlot()
-    def on_pipeline_changed(self):
-        self.pp_mod_recv.emit(
-            {"pipeline": f"top level change by {self.sender()}"})
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
