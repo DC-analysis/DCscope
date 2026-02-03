@@ -279,17 +279,6 @@ class DCscope(QtWidgets.QMainWindow):
                 sub.deleteLater()
         self.plots_changed.emit()
         self.widget_ana_view.widget_plot.update_content()
-        # Remove zombie slots
-        for slot_id in list(pipeline.Dataslot._instances.keys()):
-            if slot_id not in self.pipeline.slot_ids:
-                pipeline.Dataslot.remove_slot(slot_id)
-        # enable buttons
-        if self.pipeline.slots:
-            self.toolButton_new_plot.setEnabled(True)
-            self.block_matrix.toolButton_new_plot.setEnabled(True)
-        else:
-            self.toolButton_new_plot.setEnabled(False)
-            self.block_matrix.toolButton_new_plot.setEnabled(False)
         # redraw
         self.mdiArea.update()
         self.subwindows["analysis_view"].update()
@@ -879,18 +868,32 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """Log modification information and send them on their way"""
+        # Log all signals
         for key in data:
             logger.info(f"Signal '{key}': {json.dumps(data[key])}")
 
         self.adopt_pipeline()
 
-        self.pp_mod_recv.emit(data)
+        if data.get("pipeline"):
+            # Remove zombie slots
+            for slot_id in list(pipeline.Dataslot._instances.keys()):
+                if slot_id not in self.pipeline.slot_ids:
+                    pipeline.Dataslot.remove_slot(slot_id)
 
-        qv = data.get("quickview")
-        if qv:
+            # Enable plot button
+            if self.pipeline.slots:
+                self.toolButton_new_plot.setEnabled(True)
+            else:
+                self.toolButton_new_plot.setEnabled(False)
+
+        # Enable QuickView if relevant
+        if data.get("quickview"):
             if not self.subwindows["quick_view"].isVisible():
                 self.toolButton_quick_view.setChecked(True)
                 self.subwindows["quick_view"].setVisible(True)
+
+        # Send new signal to all receivers
+        self.pp_mod_recv.emit(data)
 
     @QtCore.pyqtSlot()
     def on_splitter(self):

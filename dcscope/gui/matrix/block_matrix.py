@@ -37,6 +37,8 @@ class BlockMatrix(QtWidgets.QWidget):
         # PlotMatrix
         self.plot_matrix.pp_mod_send.connect(self.on_matrix_changed)
         self.plot_matrix.plot_modify_clicked.connect(self.plot_modify_clicked)
+        # buttons
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
         connect_pp_mod_signals(self, self.plot_matrix)
         connect_pp_mod_signals(self, self.data_matrix)
@@ -69,6 +71,15 @@ class BlockMatrix(QtWidgets.QWidget):
                                     widget_under_mouse.toolTip(),
                                     widget_under_mouse,
                                     msecShowTime=60000)
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        if data.get("pipeline"):
+            # Enable plot button
+            if self.pipeline.slots:
+                self.toolButton_new_plot.setEnabled(True)
+            else:
+                self.toolButton_new_plot.setEnabled(False)
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
