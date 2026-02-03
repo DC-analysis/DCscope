@@ -628,6 +628,7 @@ class PlotPanel(QtWidgets.QWidget):
         else:
             self.setEnabled(False)
 
+    @QtCore.pyqtSlot()
     def write_plot(self):
         """Update the dcscope.pipeline.Plot instance"""
         with self.pipeline.lock:

@@ -85,16 +85,19 @@ class PlotMatrixElement(QtWidgets.QWidget):
             plot_id = self.pipeline.plot_ids[self.plot_index]
             state = {
                 "active": self.pipeline.element_states[slot_id][plot_id],
+                "enabled": self.pipeline.slots[self.slot_index].slot_used,
             }
-            if state != self.read_pipeline_state():
-                self.write_pipeline_state(state)
+            self.write_pipeline_state(state)
 
     def read_pipeline_state(self):
-        state = {"active": self.active}
+        state = {"active": self.active,
+                 "enabled": self.enabled,
+                 }
         return state
 
     def write_pipeline_state(self, state):
         self.active = state["active"]
+        self.enabled = state["enabled"]
         self.update_content()
 
     def update_content(self):

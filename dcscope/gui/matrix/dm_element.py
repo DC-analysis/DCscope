@@ -108,8 +108,7 @@ class DataMatrixElement(QtWidgets.QWidget):
                 ),
             }
 
-            if state != self.read_pipeline_state():
-                self.write_pipeline_state(state)
+            self.write_pipeline_state(state)
 
             if self.quickview_dict:
                 # Determine whether we have the QuickView

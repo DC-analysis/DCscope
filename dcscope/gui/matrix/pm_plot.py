@@ -102,7 +102,7 @@ class MatrixPlot(QtWidgets.QWidget):
 
     def action_duplicate(self):
         with self.pipeline.lock:
-            plot_id = self.pipeline.filter_ids[self.plot_index]
+            plot_id = self.pipeline.plot_ids[self.plot_index]
             new_id = self.pipeline.duplicate_plot(plot_id)
             self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
 
