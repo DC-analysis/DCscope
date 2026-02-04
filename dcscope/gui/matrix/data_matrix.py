@@ -56,11 +56,12 @@ class DataMatrix(QtWidgets.QWidget):
     def fill_matrix(self):
         # add widgets
         for ii in range(self.pipeline.num_slots):
-            # data matrix element row
+            # data matrix row
             erow = ii + 1
             if self.glo.itemAtPosition(erow, 0) is None:
                 # first column contains slot information
-                dm = MatrixDataset(pipeline=self.pipeline,
+                dm = MatrixDataset(parent=self,
+                                   pipeline=self.pipeline,
                                    slot_index=ii,
                                    )
                 self.glo.addWidget(dm, erow, 0)
@@ -73,7 +74,8 @@ class DataMatrix(QtWidgets.QWidget):
                 ecol = jj + 1
                 if self.glo.itemAtPosition(0, ecol) is None:
                     # first row contains filter information
-                    fm = MatrixFilter(pipeline=self.pipeline,
+                    fm = MatrixFilter(parent=self,
+                                      pipeline=self.pipeline,
                                       filt_index=jj)
                     self.glo.addWidget(fm, 0, ecol)
                     self.pp_mod_recv_child.connect(fm.pp_mod_recv)
@@ -82,7 +84,8 @@ class DataMatrix(QtWidgets.QWidget):
 
                 if self.glo.itemAtPosition(erow, ecol) is None:
                     # These are data matrix elements
-                    me = DataMatrixElement(pipeline=self.pipeline,
+                    me = DataMatrixElement(parent=self,
+                                           pipeline=self.pipeline,
                                            slot_index=ii,
                                            filt_index=jj)
                     self.glo.addWidget(me, erow, ecol)
@@ -120,7 +123,9 @@ class DataMatrix(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
-        if data.get("pipeline") or data.get("quickview"):
+        if (data.get("pipeline")
+            or data.get("quickview")
+                or data.get("block_matrix")):
             # Something in the pipeline changed. Make sure that we have
             # enough columns and rows.
             self.fill_matrix()

@@ -53,7 +53,7 @@
       </size>
      </property>
      <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
+      <enum>Qt::LayoutDirection::LeftToRight</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
@@ -82,7 +82,7 @@
          <string>Name</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -103,7 +103,7 @@
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignLeft">
          <widget class="QLabel" name="label_region">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -120,11 +120,11 @@
            <string>pxm</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
          </widget>
         </item>
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignRight">
          <widget class="QLabel" name="label_flowrate">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -141,10 +141,10 @@
            <string>0.123</string>
           </property>
           <property name="textFormat">
-           <enum>Qt::AutoText</enum>
+           <enum>Qt::TextFormat::AutoText</enum>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
          </widget>
         </item>
@@ -156,13 +156,13 @@
          <string notr="true">color: #B7B7B7</string>
         </property>
         <property name="frameShadow">
-         <enum>QFrame::Plain</enum>
+         <enum>QFrame::Shadow::Plain</enum>
         </property>
         <property name="lineWidth">
          <number>1</number>
         </property>
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
        </widget>
       </item>
@@ -180,7 +180,7 @@
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignLeft">
          <widget class="QToolButton" name="toolButton_modify">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -200,11 +200,10 @@
            <string>edit</string>
           </property>
           <property name="icon">
-           <iconset theme="tools-wizard">
-            <normaloff>.</normaloff>.</iconset>
+           <iconset theme="tools-wizard"/>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonTextBesideIcon</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -219,7 +218,7 @@
          <number>0</number>
         </property>
         <property name="sizeConstraint">
-         <enum>QLayout::SetDefaultConstraint</enum>
+         <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
         </property>
         <property name="leftMargin">
          <number>0</number>
@@ -242,7 +241,7 @@
            <string>Use this dataset</string>
           </property>
           <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
+           <enum>Qt::LayoutDirection::LeftToRight</enum>
           </property>
           <property name="text">
            <string/>
@@ -258,7 +257,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -283,8 +282,7 @@
            <string>r</string>
           </property>
           <property name="icon">
-           <iconset theme="object-rows">
-            <normaloff>.</normaloff>.</iconset>
+           <iconset theme="object-rows"/>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -294,7 +292,7 @@
         <item>
          <spacer name="horizontalSpacer_2">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -319,20 +317,19 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset theme="preferences-activities">
-            <normaloff>.</normaloff>.</iconset>
+           <iconset theme="preferences-activities"/>
           </property>
           <property name="popupMode">
-           <enum>QToolButton::InstantPopup</enum>
+           <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
           </property>
           <property name="arrowType">
-           <enum>Qt::NoArrow</enum>
+           <enum>Qt::ArrowType::NoArrow</enum>
           </property>
          </widget>
         </item>

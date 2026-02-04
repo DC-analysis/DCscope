@@ -1,4 +1,5 @@
 2.25.0
+ - feat: increase width of dataset tile in block matrix via settings (#225)
  - fix: IndexError when trying to view the logs of a log-less dataset
  - fix: prevent unchecking toolButtons for tool selection in QuickView
  - fix: boolean settings value not read from settings file correctly

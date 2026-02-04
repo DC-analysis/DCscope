@@ -34,6 +34,14 @@ class MatrixDataset(QtWidgets.QWidget):
         menu.addAction('remove', self.action_remove)
         self.toolButton_opt.setMenu(menu)
 
+        # Widget width
+        self.settings = QtCore.QSettings()
+        slot_width = self.settings.value(
+            "gui/block matrix slot widget width", 65)
+        self.setFixedWidth(int(slot_width))
+        self.setMinimumWidth(int(slot_width))
+        self.setMaximumWidth(int(slot_width))
+
         # toggle all active, all inactive, semi state
         self.toolButton_toggle.clicked.connect(self.on_active_toggled)
 
@@ -131,6 +139,16 @@ class MatrixDataset(QtWidgets.QWidget):
             if wd_state != pp_state:
                 self.write_pipeline_state(pp_state)
 
+        bm_dict = data.get("block_matrix", {})
+        if bm_dict:
+            slot_width = bm_dict.get("slot widget width", None)
+            if slot_width is not None:
+                self.setFixedWidth(int(slot_width))
+                self.setMinimumWidth(int(slot_width))
+                self.setMaximumWidth(int(slot_width))
+                self.adjustSize()
+                self.update_content()
+
     def read_pipeline_state(self):
         state = {"path": self.path,
                  "identifier": self.identifier,
@@ -145,13 +163,14 @@ class MatrixDataset(QtWidgets.QWidget):
         self.update_content()
 
     def set_label_string(self, string):
-        if self.label.fontMetrics().boundingRect(string).width() < 65:
+        max_width = self.width()
+        if self.label.fontMetrics().boundingRect(string).width() < max_width:
             nstring = string
         else:
             nstring = string + "..."
             while True:
                 width = self.label.fontMetrics().boundingRect(nstring).width()
-                if width > 65:
+                if width > max_width:
                     nstring = nstring[:-4] + "..."
                 else:
                     break
@@ -179,8 +198,11 @@ class MatrixDataset(QtWidgets.QWidget):
                 flow_rate = meta_tool.get_info(self.path,
                                                section="setup",
                                                key="flow rate")
-                self.label_flowrate.setText("{:.4g}".format(flow_rate))
-                self.label_flowrate.setToolTip("{:.4g} µL/s".format(flow_rate))
+                long_fl_label = f"{flow_rate:.4g} µL/s"
+                short_fl_label = f"{flow_rate:.4g}"
+                self.label_flowrate.setText(
+                    long_fl_label if self.width() > 70 else short_fl_label)
+                self.label_flowrate.setToolTip(long_fl_label)
             else:
                 self.label_flowrate.setText(region[:3])
                 self.label_flowrate.setToolTip(region)

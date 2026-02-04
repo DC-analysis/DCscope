@@ -82,7 +82,8 @@ class PlotMatrix(QtWidgets.QWidget):
 
                 if self.glo.itemAtPosition(0, ecol) is None:
                     # first row contains plot information
-                    pm = MatrixPlot(pipeline=self.pipeline,
+                    pm = MatrixPlot(parent=self,
+                                    pipeline=self.pipeline,
                                     plot_index=jj)
                     self.glo.addWidget(pm, 0, ecol)
                     self.pp_mod_recv_child.connect(pm.pp_mod_recv)
@@ -91,7 +92,8 @@ class PlotMatrix(QtWidgets.QWidget):
 
                 if self.glo.itemAtPosition(erow, ecol) is None:
                     # These are data matrix elements
-                    me = PlotMatrixElement(pipeline=self.pipeline,
+                    me = PlotMatrixElement(parent=self,
+                                           pipeline=self.pipeline,
                                            slot_index=ii,
                                            plot_index=jj)
                     self.glo.addWidget(me, erow, ecol)

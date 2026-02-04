@@ -35,11 +35,11 @@ class BlockMatrix(QtWidgets.QWidget):
         self.plot_matrix.plot_modify_clicked.connect(
             self.plot_modify_clicked)
         # Other widgets
-        self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
         # plot matrix must be connected after filter matrix (geometry updates)
         connect_pp_mod_signals(self, self.data_matrix)
         connect_pp_mod_signals(self, self.plot_matrix)
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
         self.setMouseTracking(True)
 
@@ -78,6 +78,12 @@ class BlockMatrix(QtWidgets.QWidget):
                 self.toolButton_new_plot.setEnabled(True)
             else:
                 self.toolButton_new_plot.setEnabled(False)
+
+        if data.get("block_matrix"):
+            # Workaound: If this is not set, then the slot matrix element
+            # is resized, but its sizer is not. Sending the signal twice
+            # resolves the issue.
+            self.data_matrix.pp_mod_recv.emit(data)
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:

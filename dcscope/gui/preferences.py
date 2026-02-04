@@ -59,11 +59,19 @@ class Preferences(QtWidgets.QDialog):
             ["dcor/api key", self.dcor_api_key, ""],
             ["dcor/servers", self.dcor_servers, ["dcor.mpl.mpg.de"]],
             ["dcor/use ssl", self.dcor_use_ssl, "1"],
+            ["gui/block matrix slot widget width",
+             self.spinBox_slot_widget_width, "65"],
             ["lme4/r path", self.lme4_rpath, rdefault],
             ["s3/endpoint url", self.lineEdit_s3_endpoint_url, ""],
             ["s3/access key id", self.lineEdit_s3_access_key_id, ""],
             ["s3/secret access key", self.lineEdit_s3_secret_access_key, ""],
         ]
+
+        #: configuration signals that are emitted directly
+        self.config_live_signals = {
+            "gui/block matrix slot widget width":
+                lambda v: {"block_matrix": {"slot widget width": v}}
+        }
 
         # extensions
         store_path = os_path.join(
@@ -108,6 +116,8 @@ class Preferences(QtWidgets.QDialog):
                 widget.setChecked(bool(int(value)))
             elif isinstance(widget, QtWidgets.QLineEdit):
                 widget.setText(value)
+            elif isinstance(widget, QtWidgets.QSpinBox):
+                widget.setValue(int(value))
             elif widget is self.dcor_servers:
                 self.dcor_servers.clear()
                 self.dcor_servers.addItems(value)
@@ -338,6 +348,8 @@ class Preferences(QtWidgets.QDialog):
                         msg.exec()
             elif isinstance(widget, QtWidgets.QLineEdit):
                 value = widget.text().strip()
+            elif isinstance(widget, QtWidgets.QSpinBox):
+                value = widget.value()
             elif widget is self.dcor_servers:
                 curtext = self.dcor_servers.currentText()
                 items = self.settings.value(key, default)
@@ -354,6 +366,12 @@ class Preferences(QtWidgets.QDialog):
                 value = items
             else:
                 raise NotImplementedError("No rule for '{}'".format(key))
+
+            if key in self.config_live_signals:
+                if str(self.settings.value(key)) != str(value):
+                    signal = self.config_live_signals[key](value)
+                    self.pp_mod_send.emit(signal)
+
             self.settings.setValue(key, value)
 
         # reload UI to give visual feedback
