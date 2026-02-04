@@ -860,9 +860,6 @@ class DCscope(QtWidgets.QMainWindow):
             else:
                 self.toolButton_new_plot.setEnabled(False)
 
-            # Update plots
-            self.plots_changed.emit()
-
         # Enable QuickView if relevant
         if data.get("quickview"):
             if not self.subwindows["quick_view"].isVisible():
@@ -871,6 +868,14 @@ class DCscope(QtWidgets.QMainWindow):
 
         # Send new signal to all receivers
         self.pp_mod_recv.emit(data)
+
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
+        if data.get("pipeline"):
+            # Update plots after updating block matrix
+            with widgets.ShowWaitCursor():
+                self.plots_changed.emit()
 
         # redraw
         self.mdiArea.update()
