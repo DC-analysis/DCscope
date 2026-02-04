@@ -144,6 +144,7 @@ class Pipeline(object):
             index = self.num_filters
         if filt is None:
             filt = Filter()
+            filt.name = f"Filter {self._filter_counter}"
         elif isinstance(filt, Filter):
             pass
         elif isinstance(filt, dict):
