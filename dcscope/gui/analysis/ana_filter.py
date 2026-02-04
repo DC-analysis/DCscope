@@ -182,14 +182,29 @@ class FilterPanel(QtWidgets.QWidget):
         with self.pipeline.lock:
             filt_id = self.current_filter.identifier
             new_id = self.pipeline.duplicate_filter(filt_id)
-            self.pp_mod_send.emit({"pipeline": {"filter_created": new_id}})
+            self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
-        if data.get("pipeline"):
+        pp_dict = data.get("pipeline")
+        if pp_dict:
             if self.isVisible():
-                self.update_content()
+                # If a filter is created, show it.
+                filt_id = pp_dict.get("filter_added")
+                if filt_id is not None:
+                    filt_index = self.pipeline.filter_ids.index(filt_id)
+                else:
+                    filt_index = None
+                self.update_content(filt_index)
+
+        qv_dict = data.get("quickview")
+        if qv_dict:
+            if self.isVisible():
+                # If quickview is clicked, show corresponding filter
+                filt_index = qv_dict.get("filt_index")
+                if filt_index is not None:
+                    self.update_content(filt_index)
 
         if data.get("filter"):
             # filter changes without pipeline changes (e.g. PolygonFilter)

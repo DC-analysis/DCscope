@@ -36,7 +36,8 @@ class DlgSlotReorder(QtWidgets.QDialog):
         # reorder pipeline and send pipeline_changed signal
         with self.pipeline.lock:
             self.pipeline.reorder_slots(indices)
-            self.pp_mod_send.emit({"pipeline": "order_changed"})
+            self.pp_mod_send.emit(
+                {"pipeline": {"slot_order_changed": indices}})
 
     @QtCore.pyqtSlot()
     def on_move_item(self):

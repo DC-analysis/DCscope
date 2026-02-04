@@ -304,7 +304,7 @@ class DCscope(QtWidgets.QMainWindow):
                     failed_paths.append(path)
                 continue
 
-            self.pp_mod_send.emit({"pipeline": {"slot_add": slot_id}})
+            self.pp_mod_send.emit({"pipeline": {"slot_added": slot_id}})
             slot_ids.append(slot_id)
 
         self.pipeline.compute_reduced_sample_names()
@@ -333,7 +333,7 @@ class DCscope(QtWidgets.QMainWindow):
         """Add a filter using tool buttons"""
         filt_id = self.pipeline.add_filter()
         self.widget_ana_view.widget_filter.update_content()
-        self.pp_mod_send.emit({"pipeline": {"filter_add": filt_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_added": filt_id}})
         return filt_id
 
     @QtCore.pyqtSlot()
@@ -342,7 +342,7 @@ class DCscope(QtWidgets.QMainWindow):
         self.add_plot_window(plot_id)
         # update UI contents
         self.widget_ana_view.widget_plot.update_content()
-        self.pp_mod_send.emit({"pipeline": {"filter_add": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_added": plot_id}})
         return plot_id
 
     @QtCore.pyqtSlot()
@@ -529,7 +529,7 @@ class DCscope(QtWidgets.QMainWindow):
         if yes:
             with self.pipeline.lock:
                 session.clear_session(self.pipeline)
-                self.pp_mod_send.emit({"pipeline": "cleared"})
+                self.pp_mod_send.emit({"pipeline": {"cleared": "full"}})
             self.setWindowTitle(f"DCscope {version}")
         return yes
 

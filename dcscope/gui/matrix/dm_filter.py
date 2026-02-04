@@ -116,7 +116,7 @@ class MatrixFilter(QtWidgets.QWidget):
         with self.pipeline.lock:
             filt_id = self.pipeline.filter_ids[self.filt_index]
             new_id = self.pipeline.duplicate_filter(filt_id)
-            self.pp_mod_send.emit({"pipeline": {"filter_created": new_id}})
+            self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
 
     def action_remove(self):
         with self.pipeline.lock:

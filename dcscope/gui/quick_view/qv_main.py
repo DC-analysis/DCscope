@@ -699,10 +699,12 @@ class QuickView(QtWidgets.QWidget):
         # remove the PolyLineRoi
         self.widget_scatter.activate_scatter_mode()
         self.update_polygon_panel()
+        idp = self.comboBox_poly.currentData()
         if mode == "create":
-            self.pp_mod_send.emit({"filter": "polygon_filter_created"})
+            self.pp_mod_send.emit({"filter": {"polygon_filter_added": idp}})
         elif mode == "modify":
-            self.pp_mod_send.emit({"pipeline": "polygon_filter_modified"})
+            self.pp_mod_send.emit(
+                {"pipeline": {"polygon_filter_modified": idp}})
 
     @QtCore.pyqtSlot()
     def on_poly_done_delete(self):
