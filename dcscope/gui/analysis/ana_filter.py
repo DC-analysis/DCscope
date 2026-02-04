@@ -4,8 +4,6 @@ from PyQt6 import uic, QtCore, QtWidgets
 
 import dclab
 
-from ...pipeline import Filter
-
 from ..widgets import RangeControl
 from ... import idiom
 
@@ -149,8 +147,7 @@ class FilterPanel(QtWidgets.QWidget):
     def current_filter(self):
         if self.filter_ids:
             filt_index = self.comboBox_filters.currentIndex()
-            filt_id = self.filter_ids[filt_index]
-            filt = Filter.get_instances()[filt_id]
+            filt = self.pipeline.filters[filt_index]
         else:
             filt = None
         return filt
@@ -270,7 +267,7 @@ class FilterPanel(QtWidgets.QWidget):
             self.comboBox_filters.setCurrentIndex(filt_index)
             self.comboBox_filters.blockSignals(False)
             # populate content
-            filt = Filter.get_filter(identifier=self.filter_ids[filt_index])
+            filt = self.pipeline.filters[filt_index]
             state = filt.__getstate__()
             self.write_filter_state(state)
             self.update_box_ranges()

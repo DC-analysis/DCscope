@@ -5,7 +5,6 @@ import dclab.kde.methods
 import numpy as np
 from PyQt6 import uic, QtCore, QtWidgets
 
-from ...pipeline import Plot
 from ...pipeline.plot import STATE_OPTIONS
 
 from ..pipeline_plot import (
@@ -622,7 +621,7 @@ class PlotPanel(QtWidgets.QWidget):
                     cb.setCurrentIndex(curidx)
                 cb.blockSignals(False)
             # populate content
-            plot = Plot.get_plot(identifier=self.plot_ids[plot_index])
+            plot = self.pipeline.plots[plot_index]
             state = plot.__getstate__()
             self.write_plot_state(state)
         else:

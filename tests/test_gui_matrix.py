@@ -70,8 +70,8 @@ def test_matrix_filter_duplicate_issue_184(qtbot):
 
     # make sure that slot name is the same
     assert mw.pipeline.slots[0].name == "calibration_beads"
-    assert mw.pipeline.filters[0].name == "Filter_1"
-    assert mw.pipeline.filters[1].name == "Filter_2"
+
+    assert mw.pipeline.filters[0].name != mw.pipeline.filters[1].name
 
 
 def test_matrix_slots_duplicate_issue_96(qtbot):

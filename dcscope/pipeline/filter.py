@@ -1,30 +1,19 @@
-"""Keep record of all filters used"""
 import copy
+import uuid
 
 import dclab
 
 from ..util import hashobj
 
 
-class Filter(object):
+class Filter:
     """Handles filters in a pipeline"""
-    _instance_counter = 0
-    _instances = {}
-
-    def __init__(self, identifier=None, name=None):
-        Filter._instance_counter += 1
-        if identifier is None:
-            identifier = "Filter_{}".format(Filter._instance_counter)
-            while identifier in Filter._instances:
-                Filter._instance_counter += 1
-                identifier = "Filter_{}".format(Filter._instance_counter)
-
-        if name is None:
-            name = identifier
+    def __init__(self, identifier=None):
         #: unique identifier of the filter
-        self.identifier = identifier
+        self.identifier = (identifier
+                           or f"filter:{uuid.uuid4()}".replace("-", ""))
         #: user-defined name of the filter
-        self.name = name
+        self.name = self.identifier[:10]
         #: general filtering arguments are directly passed to
         #: :class:`dclab.filter.Filter`
         self.general = {"remove invalid events": False,  # removes nan/inf
@@ -38,10 +27,6 @@ class Filter(object):
         #: polygon filter list; each item is an identifier of
         #: :class:`dclab.PolygonFilter`
         self.polylist = []
-        if identifier in Filter._instances:
-            raise ValueError("Filter with identifier "
-                             + "'{}' already exists!".format(identifier))
-        Filter._instances[identifier] = self
 
     def __getstate__(self):
         state = {
@@ -57,9 +42,7 @@ class Filter(object):
         return copy.deepcopy(state)
 
     def __repr__(self):
-        repre = "<Pipeline Filter '{}' at {}>".format(self.identifier,
-                                                      hex(id(self)))
-        return repre
+        return f"<Pipeline Filter '{self.identifier}' at {hex(id(self))}>"
 
     def __setstate__(self, state):
         state = copy.deepcopy(state)
@@ -73,24 +56,6 @@ class Filter(object):
         self.general["remove invalid events"] = state["remove invalid events"]
         self.boxdict = state["box filters"]
         self.polylist = state["polygon filters"]
-
-    @staticmethod
-    def get_filter(identifier):
-        """Get the filter with the given identifier.
-
-        Notes
-        -----
-        Creates the filter if it does not exist.
-        """
-        if identifier in Filter._instances:
-            f = Filter._instances[identifier]
-        else:
-            f = Filter(identifier=identifier)
-        return f
-
-    @staticmethod
-    def get_instances():
-        return Filter._instances
 
     @property
     def filter_used(self):

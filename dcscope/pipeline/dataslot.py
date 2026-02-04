@@ -1,5 +1,5 @@
 import copy
-import functools
+import uuid
 
 import dclab
 from dclab.features.emodulus.viscosity import KNOWN_MEDIA
@@ -10,33 +10,26 @@ from .. import meta_tool
 from ..util import hashobj
 
 
-class Dataslot(object):
+class Dataslot:
     """Handles datasets in a pipeline"""
-    _instance_counter = 0
-    _instances = {}
+    def __init__(self, path, identifier=None):
+        #: session-unique identifier of the slot
+        self.identifier = identifier or f"slot:{uuid.uuid4()}".replace("-", "")
 
-    def __init__(self, path, identifier=None, name=None):
-        Dataslot._instance_counter += 1
+        if self.identifier.count("-"):
+            raise ValueError(f"Slot identifier must not contain "
+                             f"dashes '-', got {self.identifier}")
+
         self.path = path
         self._dataset = None
-        if identifier is None:
-            identifier = "Dataslot_{}".format(Dataslot._instance_counter)
-            while identifier in Dataslot._instances:
-                Dataslot._instance_counter += 1
-                identifier = "Dataslot_{}".format(Dataslot._instance_counter)
+
         cfg = meta_tool.get_rtdc_config(path)
-        if name is None:
-            name = cfg["experiment"]["sample"]
-        #: session-unique identifier of the slot
-        self.identifier = identifier
+
         #: user-defined name of the slot
-        self.name = name
+        self.name = cfg["experiment"]["sample"]
         #: whether to use this slot
         self.slot_used = True
-        if identifier in Dataslot._instances:
-            raise ValueError("Dataslot with identifier "
-                             + "'{}' already exists!".format(identifier))
-        Dataslot._instances[identifier] = self
+
         self.color = random_color()
         self.fl_name_dict = {"FL-1": "FL-1",
                              "FL-2": "FL-2",
@@ -99,14 +92,12 @@ class Dataslot(object):
         return copy.deepcopy(state)
 
     def __repr__(self):
-        repre = "<Pipeline Slot '{}' at {}>".format(self.identifier,
-                                                    hex(id(self)))
-        return repre
+        return f"<Pipeline Slot '{self.identifier}' at {hex(id(self))}>"
 
     def __setstate__(self, state):
         if self.identifier != state["identifier"]:
-            raise ValueError("Identifier mismatch: '{}' vs. '{}'".format(
-                self.identifier, state["identifier"]))
+            raise ValueError(f"Identifier mismatch: '{self.identifier}' "
+                             f"vs. '{state['identifier']}'")
         self.color = state["color"]
         self.config["crosstalk"].update(state["crosstalk"])
         self.config["emodulus"].update(state["emodulus"])
@@ -114,25 +105,6 @@ class Dataslot(object):
         self.name = state["name"]
         self.path = state["path"]
         self.slot_used = state["slot used"]
-
-    @staticmethod
-    def get_slot(slot_id):
-        """Get the slot with the given identifier"""
-        return Dataslot._instances[slot_id]
-
-    @staticmethod
-    def get_instances():
-        return Dataslot._instances
-
-    @staticmethod
-    def remove_slot(slot_id):
-        """Remove a slot taking care of closing any opened files"""
-        slot = Dataslot.get_slot(slot_id)
-        ds = slot._dataset
-        if ds is not None:
-            if isinstance(ds, dclab.rtdc_dataset.RTDC_HDF5):
-                ds.h5file.close()
-        Dataslot._instances.pop(slot_id)
 
     @property
     def hash(self):
@@ -181,6 +153,10 @@ class Dataslot(object):
             if "emodulus viscosity model" in dataset.config["calculation"]:
                 dataset.config["calculation"].pop("emodulus viscosity model")
 
+    def close(self):
+        if isinstance(self._dataset, dclab.rtdc_dataset.RTDC_HDF5):
+            self._dataset.h5file.close()
+
     def get_dataset(self):
         """Return the corresponding dataset
 
@@ -199,8 +175,9 @@ class Dataslot(object):
 
     def get_sane_spacing_range(self, feat):
         """Return sane contour spacing range for this dataset and feature"""
-        return get_sane_contour_spacing_range_for_slot_id(
-            self.identifier, feat)
+        ds = self.get_dataset()
+        sp_min, sp_max = get_sane_contour_spacing_range(feat, ds[feat][:])
+        return sp_min, sp_max
 
     def update_dataset(self, dataset):
         """Update the configuration of an instance of RTDCBase
@@ -221,14 +198,6 @@ class Dataslot(object):
                     dataset.config["calculation"].pop(key)
 
 
-@functools.lru_cache(1000)
-def get_sane_contour_spacing_range_for_slot_id(slot_id, feat):
-    slot = Dataslot.get_instances()[slot_id]
-    ds = slot.get_dataset()
-    sp_min, sp_max = get_sane_contour_spacing_range(feat, ds[feat][:])
-    return sp_min, sp_max
-
-
 def get_sane_contour_spacing_range(feat, data):
     """Return a sane range for contour spacing for a feature
 
@@ -242,6 +211,7 @@ def get_sane_contour_spacing_range(feat, data):
     data: 1d ndarray
         feature data
     """
+    # TODO: caching?
     if feat in SLOPING_FEATURES:
         frange = np.abs(data[-1] - data[0])
         if np.isnan(frange) or np.isinf(frange):

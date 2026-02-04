@@ -867,10 +867,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.adopt_pipeline()
 
         if data.get("pipeline"):
-            # Remove zombie slots
-            for slot_id in list(pipeline.Dataslot._instances.keys()):
-                if slot_id not in self.pipeline.slot_ids:
-                    pipeline.Dataslot.remove_slot(slot_id)
 
             # Enable plot button
             if self.pipeline.slots:

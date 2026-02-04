@@ -243,9 +243,6 @@ def clear_session(pipeline=None):
     if pipeline is not None:
         # reset the pipeline
         pipeline.reset()
-    # Close all file handles
-    for slot_id in list(Dataslot._instances.keys()):
-        Dataslot.remove_slot(slot_id)
     # remove any existing filters, plots, or slots and reset their counters
     for cls in [Dataslot, Filter, Plot]:
         cls._instance_counter = 0
@@ -355,19 +352,14 @@ def open_session(path, pipeline=None, search_paths=None):
         import_filters(arc.open("filters.sof"), pipeline, strict=True)
         # load slots
         for sstate in slot_states:
-            slot = Dataslot(identifier=sstate["identifier"],
-                            path=sstate["path"])
-            slot.__setstate__(sstate)
-            pipeline.add_slot(slot)
+            pipeline.add_slot(sstate)
         # load plots
         plotnames = sorted(
             [n for n in arc.namelist() if n.startswith("plot_")],
             key=lambda x: int(x[5:-5]))  # by index
         for pn in plotnames:
             pstate = json.loads(arc.read(pn))
-            plot = Plot(identifier=pstate["identifier"])
-            plot.__setstate__(pstate)
-            pipeline.add_plot(plot)
+            pipeline.add_plot(pstate)
         # load element states
         estates = json.loads(arc.read("matrix.json"))
         pipeline.element_states = estates

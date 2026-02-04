@@ -24,6 +24,10 @@ class MissingFeatureWarning(UserWarning):
 
 class Pipeline(object):
     def __init__(self, state=None):
+        self._plot_counter = 0
+        self._slot_counter = 0
+        self._filter_counter = 0
+
         #: Filters are instances of :class:`dcscope.pipeline.Filter`
         self.filters = []
         #: Plots are instances of :class:`dcscope.pipeline.Plot`
@@ -135,6 +139,7 @@ class Pipeline(object):
             index of the filter in the pipeline;
             indexing starts at "0".
         """
+        self._filter_counter += 1
         if index is None:
             index = self.num_filters
         if filt is None:
@@ -143,13 +148,17 @@ class Pipeline(object):
             pass
         elif isinstance(filt, dict):
             state = filt
-            if state["identifier"] in Filter._instances:
-                filt = Filter._instances[filt["identifier"]]
-            else:
-                filt = Filter()
+            filt = Filter(identifier=state["identifier"])
             filt.__setstate__(state)
-        self.filters.insert(index, filt)
+
         filt_id = filt.identifier
+
+        if filt_id in self.filter_ids:
+            raise ValueError(
+                f"Filter with identifier {filt_id} already exists")
+
+        self.filters.insert(index, filt)
+
         for slot_id in self.slot_ids:
             self.element_states[slot_id][filt_id] = False
         return filt_id
@@ -170,26 +179,31 @@ class Pipeline(object):
             index of the plot in the pipeline;
             indexing starts at "0".
         """
+        self._plot_counter += 1
         if index is None:
             index = self.num_plots
         if plot is None:
             plot = Plot()
+            plot.name = f"Plot {self._plot_counter}"
         elif isinstance(plot, Plot):
             pass
         elif isinstance(plot, dict):
             state = plot
-            if state["identifier"] in Plot._instances:
-                plot = Plot._instances[plot["identifier"]]
-            else:
-                plot = Plot()
+            plot = Plot(identifier=state.get("identifier"))
             plot.__setstate__(state)
 
-        self.plots.insert(index, plot)
         plot_id = plot.identifier
+
+        if plot_id in self.plot_ids:
+            raise ValueError(
+                f"Plot with identifier '{plot_id}' already exists")
+
+        self.plots.insert(index, plot)
+
         for slot_id in self.slot_ids:
             self.element_states[slot_id][plot_id] = False
 
-        return plot.identifier
+        return plot_id
 
     def add_slot(self, slot=None, path=None, index=None):
         """Add a slot (experiment) to the pipeline
@@ -198,7 +212,7 @@ class Pipeline(object):
         ----------
         slot: dcscope.pipeline.Dataslot or dict
             Dataslot representing an experimental dataset or its
-            state from Dataslot.__getstate__(); At least `slot`
+            state from :func:`.Dataslot.__getstate__()`; At least `slot`
             or `path` need to be specified
         path: str or pathlib.Path
             Path to a measurement or DCOR URL
@@ -210,6 +224,7 @@ class Pipeline(object):
         identifier: str
             identifier of the slot
         """
+        self._slot_counter += 1
         if index is None:
             index = self.num_slots
         if ((slot is None and path is None)
@@ -221,23 +236,24 @@ class Pipeline(object):
             pass
         elif isinstance(slot, dict):
             state = slot
-            if state["identifier"] in Dataslot._instances:
-                slot = Dataslot._instances[slot["identifier"]]
-                slot.pipeline = self
-            else:
-                raise ValueError(f"Please specify a path or a dictionary "
-                                 f"containing a valid Dataslot identifier "
-                                 f"to instantiate a Dataslot. Got '{slot}'")
+            slot = Dataslot(path=state["path"],
+                            identifier=state["identifier"]
+                            )
             slot.__setstate__(state)
 
-        self.slots.insert(index, slot)
         slot_id = slot.identifier
+        if slot_id in self.slot_ids:
+            raise ValueError(
+                f"Slot with identifier '{slot_id}' already exists")
+
+        self.slots.insert(index, slot)
+
         self.element_states[slot_id] = {}
         for filt_id in self.filter_ids:
             self.element_states[slot_id][filt_id] = False
         for plot_id in self.plot_ids:
             self.element_states[slot_id][plot_id] = False
-        return slot.identifier
+        return slot_id
 
     def apply_filter_ray(self, rtdc_ds, slot_id):
         """Convenience function for applying filters to other data
@@ -755,11 +771,18 @@ class Pipeline(object):
 
     def reset(self):
         """Reset the pipeline"""
+        for slot in self.slots:
+            slot.close()
+
         self.filters.clear()
         self.plots.clear()
         self.rays.clear()
         self.slots.clear()
         self.element_states.clear()
+
+        self._plot_counter = 0
+        self._slot_counter = 0
+        self._filter_counter = 0
 
     def set_element_active(self, slot_id, filt_plot_id, active=True):
         """Activate an element in the block matrix"""

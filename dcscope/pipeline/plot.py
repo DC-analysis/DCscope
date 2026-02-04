@@ -1,4 +1,5 @@
 import copy
+import uuid
 
 import dclab
 from dclab.kde import methods as kdem
@@ -108,32 +109,16 @@ STATE_OPTIONS = {
 }
 
 
-class Plot(object):
+class Plot:
     """Handles plotting information in a pipeline"""
-    _instance_counter = 0
-    _instances = {}
-
-    def __init__(self, identifier=None, name=None):
-        Plot._instance_counter += 1
-        if identifier is None:
-            identifier = "Plot_{}".format(Plot._instance_counter)
-            while identifier in Plot._instances:
-                Plot._instance_counter += 1
-                identifier = "Plot_{}".format(Plot._instance_counter)
+    def __init__(self, identifier=None):
+        identifier = identifier or f"plot:{uuid.uuid4()}".replace("-", "")
 
         # initially, set default state
         self._state = copy.deepcopy(DEFAULT_STATE)
 
-        if name is None:
-            name = identifier
         #: unique identifier of the plot
         self.identifier = identifier
-        #: user-defined name of the plot
-        self.name = name
-        if identifier in Plot._instances:
-            raise ValueError("Plot with identifier "
-                             + "'{}' already exists!".format(identifier))
-        Plot._instances[identifier] = self
 
     def __getstate__(self):
         state = copy.deepcopy(self._state)
@@ -141,9 +126,7 @@ class Plot(object):
         return state
 
     def __repr__(self):
-        repre = "<Pipeline Plot '{}' at {}>".format(self.identifier,
-                                                    hex(id(self)))
-        return repre
+        return f"<Pipeline Plot '{self.identifier}' at {hex(id(self))}>"
 
     def __setstate__(self, state):
         state = copy.deepcopy(state)
@@ -156,24 +139,6 @@ class Plot(object):
         if np.any(np.isinf(state["general"]["range y"])):
             state["general"]["range y"] = [0, 0]
         self._state = state
-
-    @staticmethod
-    def get_instances():
-        return Plot._instances
-
-    @staticmethod
-    def get_plot(identifier):
-        """Get the plot with the given identifier.
-
-        Notes
-        -----
-        Creates the plot if it does not exist.
-        """
-        if identifier in Plot._instances:
-            f = Plot._instances[identifier]
-        else:
-            f = Plot(identifier=identifier)
-        return f
 
     @property
     def hash(self):
