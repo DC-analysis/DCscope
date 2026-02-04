@@ -129,6 +129,8 @@ class PlotMatrix(QtWidgets.QWidget):
                 QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             self.setMinimumSize(width, height)
             self.setFixedSize(width, height)
+        else:
+            self.setFixedSize(65, 50)
 
         self.update()
 

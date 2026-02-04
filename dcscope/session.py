@@ -11,7 +11,7 @@ import dclab
 from dclab.util import file_monitoring_lru_cache
 import numpy as np
 
-from .pipeline import Dataslot, Filter, Pipeline, Plot
+from .pipeline import Filter, Pipeline
 from ._version import version
 
 
@@ -243,10 +243,6 @@ def clear_session(pipeline=None):
     if pipeline is not None:
         # reset the pipeline
         pipeline.reset()
-    # remove any existing filters, plots, or slots and reset their counters
-    for cls in [Dataslot, Filter, Plot]:
-        cls._instance_counter = 0
-        cls._instances = {}
     # remove polygon filters
     dclab.PolygonFilter.clear_all_filters()
 

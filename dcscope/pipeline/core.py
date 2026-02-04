@@ -748,7 +748,8 @@ class Pipeline(object):
     def remove_slot(self, slot_id):
         """Remove a slot by slot identifier"""
         index = self.slot_ids.index(slot_id)
-        self.slots.pop(index)
+        slot = self.slots.pop(index)
+        slot.close()
         if slot_id in self.element_states:
             self.element_states.pop(slot_id)
 

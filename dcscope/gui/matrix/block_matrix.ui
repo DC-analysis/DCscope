@@ -46,19 +46,19 @@
       <number>1</number>
      </property>
      <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarAsNeeded</enum>
+      <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
      </property>
      <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAsNeeded</enum>
+      <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
      </property>
      <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::AdjustToContents</enum>
+      <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
      </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
      <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
      </property>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
@@ -69,11 +69,11 @@
         <height>462</height>
        </rect>
       </property>
-      <layout class="QGridLayout" name="gridLayout_3">
+      <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0,1">
        <property name="spacing">
         <number>2</number>
        </property>
-       <item row="0" column="2" alignment="Qt::AlignLeft|Qt::AlignTop">
+       <item row="0" column="2" alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop">
         <widget class="QToolButton" name="toolButton_new_filter">
          <property name="toolTip">
           <string>Add a new filter</string>
@@ -82,15 +82,14 @@
           <string>+</string>
          </property>
          <property name="icon">
-          <iconset theme="view-filter">
-           <normaloff>.</normaloff>.</iconset>
+          <iconset theme="view-filter"/>
          </property>
         </widget>
        </item>
        <item row="0" column="3">
         <widget class="PlotMatrix" name="plot_matrix" native="true">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -101,15 +100,9 @@
            <height>67</height>
           </size>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>95</width>
-           <height>156</height>
-          </size>
-         </property>
         </widget>
        </item>
-       <item row="0" column="4" alignment="Qt::AlignLeft|Qt::AlignTop">
+       <item row="0" column="4" alignment="Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop">
         <widget class="QToolButton" name="toolButton_new_plot">
          <property name="toolTip">
           <string>Add a new plot</string>
@@ -118,15 +111,14 @@
           <string>+</string>
          </property>
          <property name="icon">
-          <iconset theme="draw-watercolor">
-           <normaloff>.</normaloff>.</iconset>
+          <iconset theme="draw-watercolor"/>
          </property>
         </widget>
        </item>
        <item row="0" column="5">
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -136,10 +128,10 @@
          </property>
         </spacer>
        </item>
-       <item row="0" column="0" rowspan="2" colspan="2">
+       <item row="0" column="0" rowspan="2" colspan="2" alignment="Qt::AlignmentFlag::AlignTop">
         <widget class="DataMatrix" name="data_matrix" native="true">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -155,7 +147,7 @@
        <item row="3" column="1">
         <spacer name="verticalSpacer">
          <property name="orientation">
-          <enum>Qt::Vertical</enum>
+          <enum>Qt::Orientation::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -165,7 +157,7 @@
          </property>
         </spacer>
        </item>
-       <item row="2" column="0">
+       <item row="2" column="0" alignment="Qt::AlignmentFlag::AlignTop">
         <widget class="QToolButton" name="toolButton_load_dataset">
          <property name="toolTip">
           <string>Import a dataset</string>
@@ -174,8 +166,7 @@
           <string>+</string>
          </property>
          <property name="icon">
-          <iconset theme="office-chart-ring">
-           <normaloff>.</normaloff>.</iconset>
+          <iconset theme="office-chart-ring"/>
          </property>
          <property name="autoRaise">
           <bool>false</bool>
