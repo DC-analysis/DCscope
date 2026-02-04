@@ -282,10 +282,11 @@ class PlotPanel(QtWidgets.QWidget):
                     fmin = lim[0]
                 if fmax is None:
                     fmax = lim[1]
-                self.widget_range_feat.write_pipeline_state({"active": True,
-                                                             "start": fmin,
-                                                             "end": fmax,
-                                                             })
+                new_state = {"active": True,
+                             "start": fmin,
+                             "end": fmax,
+                             }
+                self.widget_range_feat.write_pipeline_state(new_state)
 
     def _set_range_xy_state(self, axis_x=None, range_x=None,
                             axis_y=None, range_y=None):
