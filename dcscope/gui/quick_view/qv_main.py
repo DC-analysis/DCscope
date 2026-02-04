@@ -207,9 +207,9 @@ class QuickView(QtWidgets.QWidget):
 
         # set initial empty dataset
         self._rtdc_ds = None
+        self.slot = None
         #: A cache for the event index plotted for a dataset
         self._dataset_event_plot_indices_cache = {}
-        self.slot = None
 
         self._statistics_cache = collections.OrderedDict()
 
@@ -861,6 +861,7 @@ class QuickView(QtWidgets.QWidget):
                     hue_kwargs = {"feat": self.comboBox_z_hue.currentData()}
             else:
                 hue_type = "none"
+
             self.widget_scatter.plot_data(rtdc_ds=self.rtdc_ds,
                                           slot=self.slot,
                                           downsample=downsample,
