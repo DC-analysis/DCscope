@@ -507,9 +507,15 @@ class PlotPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
-        if data.get("pipeline"):
+        pp_dict = data.get("pipeline")
+        if pp_dict:
             if self.isVisible():
-                self.update_content()
+                plot_id = pp_dict.get("plot_added")
+                if plot_id is not None:
+                    plot_index = self.pipeline.plot_ids.index(plot_id)
+                else:
+                    plot_index = None
+                self.update_content(plot_index)
 
     @QtCore.pyqtSlot()
     @show_wait_cursor
