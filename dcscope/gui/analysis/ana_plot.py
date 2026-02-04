@@ -307,6 +307,7 @@ class PlotPanel(QtWidgets.QWidget):
             if axis is not None:
                 lim = self.pipeline.get_min_max(feat=axis, plot_id=plot_id)
                 if not (np.isinf(lim[0]) or np.isinf(lim[1])):
+                    rc.blockSignals(True)
                     rc.setLimits(vmin=lim[0],
                                  vmax=lim[1])
                     if rang is None or rang[0] == rang[1]:
@@ -318,6 +319,7 @@ class PlotPanel(QtWidgets.QWidget):
                                              "start": rang[0],
                                              "end": rang[1],
                                              })
+                    rc.blockSignals(False)
 
     def _set_contour_spacing(self, spacing_x=None, spacing_y=None):
         """Set the contour spacing in the spin boxes
