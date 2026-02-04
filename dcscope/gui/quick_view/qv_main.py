@@ -939,7 +939,6 @@ class QuickView(QtWidgets.QWidget):
         if self.tabWidget_event.currentIndex() == 0:
             # update image
             state = self.read_pipeline_state()
-            self.groupBox_image.setVisible(False)
 
             view = "view_event"
             for key in self.img_info.keys():
@@ -953,7 +952,10 @@ class QuickView(QtWidgets.QWidget):
             elif "image" in ds:
                 self.get_event_image_and_show(ds, event, "image", view)
 
-            self.groupBox_image.setVisible(True)
+            if "image" in ds or "qpi_pha" in ds or "qpi_amp" in ds:
+                self.groupBox_image.setVisible(True)
+            else:
+                self.groupBox_image.setVisible(False)
 
             if "trace" in ds:
                 # remove legend items
@@ -1040,6 +1042,9 @@ class QuickView(QtWidgets.QWidget):
             self.enable_interface(False)
             self.label_noevents.setVisible(True)
             self.on_tool(collapse=True)
+            # reset image view
+            self.groupBox_image.setVisible(False)
+            self.groupBox_trace.setVisible(False)
             return
         else:
             # make things visible
@@ -1080,9 +1085,6 @@ class QuickView(QtWidgets.QWidget):
         self.write_pipeline_state(state)
         # scatter plot
         self.plot()
-        # reset image view
-        self.groupBox_image.setVisible(False)
-        self.groupBox_trace.setVisible(False)
         # this only updates the size of the tools (because there is no
         # sender)
         self.on_tool()

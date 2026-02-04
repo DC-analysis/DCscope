@@ -2,6 +2,7 @@
  - fix: IndexError when trying to view the logs of a log-less dataset
  - fix: prevent unchecking toolButtons for tool selection in QuickView
  - fix: boolean settings value not read from settings file correctly
+ - fix: remove image flickering in QuickView when switching between slots
  - enh: reduce sample names in block matrix (strip common prefix and suffix)
  - enh: instantaneous tool tips in block matrix
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
