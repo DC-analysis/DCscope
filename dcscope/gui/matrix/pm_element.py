@@ -25,27 +25,9 @@ class PlotMatrixElement(QtWidgets.QWidget):
         self.enabled = True
 
         self.update_content()
-        self.setMouseTracking(True)
 
         # signal received
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
-
-    # Qt method overrides
-    def setMouseTracking(self, flag):
-        """Set mouse tracking recursively
-
-        This is necessary for `BlockMatrix.mouseMoveEvent` to work
-        throughout its children.
-        """
-        def recursive_set(parent):
-            for child in parent.findChildren(QtCore.QObject):
-                try:
-                    child.setMouseTracking(flag)
-                except BaseException:
-                    pass
-                recursive_set(child)
-        QtWidgets.QWidget.setMouseTracking(self, flag)
-        recursive_set(self)
 
     # Properties
     @property
