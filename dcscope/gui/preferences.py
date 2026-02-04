@@ -36,7 +36,7 @@ class ExtensionErrorWrapper:
 class Preferences(QtWidgets.QDialog):
     """Preferences dialog to interact with QSettings"""
     instances = {}
-    feature_changed = QtCore.pyqtSignal()
+    pp_mod_send = QtCore.pyqtSignal(dict)
 
     def __init__(self, parent, *args, **kwargs):
         super(Preferences, self).__init__(parent=parent, *args, **kwargs)
@@ -250,7 +250,7 @@ class Preferences(QtWidgets.QDialog):
         with ExtensionErrorWrapper(ehash):
             self.extensions.extension_set_enabled(ehash, enabled)
         self.reload_ext()
-        self.feature_changed.emit()
+        self.pp_mod_send.emit({"pipeline": {"extension_enabled": str(ehash)}})
 
     @QtCore.pyqtSlot()
     def on_ext_load(self):
@@ -266,7 +266,8 @@ class Preferences(QtWidgets.QDialog):
                 with ExtensionErrorWrapper(pp):
                     self.extensions.import_extension_from_path(pp)
             self.reload_ext()
-            self.feature_changed.emit()
+            self.pp_mod_send.emit(
+                {"pipeline": {"extension_loaded": [str(p) for p in paths]}})
 
     @QtCore.pyqtSlot()
     def on_ext_remove(self):
@@ -274,7 +275,7 @@ class Preferences(QtWidgets.QDialog):
         ehash = self.listWidget_ext.currentItem().data(100)
         self.extensions.extension_remove(ehash)
         self.reload_ext()
-        self.feature_changed.emit()
+        self.pp_mod_send.emit({"pipeline": {"extension_removed": str(ehash)}})
 
     @QtCore.pyqtSlot(QtWidgets.QListWidgetItem)
     def on_ext_modified(self, item):
@@ -285,7 +286,7 @@ class Preferences(QtWidgets.QDialog):
             self.extensions.extension_set_enabled(ehash, enabled)
         self.listWidget_ext.setCurrentItem(item)
         self.reload_ext()
-        self.feature_changed.emit()
+        self.pp_mod_send.emit({"pipeline": {"extension_modified": str(ehash)}})
 
     @QtCore.pyqtSlot()
     def on_ext_selected(self):

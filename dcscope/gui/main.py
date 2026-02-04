@@ -254,33 +254,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.setWindowState(QtCore.Qt.WindowState.WindowActive)
 
     @widgets.show_wait_cursor
-    @QtCore.pyqtSlot(dict)
-    def adopt_pipeline(self, pipeline_state=None):
-        if pipeline_state is None:
-            pipeline_state = self.pipeline.__getstate__()
-
-        # Show Plot Windows
-        # create and show
-        for plot_state in pipeline_state["plots"]:
-            self.add_plot_window(plot_state["identifier"])
-        # remove old plot subwindows
-        plot_ids = [pp["identifier"] for pp in pipeline_state["plots"]]
-        for plot_id in list(self.subwindows_plots.keys()):
-            if plot_id not in plot_ids:
-                sub = self.subwindows_plots.pop(plot_id)
-                for child in sub.children():
-                    # disconnect signals
-                    if isinstance(child, pipeline_plot.PipelinePlot):
-                        self.plots_changed.disconnect(child.update_content)
-                        break
-                sub.deleteLater()
-        self.plots_changed.emit()
-        self.widget_ana_view.widget_plot.update_content()
-        # redraw
-        self.mdiArea.update()
-        self.subwindows["analysis_view"].update()
-
-    @widgets.show_wait_cursor
     @QtCore.pyqtSlot()
     def add_dataslot(self, paths=None, is_dcor=False):
         """Adds a dataslot to the pipeline
@@ -742,7 +715,7 @@ class DCscope(QtWidgets.QMainWindow):
         """Show the preferences dialog"""
         dlg = preferences.Preferences(self)
         dlg.setWindowTitle("DCscope Preferences")
-        dlg.feature_changed.connect(self.plots_changed)
+        dlg.pp_mod_send.connect(self.pp_mod_send)
         dlg.exec()
 
     @QtCore.pyqtSlot()
@@ -864,15 +837,31 @@ class DCscope(QtWidgets.QMainWindow):
         for key in data:
             logger.info(f"Signal '{key}': {json.dumps(data[key])}")
 
-        self.adopt_pipeline()
-
         if data.get("pipeline"):
+            # Create plot windows
+            plot_ids = self.pipeline.plot_ids
+            for plot_id in plot_ids:
+                self.add_plot_window(plot_id)
 
-            # Enable plot button
+            # Remove zombie plot windows
+            for plot_id_sw in list(self.subwindows_plots.keys()):
+                if plot_id_sw not in plot_ids:
+                    sub = self.subwindows_plots.pop(plot_id_sw)
+                    for child in sub.children():
+                        # disconnect signals
+                        if isinstance(child, pipeline_plot.PipelinePlot):
+                            self.plots_changed.disconnect(child.update_content)
+                            break
+                    sub.deleteLater()
+
+            # Dis/enable plot button
             if self.pipeline.slots:
                 self.toolButton_new_plot.setEnabled(True)
             else:
                 self.toolButton_new_plot.setEnabled(False)
+
+            # Update plots
+            self.plots_changed.emit()
 
         # Enable QuickView if relevant
         if data.get("quickview"):
@@ -882,6 +871,10 @@ class DCscope(QtWidgets.QMainWindow):
 
         # Send new signal to all receivers
         self.pp_mod_recv.emit(data)
+
+        # redraw
+        self.mdiArea.update()
+        self.subwindows["analysis_view"].update()
 
     @QtCore.pyqtSlot()
     def on_splitter(self):
