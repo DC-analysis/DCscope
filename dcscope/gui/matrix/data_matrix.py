@@ -83,17 +83,17 @@ class DataMatrix(QtWidgets.QWidget):
                 dm.modify_clicked.connect(self.slot_modify_clicked.emit)
                 dm.pp_mod_send.connect(self.pp_mod_send)
 
-                for jj in range(self.pipeline.num_filters):
-                    ecol = jj + 1
-                    if self.glo.itemAtPosition(erow, ecol) is None:
-                        # These are data matrix elements
-                        me = DataMatrixElement(parent=self,
-                                               pipeline=self.pipeline,
-                                               slot_index=ii,
-                                               filt_index=jj)
-                        self.glo.addWidget(me, erow, ecol)
-                        self.pp_mod_recv_child.connect(me.pp_mod_recv)
-                        me.pp_mod_send.connect(self.pp_mod_send)
+            for jj in range(self.pipeline.num_filters):
+                ecol = jj + 1
+                if self.glo.itemAtPosition(erow, ecol) is None:
+                    # These are data matrix elements
+                    me = DataMatrixElement(parent=self,
+                                           pipeline=self.pipeline,
+                                           slot_index=ii,
+                                           filt_index=jj)
+                    self.glo.addWidget(me, erow, ecol)
+                    self.pp_mod_recv_child.connect(me.pp_mod_recv)
+                    me.pp_mod_send.connect(self.pp_mod_send)
 
         # remove rows
         for ii in range(self.pipeline.num_slots + 1, self.glo.rowCount()):
