@@ -136,8 +136,10 @@ class MatrixDataset(QtWidgets.QWidget):
             wd_state = self.read_pipeline_state()
             # pipeline state with same keys as widget state
             pp_state = {k: state[k] for k in wd_state.keys()}
-            if wd_state != pp_state:
-                self.write_pipeline_state(pp_state)
+            # always write the pipeline state (which calls update_content),
+            # because the number of datasets might have changed and the
+            # reduced sample name might have changed.
+            self.write_pipeline_state(pp_state)
 
         bm_dict = data.get("block_matrix", {})
         if bm_dict:
