@@ -340,12 +340,12 @@ class Pipeline(object):
         names = [s.name for s in slots]
         names = strip_common_prefix_suffix(names)
 
-        if len(np.unique(names)) != len(names):
+        if len(set(names)) != len(names):
             # Sample names are not unique. Add the file names.
             names = [(n + s.path.name) for s, n in zip(slots, names)]
             names = strip_common_prefix_suffix(names)
 
-        if len(np.unique(names)) != len(slots):
+        if len(set(names)) != len(slots):
             # File names are not unique as well. Use the full paths as instead.
             names = [str(s.path) for s in slots]
             names = strip_common_prefix_suffix(names)
