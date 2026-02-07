@@ -253,7 +253,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.showMaximized()
         self.setWindowState(QtCore.Qt.WindowState.WindowActive)
 
-    @widgets.show_wait_cursor
     @QtCore.pyqtSlot()
     def add_dataslot(self, paths=None, is_dcor=False):
         """Adds a dataslot to the pipeline
@@ -285,29 +284,33 @@ class DCscope(QtWidgets.QMainWindow):
         slot_ids = []
         # Create Dataslot instance and update block matrix
         self.setUpdatesEnabled(False)
-        for fn in fnames:
-            if is_dcor:
-                path = fn
-            else:
-                path = pathlib.Path(fn)
-                self.settings.setValue("paths/add dataset", str(path.parent))
-            # add a filter if we don't have one already
-            if self.pipeline.num_filters == 0:
-                self.add_filter()
-            try:
-                slot_id = self.pipeline.add_slot(path=path)
-            except BaseException:
-                if len(fnames) == 1:
-                    # Let the user know immediately
-                    raise
+        with widgets.ShowWaitCursor():
+            for fn in fnames:
+                if is_dcor:
+                    path = fn
                 else:
-                    failed_paths.append(path)
-                continue
+                    path = pathlib.Path(fn)
+                    self.settings.setValue("paths/add dataset",
+                                           str(path.parent))
+                # add a filter if we don't have one already
+                if self.pipeline.num_filters == 0:
+                    self.add_filter()
+                try:
+                    slot_id = self.pipeline.add_slot(path=path)
+                except BaseException:
+                    if len(fnames) == 1:
+                        # Let the user know immediately
+                        raise
+                    else:
+                        failed_paths.append(path)
+                    continue
 
-            self.pp_mod_send.emit({"pipeline": {"slot_added": slot_id}})
-            slot_ids.append(slot_id)
+                slot_ids.append(slot_id)
 
         self.pipeline.compute_reduced_sample_names()
+
+        self.pp_mod_send.emit({"pipeline": {"slots_added": slot_ids}})
+
         self.setUpdatesEnabled(True)
         self.repaint()
 

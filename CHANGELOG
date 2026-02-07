@@ -5,6 +5,7 @@
  - fix: boolean settings value not read from settings file correctly
  - fix: remove image flickering in QuickView when switching between slots
  - fix: Auto-Range in analysis plot view sometimes unchecked
+ - fix: busy cursor when in load data file dialog
  - enh: reduce sample names in block matrix (strip common prefix and suffix)
  - enh: instantaneous tool tips in block matrix
  - enh: show the created or quickviewed filter in analysis tab (#147)
