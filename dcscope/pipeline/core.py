@@ -340,15 +340,39 @@ class Pipeline(object):
         names = [s.name for s in slots]
         names = strip_common_prefix_suffix(names)
 
+        # TODO: This is a lot of code for such a small thing. Maybe there
+        #       is a smarter way to deal with this.
         if len(set(names)) != len(names):
-            # Sample names are not unique. Add the file names.
-            names = [(n + s.path.name) for s, n in zip(slots, names)]
-            names = strip_common_prefix_suffix(names)
+            # Sample names are not unique; use file names to distinguish
+            for nn in set(names):
+                if names.count(nn) == 1:
+                    continue
+                idx = []
+                same_names = []
+                for ii in range(len(names)):
+                    slot = self.slots[ii]
+                    if names[ii] == nn:
+                        idx.append(ii)
+                        same_names.append(nn + slot.path.name)
+                new_names = strip_common_prefix_suffix(same_names)
+                for jj, ii in enumerate(idx):
+                    names[ii] = new_names[jj]
 
         if len(set(names)) != len(slots):
-            # File names are not unique as well. Use the full paths as instead.
-            names = [str(s.path) for s in slots]
-            names = strip_common_prefix_suffix(names)
+            # File names are not unique as well; use the full paths
+            for nn in set(names):
+                if names.count(nn) == 1:
+                    continue
+                idx = []
+                same_names = []
+                for ii in range(len(names)):
+                    slot = self.slots[ii]
+                    if names[ii] == nn:
+                        idx.append(ii)
+                        same_names.append(nn + str(slot.path))
+                new_names = strip_common_prefix_suffix(same_names)
+                for jj, ii in enumerate(idx):
+                    names[ii] = new_names[jj]
 
         if set_property:
             self._reduced_sample_names.clear()
