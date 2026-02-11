@@ -49,8 +49,7 @@ class MetaPanel(QtWidgets.QWidget):
             slot_index = min(slot_index, len(self.pipeline.slot_ids) - 1)
 
             self.comboBox_slots.clear()
-            self.comboBox_slots.addItems(
-                [ss.name for ss in self.pipeline.slots])
+            self.comboBox_slots.addItems(self.pipeline.deduce_display_names())
             self.comboBox_slots.setCurrentIndex(slot_index)
             self.comboBox_slots.blockSignals(False)
             # populate content

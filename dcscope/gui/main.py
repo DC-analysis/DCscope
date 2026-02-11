@@ -307,7 +307,7 @@ class DCscope(QtWidgets.QMainWindow):
 
                 slot_ids.append(slot_id)
 
-        self.pipeline.compute_reduced_sample_names()
+        self.pipeline.deduce_reduced_sample_names()
 
         self.pp_mod_send.emit({"pipeline": {"slots_added": slot_ids}})
 

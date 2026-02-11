@@ -128,8 +128,8 @@ class LogPanel(QtWidgets.QWidget):
             self.setUpdatesEnabled(False)
             self.listWidget_dataset.clear()
             self.listWidget_log_name.clear()
-            for slot in self.pipeline.slots:
-                self.listWidget_dataset.addItem(slot.name)
+            for name in self.pipeline.deduce_display_names():
+                self.listWidget_dataset.addItem(name)
             self.setUpdatesEnabled(True)
             if slot_index is None or slot_index < 0:
                 slot_index = max(0, self.listWidget_dataset.currentRow())

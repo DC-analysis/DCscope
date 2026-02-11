@@ -323,7 +323,7 @@ class SlotPanel(QtWidgets.QWidget):
         if self.pipeline is None:
             return []
         else:
-            return [slot.name for slot in self.pipeline.slots]
+            return self.pipeline.deduce_display_names()
 
     def get_dataset(self):
         """Return dataset associated with the current slot index

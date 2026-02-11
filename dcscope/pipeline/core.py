@@ -120,7 +120,7 @@ class Pipeline(object):
     def reduced_sample_names(self):
         """Return reduced sample names for all slots"""
         if len(self.slots) != len(self._reduced_sample_names):
-            self.compute_reduced_sample_names()
+            self.deduce_reduced_sample_names()
         return self._reduced_sample_names
 
     def add_filter(self, filt=None, index=None):
@@ -306,9 +306,19 @@ class Pipeline(object):
         if old_plot_state != plot_state:
             plot.__setstate__(plot_state)
 
-    def compute_reduced_sample_names(self,
-                                     slot_indices: list[int] = None,
-                                     ) -> list[str]:
+    def deduce_display_names(self):
+        """Return slot names for displaying in lists and combo boxes in the UI
+        """
+        unique_names = self.reduced_sample_names
+        display_names = [
+            (ss.name if ss.name == un else f"{ss.name} [{un[:80]}]")
+            for ss, un in zip(self.slots, unique_names)
+        ]
+        return display_names
+
+    def deduce_reduced_sample_names(self,
+                                    slot_indices: list[int] = None,
+                                    ) -> list[str]:
         """Return a list of reduced sample names for the given indices
 
         The algorithm removes common prefixes and suffixes from sample names.
@@ -373,6 +383,9 @@ class Pipeline(object):
                 new_names = strip_common_prefix_suffix(same_names)
                 for jj, ii in enumerate(idx):
                     names[ii] = new_names[jj]
+
+        # avoid empty names at the end of it
+        names = [n if n else s.name for n, s in zip(names, slots)]
 
         if set_property:
             self._reduced_sample_names.clear()

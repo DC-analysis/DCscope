@@ -10,6 +10,7 @@
  - enh: instantaneous tool tips in block matrix
  - enh: show the created or quickviewed filter in analysis tab (#147)
  - enh: show the created plot in analysis tab
+ - enh: improved presentation of multiple datasets with identical sample names
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
  - ref: raise ValueError in unreachable case in DataSlot creation
  - ref: restructure pipeline management through signaling
