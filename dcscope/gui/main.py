@@ -28,6 +28,7 @@ from .helpers import connect_pp_mod_signals
 from . import pipeline_plot
 from . import preferences
 from . import quick_view
+from . import settings
 from . import update
 from . import widgets
 
@@ -270,7 +271,7 @@ class DCscope(QtWidgets.QMainWindow):
             fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(
                 parent=self,
                 caption="Select an RT-DC measurement",
-                directory=self.settings.value("paths/add dataset", ""),
+                directory=settings.get_dir("add_dataset", self.settings),
                 filter="RT-DC Files (*.rtdc)")
         else:
             fnames = paths
@@ -290,8 +291,7 @@ class DCscope(QtWidgets.QMainWindow):
                     path = fn
                 else:
                     path = pathlib.Path(fn)
-                    self.settings.setValue("paths/add dataset",
-                                           str(path.parent))
+                    settings.set_dir("add_dataset", path, self.settings)
                 # add a filter if we don't have one already
                 if self.pipeline.num_filters == 0:
                     self.add_filter()
@@ -662,8 +662,12 @@ class DCscope(QtWidgets.QMainWindow):
         """
         if path is None:
             path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, 'Select Filter', '', 'Filters formats (*.poly *.sof)')
+                parent=self,
+                caption='Select Filter',
+                directory=settings.get_dir("filters", self.settings),
+                filter='Filters formats (*.poly *.sof)')
         if path:
+            settings.set_dir("filters", path, self.settings)
             with self.pipeline.lock:
                 session.import_filters(path, self.pipeline)
                 self.pp_mod_send.emit(
@@ -677,10 +681,14 @@ class DCscope(QtWidgets.QMainWindow):
                 return
         if path is None:
             path, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, 'Open session', '', 'DCscope session (*.so2)',
-                'DCscope session (*.so2)',
-                QtWidgets.QFileDialog.Option.DontUseNativeDialog)
+                parent=self,
+                caption='Open session',
+                directory=settings.get_dir("session", self.settings),
+                filter='DCscope session (*.so2)',
+                initialFilter='DCscope session (*.so2)',
+                options=QtWidgets.QFileDialog.Option.DontUseNativeDialog)
         if path:
+            settings.set_dir("session", path, self.settings)
             with self.pipeline.lock:
                 search_paths = []
                 while True:
@@ -724,8 +732,12 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_action_save(self):
         path, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, 'Save session', '', 'DCscope session (*.so2)')
+            parent=self,
+            caption='Save session',
+            directory=settings.get_dir("session", self.settings),
+            filter='DCscope session (*.so2)')
         if path:
+            settings.set_dir("session", path, self.settings)
             if not path.endswith(".so2"):
                 path += ".so2"
             session.save_session(path, self.pipeline)

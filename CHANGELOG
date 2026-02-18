@@ -1,3 +1,5 @@
+2.25.2
+ - fix: check directory existence when loading files (#227)
 2.25.1
  - fix: removing a box filter did not clear the filter in some cases
  - ref: do not allow specifying filters in `FilterRay.get_dataset()`
