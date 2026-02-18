@@ -12,29 +12,28 @@ class FilterRay(object):
         self.identifier = slot.identifier
         #: slot defining the ray
         self.slot = slot
-        #: list of RTDCBase (hierarchy children)
-        self.steps = []
-        #: corresponds to hashes of the applied filters
-        self.step_hashes = []
+        #: segments of the filter ray, consisting of hash, previous, and
+        #: next dataset
+        self.segments = []
         # holds the filters (protected so that users use set_filters)
         self._filters = []
         # used for testing (incremented when the ray is cut)
         self._generation = 0
         # used for checking validity of the ray
         self._slot_hash = "unset"
-        self._root_child = None
 
     def __repr__(self):
         repre = "<Pipeline Filter Ray '{}' at {}>".format(self.identifier,
                                                           hex(id(self)))
         return repre
 
-    def _add_step(self, ds, filt):
-        """Add a filter step"""
-        self.step_hashes.append(filt.hash)
+    def _add_segment(self, ds, filt):
+        """Add a filter segment"""
+        ds.reset_filter()
         filt.update_dataset(ds)
-        self.steps.append(ds)
-        return self._new_child(ds, filt)
+        child = self._new_child(ds, filt)
+        self.segments.append([filt.hash, ds, child])
+        return child
 
     def _new_child(self, ds, filt=None, apply_filter=False):
         identifier = self.slot.identifier
@@ -58,21 +57,7 @@ class FilterRay(object):
         """
         return self._filters
 
-    @property
-    def root_child(self):
-        """This is the first element in self.steps
-        (Will return a dataset even if self.steps is empty)
-        """
-        if self._slot_hash != self.slot.hash:
-            # reset everything (e.g. emodulus recipe might have changed)
-            self.steps = []
-            self.step_hashes = []
-            self._root_child = self._new_child(self.slot.get_dataset(),
-                                               apply_filter=True)
-            self._slot_hash = self.slot.hash
-        return self._root_child
-
-    def get_final_child(self, rtdc_ds=None, apply_filter=True):
+    def get_final_child(self, rtdc_ds=None, filters=None, apply_filter=True):
         """Return the final ray child of `rtdc_ds`
 
         If `rtdc_ds` is None, then the dataset of the current
@@ -86,19 +71,27 @@ class FilterRay(object):
         is applied to other data on disk e.g. when computing
         statistics. For regular use of the filter ray in a
         pipeline, use :func:`get_dataset`.
+
+        .. versionchanged:: 2.25.1
+          The dataset returned is a clean child dataset without any
+          filters defined.
+
         """
-        filters = self.filters
+        if filters is None:
+            filters = self.filters
+            external_filt = False
+        else:
+            external_filt = True
 
         if rtdc_ds is None:
             # normal case
-            external = False
-            rtdc_ds = self.slot.get_dataset()
-            ds = self.root_child
+            external_ds = False
+            ds = self.slot.get_dataset()
         else:
             # ray is applied to other data
-            external = True
-            # do not modify rtdc_ds (create a child to work with)
-            ds = self._new_child(rtdc_ds, apply_filter=True)
+            external_ds = True
+            # do not modify the original dataset (create a child to work with)
+            ds = self._new_child(rtdc_ds)
 
         # Dear future self,
         #
@@ -107,48 +100,46 @@ class FilterRay(object):
         # Sincerely,
         # past self
 
+        filters = [f for f in filters if f.filter_used]
+
         if filters:
             # apply all filters
             for ii, filt in enumerate(filters):
                 # remember the previous hierarchy parent
                 # (ds is always used for the next iteration)
-                prev_ds = ds
-                if external:
-                    # do not touch self.steps or self.step_hashes
+                if external_ds or external_filt:
+                    # do not touch self.segments
                     filt.update_dataset(ds)
                     ds = self._new_child(ds, filt)
-                elif len(self.steps) < ii+1:
-                    # just create a new step
-                    ds = self._add_step(ds, filt)
-                elif filt.hash != self.step_hashes[ii]:
+                elif len(self.segments) < ii + 1:
+                    # just create a new segment
+                    ds = self._add_segment(ds, filt)
+                elif filt.hash != self.segments[ii][0]:
                     # the filter ray is changing here;
-                    # cut it and add a new step
-                    self.steps = self.steps[:ii]
-                    self.step_hashes = self.step_hashes[:ii]
-                    ds = self._add_step(ds, filt)
+                    # trim it and add a new segment
+                    self.segments = self.segments[:ii]
+                    ds = self._add_segment(ds, filt)
                     self._generation += 1  # for testing
                 else:
-                    # the filters match so far
-                    if len(self.steps) > ii + 1:  # next child exists
-                        ds = self.steps[ii + 1]
-                    else:  # next child does not exist
-                        ds = self._new_child(ds, filt)
-            # we now have the entire filter pipeline in self.steps
-            final_ds = prev_ds
+                    # reuse previous segment
+                    ds = self.segments[ii][2]
+            final_ds = ds
         else:
-            final_ds = rtdc_ds
+            final_ds = ds
+
+        if not external_ds:
+            ds.reset_filter()
+
         if apply_filter:
             final_ds.apply_filter()
+
         return final_ds
 
-    def get_dataset(self, filters=None, apply_filter=True):
+    def get_dataset(self, apply_filter=True):
         """Return the dataset that corresponds to applying these filters
 
         Parameters
         ----------
-        filters: list of Filter or None
-            Filters used for computing the dataset hierarchy. If set
-            to None, the current filters in `self.filters` are used.
         apply_filter: bool
             Whether to apply all filters and update the metadata of
             the requested dataset. This should be True if you are
@@ -157,9 +148,6 @@ class FilterRay(object):
             apply some more filters and then call `rejuvenate`
             yourself.
         """
-        if filters is not None:
-            # put the filters in place
-            self.set_filters(filters)
         # compute the final hierarchy child
         ds = self.get_final_child(apply_filter=apply_filter)
         return ds
@@ -167,4 +155,4 @@ class FilterRay(object):
     def set_filters(self, filters):
         """Set the filters of the current ray"""
         # only take into account active filters
-        self._filters = [f for f in filters if f.filter_used]
+        self._filters = filters

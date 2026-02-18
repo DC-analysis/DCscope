@@ -101,6 +101,104 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot):
     qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
 
+def test_filter_min_max_delete(qtbot):
+    """Create a box filter, apply it, and delete it again"""
+    path = make_fake_dataset()
+
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # add the file
+    mw.add_dataslot(paths=[path, path])
+
+    assert len(mw.pipeline.slot_ids) == 2, "we added that"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+    # sanity check
+    ds10 = dclab.new_dataset(mw.pipeline.get_dataset(0))
+    ds20 = dclab.new_dataset(mw.pipeline.get_dataset(0))
+    assert np.max(ds10["area_um"]) > 20
+    assert np.max(ds20["area_um"]) > 20
+
+    # open the filter edit in the Analysis View
+    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    # box filtering
+    wf = mw.widget_ana_view.widget_filter
+    mw.widget_ana_view.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.tab_filter)
+
+    # enable selection
+    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    # find the porosity item and click the checkbox
+    rc = wf._box_range_controls["area_um"]
+    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    # disable selection
+    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+
+    # set the range control for area from 20 to 30 µm
+    rc.doubleSpinBox_min.setValue(20)
+    rc.doubleSpinBox_max.setValue(30)
+
+    # click apply
+    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    # make sure this worked
+    assert rc.read_pipeline_state()["end"] == 30
+    box_filters = mw.pipeline.filters[0].__getstate__()["box filters"]
+    assert box_filters["area_um"]["end"] == 30
+    assert box_filters["area_um"]["active"] is True
+
+    # activate the filter for both datasets
+    me1 = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+                                     slot_id=mw.pipeline.slot_ids[0]
+                                     )
+    qtbot.mouseClick(me1, QtCore.Qt.MouseButton.LeftButton)
+    me2 = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+                                     slot_id=mw.pipeline.slot_ids[1]
+                                     )
+    qtbot.mouseClick(me2, QtCore.Qt.MouseButton.LeftButton)
+
+    QtWidgets.QApplication.processEvents(
+        QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    assert len(mw.pipeline.get_filters_for_slot(mw.pipeline.slot_ids[0])) == 1
+    assert len(mw.pipeline.get_filters_for_slot(mw.pipeline.slot_ids[1])) == 1
+
+    # get the datasets from the pipeline and check that they are filtered
+    ds1a = dclab.new_dataset(mw.pipeline.get_dataset(0))
+    ds2a = dclab.new_dataset(mw.pipeline.get_dataset(1))
+
+    # This is expected
+    assert np.max(ds1a["area_um"]) < 30
+    assert np.max(ds2a["area_um"]) < 30
+
+    # Now, remove the box filter!
+    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    # find the porosity item and click the checkbox
+    rc = wf._box_range_controls["area_um"]
+    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    # disable selection
+    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+
+    # click apply
+    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    # make sure this worked
+    box_filters = mw.pipeline.filters[0].__getstate__()["box filters"]
+    assert "area_um" not in box_filters
+
+    # get the datasets from the pipeline and check that they are filtered
+    ds1b = dclab.new_dataset(mw.pipeline.get_dataset(0))
+    ds2b = dclab.new_dataset(mw.pipeline.get_dataset(1))
+
+    # This was the bug. The filters were not removed correctly.
+    assert np.max(ds1b["area_um"]) > 30
+    assert np.max(ds2b["area_um"]) > 30
+
+
 def test_filter_min_max_inf(qtbot):
     path = make_fake_dataset()
 
@@ -199,7 +297,7 @@ def test_polygon_filter_basic(qtbot):
     ds = mw.pipeline.get_dataset(0)
     assert ds_slot is not ds
     assert np.sum(ds.filter.all) == 5
-    assert len(ds) == 47
+    assert len(ds) == 5
 
 
 def test_polygon_filter_delete(qtbot):

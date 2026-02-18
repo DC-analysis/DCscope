@@ -18,9 +18,11 @@ def test_get_heredity():
     filt1.boxdict["area_um"] = {"start": np.min(ds["area_um"]),
                                 "end": np.mean(ds["area_um"]),
                                 "active": True}
+
     # this one does nothing (and should be ignored)
-    filt2 = pipeline.Filter()
-    filt2.filter_used = False
+    fign2 = pipeline.Filter()
+    fign2.filter_used = False
+
     # another one with simple things
     filt3 = pipeline.Filter()
     filt3.boxdict["deform"] = {"start": np.min(ds["deform"]),
@@ -28,38 +30,46 @@ def test_get_heredity():
                                "active": True}
 
     # simple
-    ds1 = ray.get_dataset(filters=[filt1, filt2], apply_filter=True)
+    ray.set_filters([filt1, fign2])
+    ds1 = ray.get_dataset()
     assert ray._generation == 0
 
     # leaving out a filter that does nothing will not change anything
-    ds2 = ray.get_dataset(filters=[filt1], apply_filter=True)
+    ray.set_filters([filt1])
+    ds2 = ray.get_dataset()
     assert ray._generation == 0
     assert ds1 is ds2
 
     # changing the order will not change anything either
-    ds3 = ray.get_dataset(filters=[filt2, filt1], apply_filter=True)
+    ray.set_filters([fign2, filt1])
+    ds3 = ray.get_dataset()
     assert ray._generation == 0
     assert ds1 is ds3
 
     # adding a new filter will change the dataset
-    ds4 = ray.get_dataset(filters=[filt1, filt2, filt3], apply_filter=True)
+    ray.set_filters([filt1, fign2, filt3])
+    ds4 = ray.get_dataset()
     assert ray._generation == 0
     assert ds1 is not ds4
+
     assert ds1 is ds4.hparent
 
     # going back does not increment the generation...
-    ds5 = ray.get_dataset(filters=[filt1, filt2], apply_filter=True)
+    ray.set_filters([filt1, fign2])
+    ds5 = ray.get_dataset()
     assert ray._generation == 0
     assert ds1 is ds5
 
     # ...but changing the order is
-    ds5 = ray.get_dataset(filters=[filt3, filt1, filt2], apply_filter=True)
+    ray.set_filters([filt3, filt1, fign2])
+    ds5 = ray.get_dataset()
     assert ray._generation == 1
     assert ds1 is not ds5
     assert ds3 is not ds5
 
     # and then again, when we remove a filter, we get something different
-    ds6 = ray.get_dataset(filters=[filt3, filt1], apply_filter=True)
+    ray.set_filters([filt3, filt1])
+    ds6 = ray.get_dataset()
     assert ray._generation == 1
     assert ds1 is not ds6
     assert ds5 is ds6  # b/c filt2 does nothing
@@ -71,6 +81,7 @@ def test_filtering():
     # initialize
     slot = pipeline.Dataslot(path)
     ds = slot.get_dataset()
+    assert len(ds) == 47
     ray = pipeline.FilterRay(slot)
 
     # come up with a few filters
@@ -79,30 +90,60 @@ def test_filtering():
     filt1.boxdict["area_um"] = {"start": np.min(ds["area_um"]),
                                 "end": np.mean(ds["area_um"]),
                                 "active": True}
+
     # this one does nothing (and should be ignored)
-    filt2 = pipeline.Filter()
-    filt2.filter_used = False
+    fign2 = pipeline.Filter()
+    fign2.filter_used = False
+
     # another one with simple things
     filt3 = pipeline.Filter()
     filt3.boxdict["deform"] = {"start": np.min(ds["deform"]),
                                "end": np.mean(ds["deform"]),
                                "active": True}
 
-    ds2 = ray.get_dataset(filters=[filt2, filt1], apply_filter=True)
-    assert len(ds2) == 47
-    ds3 = ray.get_dataset(filters=[filt1, filt3], apply_filter=True)
-    assert len(ds3) == 22
-    assert np.sum(ds2.filter.all) == 22
-    assert np.sum(ds3.filter.all) == 12
-    ds1 = ray.get_dataset(filters=[filt2], apply_filter=True)
+    ray.set_filters([fign2])
+    ds1 = ray.get_dataset()
+    assert len(ds1) == 47, "filter two, nothing happens"
     assert np.sum(ds1.filter.all) == len(ds)
-    ds4 = ray.get_dataset(filters=[filt1, filt2], apply_filter=True)
-    assert len(ds4) == 47
+
+    ray.set_filters([fign2, filt1])
+    ds2 = ray.get_dataset()
+    assert len(ds2) == 22, "filter two applied first, no events removed"
+    assert np.sum(ds2.filter.all) == 22
+
+    ray.set_filters([filt1, filt3])
+    ds3 = ray.get_dataset()
+    assert len(ds3) == 12, "filter one applied first"
+    assert np.sum(ds3.filter.all) == 12
+
+    ray.set_filters([filt1, fign2])
+    ds4 = ray.get_dataset()
+    assert len(ds4) == 22, "filter one applied first, filter two ignored"
+    assert np.sum(ds4.filter.all) == 22
 
 
-if __name__ == "__main__":
-    # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()
+def test_remove_filter():
+    path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+
+    # initialize
+    slot = pipeline.Dataslot(path)
+    ds = slot.get_dataset()
+    assert len(ds) == 47
+    ray = pipeline.FilterRay(slot)
+
+    # come up with a few filters
+    # this does some simple things
+    filt1 = pipeline.Filter()
+    filt1.boxdict["area_um"] = {"start": np.min(ds["area_um"]),
+                                "end": np.mean(ds["area_um"]),
+                                "active": True}
+
+    ray.set_filters([filt1])
+    ds1 = ray.get_dataset()
+    assert len(ds1) == 22
+    assert np.sum(ds1.filter.all) == 22
+
+    ray.set_filters([])
+    ds2 = ray.get_dataset()
+    assert len(ds2) == 47
+    assert np.sum(ds2.filter.all) == 47

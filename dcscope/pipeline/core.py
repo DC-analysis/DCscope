@@ -464,8 +464,9 @@ class Pipeline(object):
             filters = self.get_filters_for_slot(slot_id=slot_id,
                                                 max_filter_index=filt_index)
             # filter ray magic
-            ray = self.get_ray(slot.identifier)
-            ds = ray.get_dataset(filters, apply_filter=apply_filter)
+            ray = self.get_ray(slot_id)
+            ray.set_filters(filters)
+            ds = ray.get_dataset(apply_filter=apply_filter)
         return ds
 
     def get_datasets(self, filt_index=-1, apply_filter=True):

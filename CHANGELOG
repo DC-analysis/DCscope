@@ -1,3 +1,11 @@
+2.25.1
+ - fix: removing a box filter did not clear the filter in some cases
+ - ref: do not allow specifying filters in `FilterRay.get_dataset()`
+ - ref: unify hashing caching of datasets in `FilterRay.segments`
+ - ref: remove ambiguous `FilterRay.root_child` workaround
+ - ref: simplify `FilterRay.get_final_child`
+ - tests: improve `FilterRay` test coverage
+ - setup: bump dclab to 0.67.4 (correct `reset_filter` method)
 2.25.0
  - feat: increase width of dataset tile in block matrix via settings (#225)
  - fix: IndexError when trying to view the logs of a log-less dataset
