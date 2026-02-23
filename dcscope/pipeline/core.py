@@ -1,4 +1,5 @@
 import copy
+import pathlib
 import threading
 import warnings
 
@@ -363,7 +364,11 @@ class Pipeline(object):
                     slot = self.slots[ii]
                     if names[ii] == nn:
                         idx.append(ii)
-                        same_names.append(nn + slot.path.name)
+                        if isinstance(slot.path, pathlib.Path):
+                            slot_path_name = slot.path.name
+                        else:
+                            slot_path_name = str(slot.path).split("/")[-1]
+                        same_names.append(nn + slot_path_name)
                 new_names = strip_common_prefix_suffix(same_names)
                 for jj, ii in enumerate(idx):
                     names[ii] = new_names[jj]

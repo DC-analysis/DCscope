@@ -1,10 +1,22 @@
 import copy
 import pathlib
+import socket
 import tempfile
 
 import dclab
 import numpy as np
-from dcscope import pipeline
+from dcscope import pipeline, session
+import pytest
+
+
+data_path = pathlib.Path(__file__).parent / "data"
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    try:
+        s.connect(("www.python.org", 80))
+        NET_AVAILABLE = True
+    except socket.gaierror:
+        # no internet
+        NET_AVAILABLE = False
 
 
 def test_apply_filter_ray():
@@ -40,6 +52,31 @@ def test_apply_filter_ray():
         if dclab.dfn.scalar_feature_exists(feat):
             assert np.allclose(ds_ref[feat], ds_ext[feat]), feat
     assert np.all(ds_ref.filter.all == ds_ext.filter.all)
+
+
+@pytest.mark.skipif(not NET_AVAILABLE, reason="No network connection!")
+@pytest.mark.filterwarnings(
+    'ignore::dclab.rtdc_dataset.config.WrongConfigurationTypeWarning')
+def test_session_dcor():
+    pipeline = session.open_session(data_path / "version_2_5_0_dcor_lme4.so2")
+    assert pipeline.deduce_reduced_sample_names() == [
+        'SSC 16uls rep1',
+        'SSC 16uls rep2',
+        'MG63 pure 16uls rep1',
+        'MG63 pure 16uls rep2',
+        'MG63 pure 16uls rep3',
+        ]
+    # Add the last slot again
+    dcor_id = pipeline.slots[-1].path
+    pipeline.add_slot(path=dcor_id)
+    assert pipeline.deduce_reduced_sample_names() == [
+        'SSC 16uls rep1',
+        'SSC 16uls rep2',
+        'MG63 pure 16uls rep1',
+        'MG63 pure 16uls rep2',
+        'MG63 pure 16uls rep3',
+        'MG63 pure 16uls rep3',
+        ]
 
 
 def test_get_min_max_inf():
