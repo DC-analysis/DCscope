@@ -79,13 +79,13 @@ def test_session_dcor():
         ]
 
 
-def test_get_min_max_inf():
+def test_get_min_max_inf(tmp_path):
     # generate fake dataset
     path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
     with dclab.new_dataset(path) as ds:
         config = copy.deepcopy(ds.config)
 
-    tmp = tempfile.mktemp(".rtdc", prefix="example_filter_inf_")
+    tmp = tmp_path / "example_filter_inf.rtdc"
     ddict = {"deform": np.linspace(0, .01, 100),
              "area_um": np.linspace(20, 200, 100),
              "area_ratio": np.linspace(1, 1.1, 100)
