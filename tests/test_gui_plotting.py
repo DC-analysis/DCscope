@@ -5,7 +5,7 @@ import tempfile
 import dclab
 import h5py
 import numpy as np
-from PyQt6 import QtCore
+from PyQt6 import QtCore, QtWidgets
 import pytest
 from dcscope.gui.main import DCscope
 from dcscope import pipeline, session
@@ -169,6 +169,50 @@ def test_handle_empty_plots_issue_27(qtbot):
         # this now only throws a warning
         # activate (raises #27)
         qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+
+@pytest.mark.filterwarnings('ignore::dclab.kde.base.ContourSpacingTooLarge')
+@pytest.mark.filterwarnings(
+    'ignore::dclab.kde.methods.KernelDensityEstimationForEmtpyArrayWarning')
+@pytest.mark.filterwarnings(
+    'ignore::dcscope.pipeline.core.ContourSpacingWarning')
+def test_handle_empty_plots_issue_223(qtbot):
+    """Correctly handle plots with empty datasets (before filtering)
+
+    https://github.com/DC-analysis/DCscope/issues/223
+    """
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # add a dataslot without any events
+    path = datapath / "empty_recording.rtdc"
+    mw.add_dataslot(paths=[path])
+
+    assert len(mw.pipeline.slot_ids) == 1, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # Check whether we really don't have any events
+    ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
+                                 apply_filter=True)
+    assert len(ds) == 0
+    assert np.sum(ds.filter.all) == 0
+
+    # now create a plot window
+    plot_id = mw.add_plot()
+    pe = mw.block_matrix.get_widget(mw.pipeline.slot_ids[0], plot_id)
+
+    with pytest.warns(pipeline.core.EmptyDatasetWarning):
+        qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+        # this now only throws a warning
+        # activate (raises #223)
+        qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
 
 @pytest.mark.filterwarnings(

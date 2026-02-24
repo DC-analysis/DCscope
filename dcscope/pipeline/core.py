@@ -23,6 +23,10 @@ class MissingFeatureWarning(UserWarning):
     pass
 
 
+class ContourSpacingWarning(UserWarning):
+    pass
+
+
 class Pipeline(object):
     def __init__(self, state=None):
         self._plot_counter = 0
@@ -295,13 +299,16 @@ class Pipeline(object):
                     slot_id = slot_state["identifier"]
                     slot = self.get_slot(slot_id)
                     sp_min, sp_max = slot.get_sane_spacing_range(feat=feat)
+                    # Note that sp_min and sp_max may be `np.nan`
                     if spacing < sp_min:
                         warnings.warn(f"Setting contour spacing for {slot_id} "
-                                      f"to minimum ({spacing}<{sp_min})")
+                                      f"to minimum ({spacing}<{sp_min})",
+                                      ContourSpacingWarning)
                         spacing = sp_min
                     elif spacing > sp_max:
                         warnings.warn(f"Setting contour spacing for {slot_id} "
-                                      f"to maximum ({spacing}>{sp_max})")
+                                      f"to maximum ({spacing}>{sp_max})",
+                                      ContourSpacingWarning)
                         spacing = sp_max
                     plot_state["contour"][f"spacing {ax}"] = spacing
         if old_plot_state != plot_state:

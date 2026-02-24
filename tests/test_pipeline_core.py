@@ -1,7 +1,6 @@
 import copy
 import pathlib
 import socket
-import tempfile
 
 import dclab
 import numpy as np

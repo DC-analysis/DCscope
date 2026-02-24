@@ -1,5 +1,6 @@
 2.25.3
  - fix: `Pipeline.deduce_reduced_sample_names` failed for duplicate DCOR data
+ - fix: handle datasets without any events in the plot window (#223)
 2.25.2
  - fix: check directory existence when loading files (#227)
 2.25.1
