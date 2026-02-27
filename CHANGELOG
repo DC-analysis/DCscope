@@ -1,3 +1,5 @@
+2.25.4
+ - setup: bump dclab to 0.68.0 (open SWMR files in read mode)
 2.25.3
  - fix: `Pipeline.deduce_reduced_sample_names` failed for duplicate DCOR data
  - fix: handle datasets without any events in the plot window (#223)
