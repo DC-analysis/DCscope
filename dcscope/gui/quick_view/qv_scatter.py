@@ -3,7 +3,7 @@ from PyQt6 import QtCore
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
-from ... import plot_cache
+from ... import plotting
 
 from .. import pipeline_plot
 from ..widgets import SimplePlotWidget, SimpleViewBox
@@ -105,7 +105,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         else:
             self.kde_type = hue_kwargs["kde_type"]
             self.kde_kwargs = hue_kwargs.get("kde_kwargs")
-        x, y, kde, idx = plot_cache.get_scatter_data(
+        x, y, kde, idx = plotting.get_scatter_data(
             rtdc_ds=self.rtdc_ds,
             downsample=downsample,
             xax=self.xax,

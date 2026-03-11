@@ -10,7 +10,7 @@ from pyqtgraph import exporters
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
 
-from .. import plot_cache
+from .. import plotting
 from .. import util
 from .widgets import DCscopeColorBarItem
 
@@ -603,7 +603,7 @@ def add_scatter(plot_item, plot_state, rtdc_ds, slot_state, hash_flag):
     else:
         kde_type = "none"
 
-    x, y, kde, idx = plot_cache.get_scatter_data(
+    x, y, kde, idx = plotting.get_scatter_data(
         rtdc_ds=rtdc_ds,
         downsample=sca["downsample"] * sca["downsampling value"],
         xax=gen["axis x"],
@@ -674,7 +674,7 @@ def add_scatter(plot_item, plot_state, rtdc_ds, slot_state, hash_flag):
 def compute_contours(plot_state, rtdc_ds):
     gen = plot_state["general"]
     con = plot_state["contour"]
-    contours = plot_cache.get_contour_data(
+    contours = plotting.get_contour_lines(
         rtdc_ds=rtdc_ds,
         xax=gen["axis x"],
         yax=gen["axis y"],
