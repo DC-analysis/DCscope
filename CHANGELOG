@@ -1,7 +1,7 @@
 2.25.6
  - enh: enable disk caching for kernel density estimate data
  - ref: disable caching for plots (fully done in dclab)
- - setup: bump dclab to 0.69.0 (KDE caching)
+ - setup: bump dclab to 0.69.1 (KDE caching)
 2.25.4
  - setup: bump dclab to 0.68.0 (open SWMR files in read mode)
 2.25.3
