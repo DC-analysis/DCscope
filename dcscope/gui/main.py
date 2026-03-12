@@ -10,6 +10,7 @@ import webbrowser
 
 import dclab
 from dclab.lme4 import rsetup
+from dclab import cached
 import h5py
 import numpy
 import scipy
@@ -116,6 +117,16 @@ class DCscope(QtWidgets.QMainWindow):
         if s3_secret_access_key:
             dclab.rtdc_dataset.fmt_s3.S3_SECRET_ACCESS_KEY = \
                 s3_secret_access_key
+
+        # setup memory and disk caching
+        cache_path = pathlib.Path(
+            QStandardPaths.writableLocation(
+                QStandardPaths.StandardLocation.CacheLocation))
+        store_keeper = cached.StoreKeeper.get_instance()
+        store_keeper.set_disk_store_path(cache_path)
+        store_keeper.set_interval(30)
+        store_keeper.set_disk_store_size_bytes(1024**3)
+        store_keeper.set_memory_store_size(200)
 
         #: Extensions
         store_path = pathlib.Path(
