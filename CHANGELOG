@@ -5,7 +5,7 @@
  - enh: bring windows to front when requesting controls via Block Matrix
  - docs: update screenshots
  - ref: disable caching for plots (fully done in dclab)
- - setup: bump dclab to 0.69.1 (KDE caching)
+ - setup: bump dclab to 0.69.2 (KDE caching, polygon filter stability)
 2.25.4
  - setup: bump dclab to 0.68.0 (open SWMR files in read mode)
 2.25.3
