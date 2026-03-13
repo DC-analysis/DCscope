@@ -223,6 +223,8 @@ class DCscope(QtWidgets.QMainWindow):
         # polygon filter creation
         self.widget_ana_view.widget_filter.request_new_polygon_filter.connect(
             self.on_new_polygon_filter)
+        self.widget_ana_view.widget_filter.request_edit_polygon_filter.connect(
+            self.on_edit_polygon_filter)
 
         # Top of the pipeline modification hierarchy
         self.pp_mod_send.connect(self.on_pp_mod_recv)
@@ -797,6 +799,7 @@ class DCscope(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_new_polygon_filter(self):
+        """Create a new polygon filter"""
         if not self.pipeline.slots:
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
@@ -805,6 +808,7 @@ class DCscope(QtWidgets.QMainWindow):
             msg.exec()
         else:
             self.toolButton_quick_view.setChecked(True)
+            self.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
             if not self.widget_quick_view.current_pipeline_element:
                 # select the first item in the pipeline
                 self.pp_mod_send.emit({"quickview": {
@@ -814,9 +818,34 @@ class DCscope(QtWidgets.QMainWindow):
                     "filt_id": self.pipeline.filter_ids[0],
                 }})
 
-            self.widget_quick_view.on_poly_create()
             # adjusts QuickView size correctly
             self.widget_quick_view.on_tool()
+            self.widget_quick_view.on_poly_create()
+
+    @QtCore.pyqtSlot(int)
+    def on_edit_polygon_filter(self, polygon_filter_id):
+        """Edit a polygon filter"""
+        if not self.pipeline.slots:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+            msg.setText("A dataset is required for editing a polygon filter!")
+            msg.setWindowTitle("No dataset loaded")
+            msg.exec()
+        else:
+            self.toolButton_quick_view.setChecked(True)
+            self.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
+            if not self.widget_quick_view.current_pipeline_element:
+                # select the first item in the pipeline
+                self.pp_mod_send.emit({"quickview": {
+                    "slot_index": 0,
+                    "filt_index": 0,
+                    "slot_id": self.pipeline.slot_ids[0],
+                    "filt_id": self.pipeline.filter_ids[0],
+                }})
+
+            # adjusts QuickView size correctly
+            self.widget_quick_view.on_tool()
+            self.widget_quick_view.on_poly_modify(polygon_filter_id)
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)

@@ -199,7 +199,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_settings">
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -1130,7 +1130,7 @@
                 <item>
                  <widget class="QPushButton" name="pushButton_poly_delete">
                   <property name="text">
-                   <string>Delete</string>
+                   <string>Remove</string>
                   </property>
                  </widget>
                 </item>
@@ -1249,11 +1249,6 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>FeatureComboBox</class>
-   <extends>QComboBox</extends>
-   <header>dcscope.gui.widgets</header>
-  </customwidget>
-  <customwidget>
    <class>SimplePlotWidget</class>
    <extends>QGraphicsView</extends>
    <header>dcscope.gui.widgets</header>
@@ -1261,6 +1256,11 @@
   <customwidget>
    <class>SimpleImageView</class>
    <extends>QGraphicsView</extends>
+   <header>dcscope.gui.widgets</header>
+  </customwidget>
+  <customwidget>
+   <class>FeatureComboBox</class>
+   <extends>QComboBox</extends>
    <header>dcscope.gui.widgets</header>
   </customwidget>
   <customwidget>

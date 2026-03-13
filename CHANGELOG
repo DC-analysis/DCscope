@@ -1,4 +1,5 @@
 2.26.0
+ - feat: edit, duplicate and remove polygon filters in the "Filter" view
  - fix: override-check in filter export did not work
  - enh: enable disk caching for kernel density estimate data
  - docs: update screenshots

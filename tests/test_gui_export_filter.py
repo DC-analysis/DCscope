@@ -54,8 +54,10 @@ def test_gui_export_filter_ray(qtbot, monkeypatch):
     wf = mw.widget_ana_view.widget_filter
     mw.widget_ana_view.tabWidget.setCurrentWidget(
         mw.widget_ana_view.tab_filter)
-    wf._polygon_checkboxes[pf1.unique_id].setChecked(True)
-    assert wf._polygon_checkboxes[pf1.unique_id].isChecked()
+    wf._polygon_checkboxes[pf1.unique_id].setCheckState(
+        QtCore.Qt.CheckState.Checked)
+    assert wf._polygon_checkboxes[pf1.unique_id].checkState() \
+        == QtCore.Qt.CheckState.Checked
 
     # click apply
     qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
@@ -115,10 +117,14 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch):
     # sanity check
     assert filter_ids == [pf1.unique_id, pf2.unique_id]
 
-    wf._polygon_checkboxes[pf1.unique_id].setChecked(True)
-    wf._polygon_checkboxes[pf2.unique_id].setChecked(True)
-    assert wf._polygon_checkboxes[pf1.unique_id].isChecked()
-    assert wf._polygon_checkboxes[pf2.unique_id].isChecked()
+    wf._polygon_checkboxes[pf1.unique_id].setCheckState(
+        QtCore.Qt.CheckState.Checked)
+    wf._polygon_checkboxes[pf2.unique_id].setCheckState(
+        QtCore.Qt.CheckState.Checked)
+    assert wf._polygon_checkboxes[pf1.unique_id].checkState() \
+        == QtCore.Qt.CheckState.Checked
+    assert wf._polygon_checkboxes[pf2.unique_id].checkState() \
+        == QtCore.Qt.CheckState.Checked
 
     # click apply
     qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)

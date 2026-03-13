@@ -281,8 +281,10 @@ def test_polygon_filter_basic(qtbot):
     # sanity check
     assert filter_ids == [pf1.unique_id]
 
-    wf._polygon_checkboxes[pf1.unique_id].setChecked(True)
-    assert wf._polygon_checkboxes[pf1.unique_id].isChecked()
+    wf._polygon_checkboxes[pf1.unique_id].setCheckState(
+        QtCore.Qt.CheckState.Checked)
+    assert wf._polygon_checkboxes[pf1.unique_id].checkState() \
+        == QtCore.Qt.CheckState.Checked
 
     # click apply
     qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
@@ -343,8 +345,10 @@ def test_polygon_filter_delete(qtbot):
     # sanity check
     assert filter_ids == [pf1.unique_id]
 
-    wf._polygon_checkboxes[pf1.unique_id].setChecked(True)
-    assert wf._polygon_checkboxes[pf1.unique_id].isChecked()
+    wf._polygon_checkboxes[pf1.unique_id].setCheckState(
+        QtCore.Qt.CheckState.Checked)
+    assert wf._polygon_checkboxes[pf1.unique_id].checkState() \
+        == QtCore.Qt.CheckState.Checked
 
     # click apply
     qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)

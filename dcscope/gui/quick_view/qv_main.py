@@ -666,14 +666,12 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_poly_create(self):
         """User wants to create a polygon filter"""
+        self.toolButton_poly.setChecked(True)
         self.pushButton_poly_create.setEnabled(False)
-        if not self.toolButton_poly.isChecked():
-            # emulate mouse toggle
-            self.toolButton_poly.setChecked(True)
-            self.toolButton_poly.toggled.emit(True)
         self.comboBox_poly.setEnabled(False)
         self.groupBox_poly.setEnabled(True)
         self.label_poly_create.setVisible(True)
+        self.label_poly_modify.setVisible(False)
         self.pushButton_poly_save.setVisible(True)
         self.pushButton_poly_cancel.setVisible(True)
         # defaults
@@ -746,8 +744,9 @@ class QuickView(QtWidgets.QWidget):
         self.on_poly_done(mode)
 
     @QtCore.pyqtSlot()
-    def on_poly_modify(self):
+    def on_poly_modify(self, polygon_filter_id=None):
         """User wants to modify a polygon filter"""
+        self.toolButton_poly.setChecked(True)
         self.pushButton_poly_create.setEnabled(False)
         self.comboBox_poly.setEnabled(False)
         self.groupBox_poly.setEnabled(True)
@@ -755,9 +754,10 @@ class QuickView(QtWidgets.QWidget):
         self.pushButton_poly_save.setVisible(True)
         self.pushButton_poly_cancel.setVisible(True)
         self.pushButton_poly_delete.setVisible(True)
-        # get the polygon filter id
-        idp = self.comboBox_poly.currentData()
-        pf = dclab.PolygonFilter.get_instance_from_id(idp)
+        if polygon_filter_id is None:
+            # get the polygon filter id
+            polygon_filter_id = self.comboBox_poly.currentData()
+        pf = dclab.PolygonFilter.get_instance_from_id(polygon_filter_id)
         # set UI information
         self.lineEdit_poly.setText(pf.name)
         self.checkBox_poly.setChecked(pf.inverted)

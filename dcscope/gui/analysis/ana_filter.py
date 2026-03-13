@@ -19,6 +19,7 @@ class FilterPanel(QtWidgets.QWidget):
     """
     #: Emitted when the user wants to create a new polygon filter
     request_new_polygon_filter = QtCore.pyqtSignal()
+    request_edit_polygon_filter = QtCore.pyqtSignal(int)
 
     # widgets emit these whenever they changed the pipeline
     pp_mod_send = QtCore.pyqtSignal(dict)
@@ -45,6 +46,20 @@ class FilterPanel(QtWidgets.QWidget):
         self.pushButton_apply.clicked.connect(self.write_filter)
         self.pushButton_reset.clicked.connect(self.update_content)
 
+        # polygon buttons
+        self.pushButton_polygon_add.clicked.connect(
+            self.request_new_polygon_filter)
+        self.pushButton_polygon_edit.clicked.connect(
+            self.on_polygon_edit)
+        self.pushButton_polygon_duplicate.clicked.connect(
+            self.on_polygon_duplicate)
+        self.pushButton_polygon_remove.clicked.connect(
+            self.on_polygon_remove)
+
+        # polygon selection
+        self.listWidget_polygon.itemSelectionChanged.connect(
+            self.on_polygon_selection)
+
         self.comboBox_filters.currentIndexChanged.connect(self.update_content)
         self.toolButton_moreless.clicked.connect(self.on_moreless)
         self.label_box_edit.setVisible(False)
@@ -54,6 +69,7 @@ class FilterPanel(QtWidgets.QWidget):
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
     def read_filter_state(self):
+        """Read filter state from UI"""
         state = {
             "filter used": self.checkBox_enable.isChecked(),
             "identifier": self.current_filter.identifier,
@@ -68,15 +84,23 @@ class FilterPanel(QtWidgets.QWidget):
             rc = self._box_range_controls[feat]
             box[feat] = rc.read_pipeline_state()
         state["box filters"] = box
+
         # polygon filters
-        pflist = []
-        for key in self._polygon_checkboxes:
-            if self._polygon_checkboxes[key].isChecked():
-                pflist.append(key)
-        state["polygon filters"] = pflist
+        state["polygon filters"] = self.read_filter_state_polygon()
+
         return state
 
+    def read_filter_state_polygon(self):
+        """Read polygon filter state from UI"""
+        pflist = []
+        for key in self._polygon_checkboxes:
+            if (self._polygon_checkboxes[key].checkState()
+                    == QtCore.Qt.CheckState.Checked):
+                pflist.append(key)
+        return pflist
+
     def write_filter_state(self, state):
+        """Write filter state to UI"""
         if self.current_filter.identifier != state["identifier"]:
             raise ValueError("Filter identifier mismatch!")
         self.checkBox_enable.setChecked(state["filter used"])
@@ -97,12 +121,17 @@ class FilterPanel(QtWidgets.QWidget):
                 rc.reset_range()
 
         # polygon filters
-        pflist = state["polygon filters"]
+        self.write_filter_state_polygon(state["polygon filters"])
+
+    def write_filter_state_polygon(self, state):
+        """Write polygon filter state to UI"""
         for key in self._polygon_checkboxes:
-            if key in pflist:
-                self._polygon_checkboxes[key].setChecked(True)
+            if key in state:
+                self._polygon_checkboxes[key].setCheckState(
+                    QtCore.Qt.CheckState.Checked)
             else:
-                self._polygon_checkboxes[key].setChecked(False)
+                self._polygon_checkboxes[key].setCheckState(
+                    QtCore.Qt.CheckState.Unchecked)
 
     def _populate_box_filters(self):
         """Dynamically update available pipeline box filters
@@ -183,6 +212,71 @@ class FilterPanel(QtWidgets.QWidget):
             filt_id = self.current_filter.identifier
             new_id = self.pipeline.duplicate_filter(filt_id)
             self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
+
+    def get_polygon_filter_selection(self):
+        """Return selected polygon filters"""
+        items = self.listWidget_polygon.selectedItems()
+        pfs = []
+        pf_ids = []
+        for (pfid, item) in self._polygon_checkboxes.items():
+            if item in items:
+                pf_ids.append(pfid)
+                pfs.append(dclab.PolygonFilter.get_instance_from_id(pfid))
+        return pf_ids, pfs
+
+    @QtCore.pyqtSlot()
+    def on_polygon_selection(self):
+        num_selected = len(self.listWidget_polygon.selectedItems())
+        if num_selected == 0:
+            self.widget_selection.setEnabled(False)
+        else:
+            self.widget_selection.setEnabled(True)
+            self.pushButton_polygon_edit.setEnabled(num_selected == 1)
+
+    @QtCore.pyqtSlot()
+    def on_polygon_duplicate(self):
+        pf_ids, pfs = self.get_polygon_filter_selection()
+
+        if len(pf_ids) > 1:
+            button_reply = QtWidgets.QMessageBox.question(
+                self,
+                "Duplicate multiple polygon filters?",
+                f"Are you sure you want to duplicate {len(pf_ids)} "
+                f"polygon filters?")
+            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+        else:
+            yes = True
+
+        if yes:
+            for pf in pfs:
+                pf_copy = pf.copy()
+                pf_copy.name = pf.name + "+"
+
+            self.update_polygon_filters()
+
+    @QtCore.pyqtSlot()
+    def on_polygon_edit(self):
+        pf_ids, _ = self.get_polygon_filter_selection()
+
+        if len(pf_ids) == 1:
+            self.request_edit_polygon_filter.emit(pf_ids[0])
+
+    @QtCore.pyqtSlot()
+    def on_polygon_remove(self):
+        pf_ids, pfs = self.get_polygon_filter_selection()
+
+        button_reply = QtWidgets.QMessageBox.question(
+            self,
+            "Polygon filter removal?",
+            "Are you sure you want to remove the following polygon "
+            "filters?\n" + "\n".join([f" - {pf.name}" for pf in pfs]))
+        yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+
+        if yes:
+            for pfid in pf_ids:
+                dclab.PolygonFilter.remove(pfid)
+
+            self.update_polygon_filters()
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
@@ -312,33 +406,32 @@ class FilterPanel(QtWidgets.QWidget):
 
     def update_polygon_filters(self):
         """Update the layout containing the polygon filters"""
-        self.verticalLayout_poly.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
         # clear layout
-        for ii in reversed(range(self.verticalLayout_poly.count())):
-            item = self.verticalLayout_poly.itemAt(ii).widget()
-            if item is not None:
-                item.hide()
-                item.deleteLater()
+        for _ in range(self.listWidget_polygon.count()):
+            self.listWidget_polygon.takeItem(0)
+
         self._polygon_checkboxes = {}  # must come after getting the state
         if dclab.PolygonFilter.instances:
+            self.listWidget_polygon.setEnabled(True)
             for pf in dclab.PolygonFilter.instances:
-                widget = QtWidgets.QWidget()
-                hbox = QtWidgets.QHBoxLayout()
-                hbox.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft)
-                hbox.setContentsMargins(0, 0, 0, 0)
-                chb = QtWidgets.QCheckBox()
-                hbox.addWidget(chb)
-                hbox.addWidget(QtWidgets.QLabel(pf.name))
-                widget.setLayout(hbox)
-                self.verticalLayout_poly.addWidget(widget)
-                self._polygon_checkboxes[pf.unique_id] = chb
+                item = QtWidgets.QListWidgetItem(pf.name)
+                item.setFlags(
+                    item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+                self.listWidget_polygon.addItem(item)
+                item.setToolTip(f"{pf.unique_id}: {pf.name}")
+                self._polygon_checkboxes[pf.unique_id] = item
         else:
-            label = QtWidgets.QLabel("No polygon filters have been created "
-                                     + "yet.")
-            button = QtWidgets.QPushButton("Create polygon filter")
-            button.clicked.connect(self.request_new_polygon_filter)
-            self.verticalLayout_poly.addWidget(label)
-            self.verticalLayout_poly.addWidget(button)
+            self.listWidget_polygon.addItem(
+                "No polygon filters have been created yet.")
+            self.listWidget_polygon.setEnabled(False)
+            self.widget_selection.setEnabled(False)
+
+        if self.current_filter is not None:
+            filt_id = self.current_filter.identifier
+            filt_index = self.pipeline.filter_ids.index(filt_id)
+            pflist = self.pipeline.filters[filt_index].polylist
+            self.write_filter_state_polygon(pflist)
 
     @QtCore.pyqtSlot()
     def write_filter(self):
