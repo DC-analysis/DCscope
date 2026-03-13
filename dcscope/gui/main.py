@@ -641,13 +641,14 @@ class DCscope(QtWidgets.QMainWindow):
                 + "\n".join([str(p) for p in list(set(double_paths))])
             )
         if existing_paths:
-            resp = QtWidgets.QMessageBox.question(
+            button_reply = QtWidgets.QMessageBox.question(
                 self,
                 "Override existing files?",
                 "The following files already exist, override?\n\n"
                 + "\n".join([str(p) for p in existing_paths])
             )
-            if resp:
+            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+            if yes:
                 # if the user agrees, these files will be overridden
                 existing_paths.clear()
         for path in filt_dict:
