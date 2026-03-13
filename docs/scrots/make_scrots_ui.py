@@ -21,8 +21,7 @@ mw.settings.setValue("advanced/user confirm clear", 0)
 
 # build up a session
 here = pathlib.Path(__file__).parent
-session.open_session(here / "scrots.so2", pipeline=mw.pipeline)
-mw.reload_pipeline()
+mw.on_action_open(here / "scrots.so2")
 
 # analysis view
 mw.on_modify_slot(mw.pipeline.slot_ids[0])
@@ -44,7 +43,8 @@ mw.subwindows_plots[mw.pipeline.plot_ids[2]].widget().grab().save(
 # quick view
 me = mw.block_matrix.get_widget(mw.pipeline.slot_ids[1],
                                 mw.pipeline.filter_ids[0])
-me.update_content(quickview=True)
+mw.quickview = True
+me.update_content()
 mw.widget_quick_view.toolButton_settings.toggle()
 idx = mw.widget_quick_view.comboBox_x.findData("fl3_max_ctc")
 mw.widget_quick_view.comboBox_x.setCurrentIndex(idx)
@@ -61,16 +61,13 @@ mw.widget_quick_view.spinBox_event.setValue(4829)
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_event.png")
 # manually create a polygon filter with points from the poly file
+mw.widget_quick_view.on_poly_create()
 mw.widget_quick_view.toolButton_poly.toggle()
 pf = dclab.PolygonFilter(filename="CD66+_CD14-.poly")
 mw.widget_quick_view.pushButton_poly_create.click()
 mw.widget_quick_view.lineEdit_poly.setText("CD66⁺/CD14⁻")
 mw.widget_quick_view.widget_scatter.set_poly_points(pf.points)
-# show an even
-cellimg = mw.widget_quick_view.get_event_image(
-    mw.widget_quick_view.rtdc_ds, 42, "image"
-)
-mw.widget_quick_view.imageView_image_poly.setImage(cellimg)
+# show an event
 mw.widget_quick_view.imageView_image_poly.show()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_poly.png")

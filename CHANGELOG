@@ -1,6 +1,7 @@
 2.26.0
  - fix: override-check in filter export did not work
  - enh: enable disk caching for kernel density estimate data
+ - docs: update screenshots
  - ref: disable caching for plots (fully done in dclab)
  - setup: bump dclab to 0.69.1 (KDE caching)
 2.25.4

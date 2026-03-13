@@ -16,8 +16,6 @@ mw.settings.setValue("advanced/user confirm clear", 0)
 
 # build up a session
 mw.add_dataslot(paths=["Figure3_Blood_Initial.rtdc"])
-mw.reload_pipeline()
-
 
 # open the dialog window
 dlg = compute.ComputeStatistics(mw, pipeline=mw.pipeline)

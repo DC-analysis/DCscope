@@ -17,7 +17,6 @@ mw.settings.setValue("paths/export data", ".")
 
 # build up a session
 mw.add_dataslot(paths=["Figure3_Blood_Initial.rtdc"])
-mw.reload_pipeline()
 
 # open the dialog window
 dlg = export.ExportData(mw, pipeline=mw.pipeline)

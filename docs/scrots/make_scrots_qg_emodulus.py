@@ -29,7 +29,6 @@ with h5py.File(tmp, mode="a") as h5:
 
 # build up a session
 mw.add_dataslot(paths=[tmp])
-mw.reload_pipeline()
 
 # analysis view
 mw.on_modify_slot(mw.pipeline.slot_ids[0])
