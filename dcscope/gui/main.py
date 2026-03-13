@@ -850,6 +850,7 @@ class DCscope(QtWidgets.QMainWindow):
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)
     def on_modify_filter(self, filt_id):
+        self.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
         self.widget_ana_view.tabWidget.setCurrentWidget(
             self.widget_ana_view.tab_filter)
         self.widget_ana_view.widget_filter.show_filter(filt_id)
@@ -863,6 +864,7 @@ class DCscope(QtWidgets.QMainWindow):
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)
     def on_modify_plot(self, plot_id):
+        self.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
         self.widget_ana_view.tabWidget.setCurrentWidget(
             self.widget_ana_view.tab_plot)
         self.widget_ana_view.widget_plot.show_plot(plot_id)
@@ -876,6 +878,7 @@ class DCscope(QtWidgets.QMainWindow):
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)
     def on_modify_slot(self, slot_id):
+        self.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
         self.widget_ana_view.tabWidget.setCurrentWidget(
             self.widget_ana_view.tab_slot)
         self.widget_ana_view.widget_slot.show_slot(slot_id)
@@ -921,6 +924,7 @@ class DCscope(QtWidgets.QMainWindow):
             if not self.subwindows["quick_view"].isVisible():
                 self.toolButton_quick_view.setChecked(True)
                 self.subwindows["quick_view"].setVisible(True)
+            self.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
 
         # Send new signal to all receivers
         self.pp_mod_recv.emit(data)
