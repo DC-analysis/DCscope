@@ -9,7 +9,6 @@ import dclab
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QApplication
 from dcscope.gui.main import DCscope
-from dcscope import session
 
 app = QApplication(sys.argv)
 
