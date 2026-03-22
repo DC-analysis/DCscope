@@ -77,6 +77,9 @@ class DCscope(QtWidgets.QMainWindow):
         with importlib.resources.as_file(ref) as path_ui:
             uic.loadUi(path_ui, self)
 
+        logging.basicConfig(format='%(levelname)s:%(message)s',
+                            level=logging.INFO)
+
         # pipeline
         self.pipeline = None
         self.widget_quick_view = None

@@ -1,3 +1,5 @@
+2.26.1
+ - enh: setup basic logging
 2.26.0
  - feat: edit, duplicate and remove polygon filters in the "Filter" view
  - fix: override-check in filter export did not work
