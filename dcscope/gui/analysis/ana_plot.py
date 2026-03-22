@@ -1,18 +1,20 @@
 import importlib.resources
+import logging
 
 import dclab
+import dclab.kde.binning
 import dclab.kde.methods
+import dclab.kde.smooth_contour
 import numpy as np
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets, uic
 
 from ...pipeline.plot import STATE_OPTIONS
-
-from ..pipeline_plot import (
-    compute_contours, compute_contour_opening_angles, compute_contour_reliable)
-
 from ..widgets import show_wait_cursor
 
 COLORMAPS = STATE_OPTIONS["scatter"]["colormap"]
+
+
+logger = logging.getLogger(__name__)
 
 
 class PlotPanel(QtWidgets.QWidget):
@@ -346,9 +348,9 @@ class PlotPanel(QtWidgets.QWidget):
                 spinBox.setValue(spacing)
 
     def _set_contour_spacing_auto(self, axis_x=None, axis_y=None):
-        """automatically set the contour spacing
+        """automatically estimate and set the contour spacing
 
-        - uses :func:`dclab.kde.methods.bin_width_percentile`
+        - uses :func:`dclab.kde.binning.bin_width_percentile`
         - uses _set_contour_spacing
 
         Not to be confused with `on_spacing_auto`!
@@ -377,7 +379,7 @@ class PlotPanel(QtWidgets.QWidget):
                             a=ds[axis],
                             feat=axis,
                             scale=scaleCombo.currentData(),
-                            method=dclab.kde.methods.bin_width_percentile,
+                            method=dclab.kde.binning.bin_width_percentile,
                         )
                         spacings.append(spa)
                     spacings_xy.append(np.min(spacings))
@@ -526,51 +528,43 @@ class PlotPanel(QtWidgets.QWidget):
         """Iteratively find a good spacing for smooth contours (#110)"""
         # https://github.com/DC-analysis/DCscope/issues/110
         plot_id = self.current_plot.identifier
-        # Get all datasets belonging to this plot.
-        datasets, _ = self.pipeline.get_plot_datasets(plot_id)
         state = self.read_plot_state()
-        gen = state["general"]
-        # initial guess
-        # sensible start parameters
-        self._set_contour_spacing_auto(axis_x=gen["axis x"],
-                                       axis_y=gen["axis y"])
 
-        # retrieve state with updated spacings
-        state = self.read_plot_state()
-        phi_conv = np.deg2rad(23)
+        # compute best spacing iteratively
+        res = dclab.kde.smooth_contour.find_smooth_contour_spacing(
+            # All datasets belonging to this plot.
+            ds_list=self.pipeline.get_plot_datasets(plot_id)[0],
+            xax=state["general"]["axis x"],
+            yax=state["general"]["axis y"],
+            xrange=state["general"]["range x"],
+            yrange=state["general"]["range y"],
+            quantiles=np.array(state["contour"]["percentiles"]) / 100,
+            xscale=state["general"]["scale x"],
+            yscale=state["general"]["scale y"],
+            kde_type="histogram",
+            max_iter=15,
+        )
 
-        for ii in range(15):  # hard-limit is 15 iterations
-            # maximum difference of opening angle from 180° [rad]
-            max_dphi = 0
-            for ds in datasets:
-                # Compute the contour for the highest percentile of the plot.
-                state["contour"]["percentiles"] = \
-                    [np.max(state["contour"]["percentiles"])]
-                cc = compute_contours(plot_state=state, rtdc_ds=ds)[0][0]
-                if not compute_contour_reliable(
-                        plot_state=state, contour=cc, thresh_ang=phi_conv):
-                    # Compute the opening angle for each point of the cnotour
-                    # and take the point with the largest opening angle.
-                    angles = compute_contour_opening_angles(
-                        plot_state=state, contour=cc)
-                    dphi = np.max(np.abs(angles))
-                    max_dphi = max(max_dphi, np.abs(dphi))
-            if max_dphi <= phi_conv:
-                # Normal stopping criterion (opening angle <= 23°)
-                break
-            else:
-                # If the absolute opening angle is too large,
-                # we assume that we have to reduce the spacing.
-                state["contour"]["spacing x"] /= 2
-                state["contour"]["spacing y"] /= 2
+        success = res.get("success", False)
+        reason = res.get("reason", "unknown")
+        num_iter = res.get("total iterations", np.nan)
+        corners_found = res.get("corners found", "unknown")
+
+        if success:
+            logger.info(
+                f"Successfully found smooth contour within {num_iter} "
+                f"iterations: {reason} ({corners_found=})."
+            )
         else:
-            raise ValueError(
-                "Could not automatically determine contour spacing")
+            logger.warning(
+                f"Failed to find smooth contour within {num_iter} "
+                f"iterations: {reason} ({corners_found=})."
+            )
 
         # set the final spacing
         new_state = self.read_plot_state()
-        new_state["contour"]["spacing x"] = state["contour"]["spacing x"]
-        new_state["contour"]["spacing y"] = state["contour"]["spacing y"]
+        new_state["contour"]["spacing x"] = res["spacing x"]
+        new_state["contour"]["spacing y"] = res["spacing y"]
         self.write_plot_state(new_state)
 
     @QtCore.pyqtSlot()

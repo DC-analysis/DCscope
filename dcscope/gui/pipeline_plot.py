@@ -4,18 +4,14 @@ import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
 import pyqtgraph as pg
+from dclab.kde.smooth_contour import compute_contour_opening_angles
+from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from pyqtgraph import exporters
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
-
-from .. import plotting
-from .. import util
-from .widgets import DCscopeColorBarItem
-
-from .widgets import SimplePlotItem
-
+from .. import plotting, util
+from .widgets import DCscopeColorBarItem, SimplePlotItem
 
 # Register custom colormaps
 Gradients["grayblue"] = {'ticks': [(0.0, (100, 100, 100, 255)),
@@ -688,57 +684,17 @@ def compute_contours(plot_state, rtdc_ds):
     return contours
 
 
-def compute_contour_opening_angles(plot_state, contour):
-    """For each point of the contour, compute the opening angle
-
-    This takes the visible plot area into account.
-    """
-    cc = np.array(contour, copy=True)
-    if not np.all(cc[0] == cc[-1]):
-        cc = np.resize(cc, (len(contour)+1, 2))
-    # Normalize contour
-    rx = plot_state["general"]["range x"]
-    ry = plot_state["general"]["range y"]
-    cc[:, 0] = (cc[:, 0] - rx[0]) / (rx[1] - rx[0])
-    cc[:, 1] = (cc[:, 1] - ry[0]) / (ry[1] - ry[0])
-    # apply scale
-    sx = plot_state["general"]["scale x"]
-    assert sx in ["log", "linear"]
-    if sx == "log":
-        cc[:, 0] = np.log10(cc[:, 0])
-    sy = plot_state["general"]["scale y"]
-    assert sy in ["log", "linear"]
-    if sy == "log":
-        cc[:, 1] = np.log10(cc[:, 1])
-    opang = np.zeros(len(cc)-1, dtype=float)
-    for jj, c0 in enumerate(cc[:-1]):  # we have a closed contour
-        cl = cc[:-1][jj - 1]
-        cr = cc[jj + 1]
-        # vector a
-        a = np.array(cl) - np.array(c0)
-        # vector b
-        b = np.array(cr) - np.array(c0)
-        absa = np.sqrt(np.sum(a ** 2))
-        absb = np.sqrt(np.sum(b ** 2))
-        denom = absa * absb
-        # avoid division by zero warnings
-        if isinstance(denom, np.ndarray):
-            denom[denom == 0] = np.nan
-        elif denom == 0:
-            denom = np.nan
-        phi = np.arccos(np.sum(a * b) / denom)
-        if np.abs(phi) > np.pi/2:
-            phi -= np.sign(phi) * np.pi
-        opang[jj] = phi
-    return opang
-
-
 def compute_contour_reliable(plot_state, contour, thresh_ang=np.deg2rad(23)):
     """Determine whether contour is reliable or not"""
     # Compute the opening angle for each point of the
     # contour and take the point with the largest opening angle.
     angles = compute_contour_opening_angles(
-        plot_state=plot_state, contour=contour)
+        contour=contour,
+        xrange=plot_state["general"]["range x"],
+        yrange=plot_state["general"]["range y"],
+        xscale=plot_state["general"]["scale x"],
+        yscale=plot_state["general"]["scale y"],
+    )
     if (np.allclose(np.abs(angles[0]), np.pi / 2)
             and np.all(angles[1:6] == 0)):
         # We have probably encountered a contour at the boundary

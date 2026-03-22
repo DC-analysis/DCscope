@@ -5,11 +5,11 @@ import tempfile
 import dclab
 import h5py
 import numpy as np
-from PyQt6 import QtCore, QtWidgets
 import pytest
-from dcscope.gui.main import DCscope
-from dcscope import pipeline, session
+from PyQt6 import QtCore, QtWidgets
 
+from dcscope import pipeline, session
+from dcscope.gui.main import DCscope
 
 datapath = pathlib.Path(__file__).parent / "data"
 
@@ -176,7 +176,7 @@ def test_handle_empty_plots_issue_27(qtbot):
 
 @pytest.mark.filterwarnings('ignore::dclab.kde.base.ContourSpacingTooLarge')
 @pytest.mark.filterwarnings(
-    'ignore::dclab.kde.methods.KernelDensityEstimationForEmtpyArrayWarning')
+    'ignore::dclab.kde.binning.KernelDensityEstimationForEmtpyArrayWarning')
 @pytest.mark.filterwarnings(
     'ignore::dcscope.pipeline.core.ContourSpacingWarning')
 def test_handle_empty_plots_issue_223(qtbot):

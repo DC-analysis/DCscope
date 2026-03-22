@@ -1,5 +1,7 @@
 2.26.1
  - enh: setup basic logging
+ - ref: migrate find smooth contour spacing code to dclab
+ - setup: bump dclab to 0.70.0 (smooth contours)
 2.26.0
  - feat: edit, duplicate and remove polygon filters in the "Filter" view
  - fix: override-check in filter export did not work
@@ -586,7 +588,7 @@
 2.1.0
  - feat: basic DCOR support
  - fix: improved session support (older pre-release sessions)
- - docs: add DCOR guick guide 
+ - docs: add DCOR guick guide
  - enh: export event image via context menu in Quick View (#35)
  - setup: bump dclab from 0.21.1 to 0.22.1 (DCOR support)
 2.0.3

@@ -9,35 +9,33 @@ import warnings
 import webbrowser
 
 import dclab
-from dclab.lme4 import rsetup
-from dclab import cached
 import h5py
 import numpy
+import pyqtgraph as pg
 import scipy
-
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from dclab import cached
+from dclab.lme4 import rsetup
+from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from PyQt6.QtCore import QStandardPaths
 from PyQt6.QtWidgets import QMessageBox
-import pyqtgraph as pg
 
-from . import analysis
-from . import bulk
-from . import compute
-from . import dcor
-from . import export
-from .helpers import connect_pp_mod_signals
-from . import pipeline_plot
-from . import preferences
-from . import quick_view
-from . import settings
-from . import update
-from . import widgets
-
-from ..extensions import ExtensionManager
-from .. import pipeline
-from .. import session
-
+from .. import pipeline, session
 from .._version import version
+from ..extensions import ExtensionManager
+from . import (
+    analysis,
+    bulk,
+    compute,
+    dcor,
+    export,
+    pipeline_plot,
+    preferences,
+    quick_view,
+    settings,
+    update,
+    widgets,
+)
+from .helpers import connect_pp_mod_signals
 
 # global plotting configuration parameters
 pg.setConfigOption("background", None)
