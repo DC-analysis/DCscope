@@ -5,12 +5,13 @@ import importlib.resources
 import dclab
 import numpy as np
 import pyqtgraph as pg
+from dclab.kde import KernelDensityEstimator
 from dclab.kde.smooth_contour import compute_contour_opening_angles
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from pyqtgraph import exporters
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
-from .. import plotting, util
+from .. import util
 from .widgets import DCscopeColorBarItem, SimplePlotItem
 
 # Register custom colormaps
@@ -490,7 +491,8 @@ def zoomin_contours(dslist, plot_item, plot_state, margin_per=5):
     """Zoom-in contour data if enabled"""
     x_min, x_max, y_min, y_max = 0, 0, 0, 0
     # compute all contours
-    contours_list = [compute_contours(plot_state, ds) for ds in dslist]
+    contours_list = [compute_contours_from_state(plot_state, ds)
+                     for ds in dslist]
     # flatten list of contours
     all_points = np.vstack([np.vstack(c) for conts in contours_list
                             for c in conts])
@@ -514,7 +516,8 @@ def zoomin_contours(dslist, plot_item, plot_state, margin_per=5):
 
 
 def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
-    contours = compute_contours(plot_state=plot_state, rtdc_ds=rtdc_ds)
+    contours = compute_contours_from_state(plot_state=plot_state,
+                                           rtdc_ds=rtdc_ds)
     con = plot_state["contour"]
     elements = []
     num_unreliable_contours = 0
@@ -594,20 +597,9 @@ def add_scatter(plot_item, plot_state, rtdc_ds, slot_state, hash_flag):
     scatter.setAcceptHoverEvents(False)
     plot_item.addItem(scatter)
 
-    if sca["marker hue"] == "kde":
-        kde_type = gen["kde"]
-    else:
-        kde_type = "none"
+    x, y, kde, idx = compute_scatter_data_from_state(plot_state=plot_state,
+                                                     rtdc_ds=rtdc_ds)
 
-    x, y, kde, idx = plotting.get_scatter_data(
-        rtdc_ds=rtdc_ds,
-        downsample=sca["downsample"] * sca["downsampling value"],
-        xax=gen["axis x"],
-        yax=gen["axis y"],
-        xscale=gen["scale x"],
-        yscale=gen["scale y"],
-        kde_type=kde_type,
-    )
     # define colormap
     # TODO:
     # - common code base with QuickView
@@ -667,11 +659,13 @@ def add_scatter(plot_item, plot_state, rtdc_ds, slot_state, hash_flag):
     return [scatter]
 
 
-def compute_contours(plot_state, rtdc_ds):
+def compute_contours_from_state(plot_state, rtdc_ds):
     gen = plot_state["general"]
     con = plot_state["contour"]
-    contours = plotting.get_contour_lines(
-        rtdc_ds=rtdc_ds,
+    rtdc_ds.apply_filter()
+    # compute contour plot data
+    kde_instance = KernelDensityEstimator(rtdc_ds=rtdc_ds)
+    contours = kde_instance.get_contour_lines(
         xax=gen["axis x"],
         yax=gen["axis y"],
         xacc=con["spacing x"],
@@ -679,7 +673,7 @@ def compute_contours(plot_state, rtdc_ds):
         xscale=gen["scale x"],
         yscale=gen["scale y"],
         kde_type=gen["kde"],
-        quantiles=[p/100 for p in con["percentiles"]]
+        quantiles=[p/100 for p in con["percentiles"]],
     )
     return contours
 
@@ -700,12 +694,50 @@ def compute_contour_reliable(plot_state, contour, thresh_ang=np.deg2rad(23)):
         # We have probably encountered a contour at the boundary
         # of the image. It looks like this is ok.
         reliable = True
-    elif len(angles) > 50:
+    elif len(angles) > 100:
         # The contour is long enough to be trusted.
         reliable = True
     else:
         reliable = np.max(np.abs(angles)) <= thresh_ang
     return reliable
+
+
+def compute_scatter_data_from_state(plot_state, rtdc_ds):
+    gen = plot_state["general"]
+    con = plot_state["contour"]
+    sca = plot_state["scatter"]
+    rtdc_ds.apply_filter()
+
+    # get downsampled list of points for scatter plot
+    x, y, idx = rtdc_ds.get_downsampled_scatter(
+        downsample=sca["downsample"] * sca["downsampling value"],
+        xax=gen["axis x"],
+        yax=gen["axis y"],
+        xscale=gen["scale x"],
+        yscale=gen["scale y"],
+        remove_invalid=True,
+        ret_mask=True)
+
+    # create KDE instance
+    kde_instance = KernelDensityEstimator(rtdc_ds=rtdc_ds)
+
+    # interpolate the KDE at the specified positions
+    kde = kde_instance.get_at(
+        positions=(x, y),
+        xax=gen["axis x"],
+        yax=gen["axis y"],
+        kde_type=gen["kde"],
+        xscale=gen["scale x"],
+        yscale=gen["scale y"],
+        xacc=con["spacing x"],
+        yacc=con["spacing y"],
+    )
+
+    if kde.size and kde.min() != kde.max():
+        kde -= kde.min()
+        kde /= kde.max()
+
+    return x, y, kde, idx
 
 
 def get_axes_labels(plot_state, slot_states):

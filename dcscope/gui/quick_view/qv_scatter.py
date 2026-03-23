@@ -1,9 +1,7 @@
 import numpy as np
-from PyQt6 import QtCore
 import pyqtgraph as pg
+from PyQt6 import QtCore
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
-
-from ... import plotting
 
 from .. import pipeline_plot
 from ..widgets import SimplePlotWidget, SimpleViewBox
@@ -27,7 +25,6 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.xscale = "linear"
         self.yscale = "linear"
         self.kde_type = "none",
-        self.kde_kwargs = {}
         self.hue_type = "none"
         self.hue_kwargs = {}
         #: Boolean array identifying the plotted events w.r.t. the full
@@ -88,7 +85,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         return points
 
     def plot_data(self, rtdc_ds, slot, xax="area_um", yax="deform",
-                  xscale="linear", yscale="linear",  downsample=False,
+                  xscale="linear", yscale="linear", downsample=False,
                   hue_type="none", hue_kwargs=None, isoelastics=False,
                   lut_identifier=None):
         self.rtdc_ds = rtdc_ds
@@ -101,19 +98,32 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.hue_kwargs = hue_kwargs if hue_kwargs else {}
         if hue_type != "kde":
             self.kde_type = "none"
-            self.kde_kwargs = {}
         else:
             self.kde_type = hue_kwargs["kde_type"]
-            self.kde_kwargs = hue_kwargs.get("kde_kwargs")
-        x, y, kde, idx = plotting.get_scatter_data(
-            rtdc_ds=self.rtdc_ds,
-            downsample=downsample,
-            xax=self.xax,
-            yax=self.yax,
-            xscale=self.xscale,
-            yscale=self.yscale,
-            kde_type=self.kde_type,
-            kde_kwargs=self.kde_kwargs)
+
+        plot_state = {
+            "general": {
+                "axis x": self.xax,
+                "axis y": self.yax,
+                "scale x": self.xscale,
+                "scale y": self.yscale,
+                "kde": self.kde_type,
+                },
+            "contour": {
+                # let dclab estimate the spacing
+                "spacing x": None,
+                "spacing y": None,
+                },
+            "scatter": {
+                "downsample": bool(downsample),
+                "downsampling value": downsample,
+            }
+
+        }
+        x, y, kde, idx = pipeline_plot.compute_scatter_data_from_state(
+            plot_state=plot_state,
+            rtdc_ds=rtdc_ds)
+
         self.events_plotted = idx
         #: unfiltered x data
         self.data_x = self.rtdc_ds[self.xax]
