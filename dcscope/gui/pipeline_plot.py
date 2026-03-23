@@ -668,8 +668,8 @@ def compute_contours_from_state(plot_state, rtdc_ds):
     contours = kde_instance.get_contour_lines(
         xax=gen["axis x"],
         yax=gen["axis y"],
-        xacc=con["spacing x"],
-        yacc=con["spacing y"],
+        xacc=gen["spacing x"],
+        yacc=gen["spacing y"],
         xscale=gen["scale x"],
         yscale=gen["scale y"],
         kde_type=gen["kde"],
@@ -704,7 +704,6 @@ def compute_contour_reliable(plot_state, contour, thresh_ang=np.deg2rad(23)):
 
 def compute_scatter_data_from_state(plot_state, rtdc_ds):
     gen = plot_state["general"]
-    con = plot_state["contour"]
     sca = plot_state["scatter"]
     rtdc_ds.apply_filter()
 
@@ -729,8 +728,8 @@ def compute_scatter_data_from_state(plot_state, rtdc_ds):
         kde_type=gen["kde"],
         xscale=gen["scale x"],
         yscale=gen["scale y"],
-        xacc=con["spacing x"],
-        yacc=con["spacing y"],
+        xacc=gen["spacing x"],
+        yacc=gen["spacing y"],
     )
 
     if kde.size and kde.min() != kde.max():

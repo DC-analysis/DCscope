@@ -1,6 +1,7 @@
 2.26.1
  - enh: joint KDE map for scatter and contour visualization (#111)
  - enh: setup basic logging
+ - ref: move contour spacing plot settings to "General" section
  - ref: migrate find smooth contour spacing code to dclab
  - ref: remove redundant `plotting` submodule
  - setup: bump dclab to 0.71.0 (smooth contours, joint KDE maps)

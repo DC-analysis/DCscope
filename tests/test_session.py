@@ -6,8 +6,8 @@ import tempfile
 import dclab
 import h5py
 import numpy as np
-from dcscope import pipeline, session
 
+from dcscope import pipeline, session
 
 data_path = pathlib.Path(__file__).parent / "data"
 
@@ -88,7 +88,7 @@ def make_pipeline(nslots=2, nfilters=3, nplots=1, paths=None):
 
 
 def test_2_5_1_replace_emodulus_model():
-    """In DCscope.5.1 we replace "emodulus model" with "emodulus lut"."""
+    """In DCscope 2.5.1 we replace "emodulus model" with "emodulus lut"."""
     spath = pathlib.Path(__file__).parent / "data" / "version_2_1_0_basic.so2"
     pl = session.open_session(spath)
     sc = pl.slots[0].config
@@ -99,7 +99,7 @@ def test_2_5_1_replace_emodulus_model():
 
 
 def test_2_1_1_new_key_emodulus_enabled():
-    """In DCscope.1.1 we introduces the "emodulus enabled" key
+    """In DCscope 2.1.1 we introduces the "emodulus enabled" key
 
     If it is disabled (reservoir measurements), then the emodulus
     analysis options are not shown in the Slot options. See also
@@ -111,6 +111,29 @@ def test_2_1_1_new_key_emodulus_enabled():
     assert "emodulus" in sc
     assert "emodulus enabled" in sc["emodulus"]
     assert sc["emodulus"]["emodulus enabled"]
+
+
+def test_2_26_1_moved_spacing_to_general_plot_section():
+    """In DCscope 2.26.1 we changed the location of the spacing to general
+    """
+    spath = pathlib.Path(__file__).parent / "data" / "version_2_1_0_basic.so2"
+    pl = session.open_session(spath)
+    plot = pl.plots[0]
+
+    # test private properties
+    assert "spacing x" not in plot._state["contour"]
+    assert "spacing y" not in plot._state["contour"]
+    assert plot._state["general"]["spacing x"] == 2.0
+    assert plot._state["general"]["spacing y"] == 0.005
+
+    # test backwards compatibility
+    state = plot.__getstate__()
+    assert state["contour"]["spacing x"] == 2.0
+    assert state["contour"]["spacing y"] == 0.005
+
+    # test actual values
+    assert state["general"]["spacing x"] == 2.0
+    assert state["general"]["spacing y"] == 0.005
 
 
 def test_file_hash():

@@ -104,6 +104,8 @@ class PlotPanel(QtWidgets.QWidget):
                 "range y": [ry["start"], ry["end"]],
                 "scale x": self.comboBox_scale_x.currentData(),
                 "scale y": self.comboBox_scale_y.currentData(),
+                "spacing x": self.doubleSpinBox_spacing_x.value(),
+                "spacing y": self.doubleSpinBox_spacing_y.value(),
             },
             "scatter": {
                 "colormap": self.comboBox_colormap.currentData(),
@@ -131,8 +133,6 @@ class PlotPanel(QtWidgets.QWidget):
                 "percentiles": [self.doubleSpinBox_perc_1.value(),
                                 self.doubleSpinBox_perc_2.value(),
                                 ],
-                "spacing x": self.doubleSpinBox_spacing_x.value(),
-                "spacing y": self.doubleSpinBox_spacing_y.value(),
             }
         }
         return state
@@ -212,8 +212,8 @@ class PlotPanel(QtWidgets.QWidget):
         self.comboBox_ls_1.setCurrentIndex(ls1_index)
         ls2_index = self.comboBox_ls_2.findData(con["line styles"][1])
         self.comboBox_ls_2.setCurrentIndex(ls2_index)
-        self._set_contour_spacing(spacing_x=con["spacing x"],
-                                  spacing_y=con["spacing y"])
+        self._set_kde_spacing(spacing_x=gen["spacing x"],
+                              spacing_y=gen["spacing y"])
         for b in toblock:
             b.blockSignals(False)
 
@@ -323,8 +323,8 @@ class PlotPanel(QtWidgets.QWidget):
                                              })
                     rc.blockSignals(False)
 
-    def _set_contour_spacing(self, spacing_x=None, spacing_y=None):
-        """Set the contour spacing in the spin boxes
+    def _set_kde_spacing(self, spacing_x=None, spacing_y=None):
+        """Set the KDE spacing in the spin boxes
 
         - sets spinbox limits first
         - sets number of digits
@@ -347,11 +347,11 @@ class PlotPanel(QtWidgets.QWidget):
                 spinBox.setSingleStep(10**(-dec + 1))
                 spinBox.setValue(spacing)
 
-    def _set_contour_spacing_auto(self, axis_x=None, axis_y=None):
-        """automatically estimate and set the contour spacing
+    def _set_kde_spacing_auto(self, axis_x=None, axis_y=None):
+        """automatically estimate and set the KDE spacing
 
         - uses :func:`dclab.kde.binning.bin_width_percentile`
-        - uses _set_contour_spacing
+        - uses _set_kde_spacing
 
         Not to be confused with `on_spacing_auto`!
         """
@@ -385,8 +385,8 @@ class PlotPanel(QtWidgets.QWidget):
                     spacings_xy.append(np.min(spacings))
             spacing_x, spacing_y = spacings_xy
             # sets the limits before setting the value
-            self._set_contour_spacing(spacing_x=spacing_x,
-                                      spacing_y=spacing_y)
+            self._set_kde_spacing(spacing_x=spacing_x,
+                                  spacing_y=spacing_y)
 
     @property
     def current_plot(self):
@@ -432,14 +432,14 @@ class PlotPanel(QtWidgets.QWidget):
         gen = self.read_plot_state()["general"]
         if self.sender() == self.comboBox_axis_x:
             self._set_range_xy_state(axis_x=gen["axis x"])
-            self._set_contour_spacing_auto(axis_x=gen["axis x"])
+            self._set_kde_spacing_auto(axis_x=gen["axis x"])
         elif self.sender() == self.comboBox_axis_y:
             self._set_range_xy_state(axis_y=gen["axis y"])
-            self._set_contour_spacing_auto(axis_y=gen["axis y"])
+            self._set_kde_spacing_auto(axis_y=gen["axis y"])
         elif self.sender() == self.comboBox_scale_x:
-            self._set_contour_spacing_auto(axis_x=gen["axis x"])
+            self._set_kde_spacing_auto(axis_x=gen["axis x"])
         elif self.sender() == self.comboBox_scale_y:
-            self._set_contour_spacing_auto(axis_y=gen["axis y"])
+            self._set_kde_spacing_auto(axis_y=gen["axis y"])
 
     @QtCore.pyqtSlot()
     def on_column_num_changed(self):
@@ -563,8 +563,8 @@ class PlotPanel(QtWidgets.QWidget):
 
         # set the final spacing
         new_state = self.read_plot_state()
-        new_state["contour"]["spacing x"] = res["spacing x"]
-        new_state["contour"]["spacing y"] = res["spacing y"]
+        new_state["general"]["spacing x"] = res["spacing x"]
+        new_state["general"]["spacing y"] = res["spacing y"]
         self.write_plot_state(new_state)
 
     @QtCore.pyqtSlot()

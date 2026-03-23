@@ -2,11 +2,10 @@ import copy
 import uuid
 
 import dclab
-from dclab.kde import methods as kdem
 import numpy as np
+from dclab.kde import methods as kdem
 
 from ..util import hashobj
-
 
 DEFAULT_STATE = {
     "identifier": "no default",
@@ -28,6 +27,8 @@ DEFAULT_STATE = {
         "range y": [0, 0],
         "scale x": "linear",
         "scale y": "linear",
+        "spacing x": 1.5,  # spacing for "axis x" and linear "scale x"
+        "spacing y": 0.004,  # spacing for "axis y" and linear "scale y"
     },
     "scatter": {
         "colormap": "viridis",  # only applies when hue is "kde" or "feature"
@@ -49,8 +50,6 @@ DEFAULT_STATE = {
         "line widths": [3.0, 1.5],  # contour line widths [pt]
         "line styles": ["solid", "dashed"],
         "percentiles": [95.0, 50.0],
-        "spacing x": 2,  # spacing for "axis x" and linear "scale x"
-        "spacing y": 0.005,  # spacing for "axis y" and linear "scale y"
     }
 }
 
@@ -79,6 +78,8 @@ STATE_OPTIONS = {
         "range y": (float,),
         "scale x": ["linear", "log"],
         "scale y": ["linear", "log"],
+        "spacing x": float,
+        "spacing y": float,
     },
     "scatter": {
         "colormap": ["bipolar", "grayblue", "graygreen", "grayorange",
@@ -103,8 +104,6 @@ STATE_OPTIONS = {
         "line widths": (float,),
         "line styles": (["solid", "dashed", "dotted"],),
         "percentiles": (float,),
-        "spacing x": float,
-        "spacing y": float,
     }
 }
 
@@ -123,6 +122,11 @@ class Plot:
     def __getstate__(self):
         state = copy.deepcopy(self._state)
         state["identifier"] = self.identifier
+
+        # backwards compatibility DCscope <= 2.26.0 (session saving)
+        for key in ["spacing x", "spacing y"]:
+            state["contour"][key] = state["general"][key]
+
         return state
 
     def __repr__(self):
@@ -138,6 +142,12 @@ class Plot:
             state["general"]["range x"] = [0, 0]
         if np.any(np.isinf(state["general"]["range y"])):
             state["general"]["range y"] = [0, 0]
+
+        # backwards compatibility DCscope <= 2.26.0
+        for key in ["spacing x", "spacing y"]:
+            if key not in state["general"] and key in state["contour"]:
+                state["general"][key] = state["contour"].pop(key)
+
         self._state = state
 
     @property
