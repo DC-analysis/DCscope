@@ -6,7 +6,7 @@ import warnings
 import dclab
 import numpy as np
 
-from ..idiom import SLOPING_FEATURES
+from ..idiom import FEATURES_MONOTONOUS
 from ..util import strip_common_prefix_suffix
 
 from .dataslot import Dataslot
@@ -633,7 +633,7 @@ class Pipeline(object):
                         vdata = fdata[~invalid]
                     else:
                         vdata = fdata
-                    if feat in SLOPING_FEATURES:
+                    if feat in FEATURES_MONOTONOUS:
                         # We are a little faster here.
                         vmin = min(np.nanmin(vdata[:1000]),
                                    np.nanmin(vdata[-1000:]))

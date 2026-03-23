@@ -1,3 +1,4 @@
+from dclab.definitions.feat_const import FEATURES_MONOTONOUS  # noqa: F401
 from dclab.rtdc_dataset import feat_anc_core
 
 #: integer-valued features
@@ -14,13 +15,6 @@ INTEGER_FEATURES = [
     "nevents",
 ]
 
-#: features that by definition trend over the course of a measurement
-SLOPING_FEATURES = [
-    "frame",
-    "index",
-    "index_online",
-    "time",
-]
 
 #: ancillary features that are easily computed
 QUICK_FEATURES = feat_anc_core.FEATURES_RAPID

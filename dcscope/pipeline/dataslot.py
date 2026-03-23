@@ -5,7 +5,7 @@ import dclab
 from dclab.features.emodulus.viscosity import KNOWN_MEDIA
 import numpy as np
 
-from ..idiom import SLOPING_FEATURES
+from ..idiom import FEATURES_MONOTONOUS
 from .. import meta_tool
 from ..util import hashobj
 
@@ -214,7 +214,7 @@ def get_sane_contour_spacing_range(feat, data):
     # TODO: caching?
     if len(data) == 0:
         frange = np.nan
-    elif feat in SLOPING_FEATURES:
+    elif feat in FEATURES_MONOTONOUS:
         frange = np.abs(data[-1] - data[0])
         if np.isnan(frange) or np.isinf(frange):
             invalid = np.logical_or(np.isinf(data), np.isnan(data))

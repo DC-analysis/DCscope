@@ -542,9 +542,17 @@ def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
             # Always plot higher percentiles above lower percentiles
             # (useful if there are multiple contour plots overlapping)
             cline.setZValue(con["percentiles"][ii])
-    if num_unreliable_contours or not elements:
+
+    label = ""
+    if not KernelDensityEstimator.check_feat_kde_applicability(
+        xax=plot_state["general"]["axis x"],
+            yax=plot_state["general"]["axis y"]):
+        label = "Contour data unavailable"
+    elif num_unreliable_contours or not elements:
         # Tell the user to refine contour spacing.
-        add_label("Please reduce contour spacing.",
+        label = "Please reduce contour spacing"
+    if label:
+        add_label(label,
                   anchor_parent=plot_item.axes["bottom"]["item"],
                   font_size_diff=-1,
                   color="red",
@@ -552,6 +560,7 @@ def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
                   text_valign="bottom",
                   dy=-12,
                   )
+
     return elements
 
 
