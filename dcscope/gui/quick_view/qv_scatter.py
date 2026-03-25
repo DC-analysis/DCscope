@@ -45,6 +45,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self._view_box.add_poly_vertex.connect(self.add_poly_vertex)
 
     def activate_poly_mode(self, points=None):
+        self.scene().hoverItems.clear()
         if points is None:
             points = []
         if self.poly_line_roi is None:
@@ -60,6 +61,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         return self.poly_line_roi
 
     def activate_scatter_mode(self):
+        self.scene().hoverItems.clear()
         if self.poly_line_roi is not None:
             self.removeItem(self.poly_line_roi)
             self.poly_line_roi = None
@@ -88,6 +90,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
                   xscale="linear", yscale="linear", downsample=False,
                   hue_type="none", hue_kwargs=None, isoelastics=False,
                   lut_identifier=None):
+        self.scene().hoverItems.clear()
         self.rtdc_ds = rtdc_ds
         self.slot = slot
         self.xax = xax
@@ -184,6 +187,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
                 lut_identifier=lut_identifier)
 
     def set_mouse_click_mode(self, mode):
+        self.scene().hoverItems.clear()
         allowed = ["scatter", "poly-create", "poly-modify"]
         if mode not in allowed:
             raise ValueError("Invalid mouse mode: {}, ".format(mode)
@@ -195,6 +199,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self._view_box.mode = mode
 
     def set_poly_points(self, points):
+        self.scene().hoverItems.clear()
         if self.poly_line_roi is None:
             raise ValueError("No polygon selection active!")
         points = np.array(points, copy=True)
@@ -208,6 +213,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
             self.poly_line_roi.setState(state)
 
     def setData(self, x, y, **kwargs):
+        self.scene().hoverItems.clear()
         # convert to log-scale if applicable
         if self.xscale == "log":
             x = np.log10(x)
@@ -217,6 +223,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.scatter.setData(x=x, y=y, **kwargs)
 
     def setSelection(self, event_index):
+        self.scene().hoverItems.clear()
         x = self.data_x[event_index]
         y = self.data_y[event_index]
         self.select.setData([x], [y])
