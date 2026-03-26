@@ -293,7 +293,7 @@ class FilterPanel(QtWidgets.QWidget):
                 self.update_content(filt_index)
 
         qv_dict = data.get("quickview")
-        if qv_dict:
+        if qv_dict and qv_dict.get("enabled"):
             if self.isVisible():
                 # If quickview is clicked, show corresponding filter
                 filt_index = qv_dict.get("filt_index")

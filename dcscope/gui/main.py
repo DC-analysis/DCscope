@@ -203,6 +203,8 @@ class DCscope(QtWidgets.QMainWindow):
         self.init_analysis_view()
         self.mdiArea.cascadeSubWindows()
 
+        self.toolButton_quick_view.toggled.connect(self.on_quick_view_toggled)
+
         # BLOCK MATRIX (wraps DataMatrix and PlotMatrix)
         # BlockMatrix appearance
         self.toolButton_dm.clicked.connect(self.on_block_matrix)
@@ -447,8 +449,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.widget_quick_view = quick_view.QuickView(parent=self)
         sub.setWidget(self.widget_quick_view)
         self.subwindows["quick_view"] = sub
-        # signals
-        self.toolButton_quick_view.toggled.connect(sub.setVisible)
         sub.hide()
         self.mdiArea.addSubWindow(sub)
 
@@ -822,6 +822,7 @@ class DCscope(QtWidgets.QMainWindow):
             if not self.widget_quick_view.current_pipeline_element:
                 # select the first item in the pipeline
                 self.pp_mod_send.emit({"quickview": {
+                    "enabled": True,
                     "slot_index": 0,
                     "filt_index": 0,
                     "slot_id": self.pipeline.slot_ids[0],
@@ -847,6 +848,7 @@ class DCscope(QtWidgets.QMainWindow):
             if not self.widget_quick_view.current_pipeline_element:
                 # select the first item in the pipeline
                 self.pp_mod_send.emit({"quickview": {
+                    "enabled": True,
                     "slot_index": 0,
                     "filt_index": 0,
                     "slot_id": self.pipeline.slot_ids[0],
@@ -930,7 +932,8 @@ class DCscope(QtWidgets.QMainWindow):
                 self.toolButton_new_plot.setEnabled(False)
 
         # Enable QuickView if relevant
-        if data.get("quickview"):
+        qv_dict = data.get("quickview")
+        if qv_dict and qv_dict.get("enabled"):
             if not self.subwindows["quick_view"].isVisible():
                 self.toolButton_quick_view.setChecked(True)
                 self.subwindows["quick_view"].setVisible(True)
@@ -950,6 +953,18 @@ class DCscope(QtWidgets.QMainWindow):
         # redraw
         self.mdiArea.update()
         self.subwindows["analysis_view"].update()
+
+    @QtCore.pyqtSlot(bool)
+    def on_quick_view_toggled(self, toggled):
+        # Hide or show quickview windoe
+        self.subwindows["quick_view"].setVisible(toggled)
+        self.pp_mod_send.emit({"quickview": {
+            "enabled": toggled,
+            "slot_index": 0,
+            "filt_index": 0,
+            "slot_id": self.pipeline.slot_ids[0],
+            "filt_id": self.pipeline.filter_ids[0],
+        }})
 
     @QtCore.pyqtSlot()
     def on_splitter(self):

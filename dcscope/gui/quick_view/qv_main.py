@@ -217,13 +217,13 @@ class QuickView(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
-        qv = data.get("quickview")
-        if qv is not None:
-            ds = self.pipeline.get_dataset(slot_index=qv["slot_index"],
-                                           filt_index=qv["filt_index"])
+        qv_dict = data.get("quickview")
+        if qv_dict and qv_dict.get("enabled"):
+            ds = self.pipeline.get_dataset(slot_index=qv_dict["slot_index"],
+                                           filt_index=qv_dict["filt_index"])
             self.show_rtdc(rtdc_ds=ds,
-                           slot=self.pipeline.slots[qv["slot_index"]])
-            self.current_pipeline_element = qv
+                           slot=self.pipeline.slots[qv_dict["slot_index"]])
+            self.current_pipeline_element = qv_dict
 
         if data.get("pipeline"):
             # fetch the slot from the pipeline

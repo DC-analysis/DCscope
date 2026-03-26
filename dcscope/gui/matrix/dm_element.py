@@ -36,6 +36,7 @@ class DataMatrixElement(QtWidgets.QWidget):
             if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
                 # Let everyone know that this widget gets quickview
                 qv_dict = {
+                    "enabled": True,
                     "slot_index": self.slot_index,
                     "slot_id": self.pipeline.slot_ids[self.slot_index],
                     "filt_index": self.filt_index,
@@ -75,8 +76,12 @@ class DataMatrixElement(QtWidgets.QWidget):
         qv_dict = data.get("quickview", {})
 
         if qv_dict:
-            # every instance must know where quick view is set
-            self.quickview_dict = qv_dict
+            if qv_dict.get("enabled"):
+                # every instance must know where quick view is set
+                self.quickview_dict = qv_dict
+            else:
+                self.quickview_dict = {"filt_id": None,
+                                       "slot_id": None}
 
         pp_dict = data.get("pipeline", {})
         if pp_dict or qv_dict:
