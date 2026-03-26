@@ -9,7 +9,7 @@
  - ref: move contour spacing plot settings to "General" section
  - ref: migrate find smooth contour spacing code to dclab
  - ref: remove redundant `plotting` submodule
- - setup: bump dclab to 0.71.0 (smooth contours, joint KDE maps)
+ - setup: bump dclab to 0.71.1 (smooth contours, joint KDE maps)
 2.26.0
  - feat: edit, duplicate and remove polygon filters in the "Filter" view
  - fix: override-check in filter export did not work
