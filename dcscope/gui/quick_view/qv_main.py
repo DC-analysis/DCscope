@@ -47,6 +47,13 @@ class QuickView(QtWidgets.QWidget):
 
         self.pipeline = None
         self.current_pipeline_element = None
+        # set event view as default page
+        self.stackedWidget.setCurrentIndex(1)
+        self.groupBox_image.setVisible(False)
+        self.groupBox_trace.setVisible(False)
+        self.imageView_image.setVisible(False)
+        self.imageView_image_amp.setVisible(False)
+        self.imageView_image_pha.setVisible(False)
 
         ref = importlib.resources.files(
             "dcscope.gui.quick_view") / "qv_style.css"

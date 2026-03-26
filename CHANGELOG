@@ -4,6 +4,7 @@
  - fix: disable Block Matrix QuickView selection when QuickView is closed
  - fix: don't update hidden QuickView panel when the pipeline changes
  - fix: don't replot in QuickView when the plot parameters are identical
+ - fix: always show event view in QuickView when initialized
  - enh: allow to modify caching settings in the "Advanced" preferences tab
  - enh: joint KDE map for scatter and contour visualization (#111)
  - enh: setup basic logging
