@@ -3,6 +3,8 @@ import pyqtgraph as pg
 from PyQt6 import QtCore
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
+from dclab.util import hashobj
+
 from .. import pipeline_plot
 from ..widgets import SimplePlotWidget, SimpleViewBox
 
@@ -37,6 +39,8 @@ class QuickViewScatterWidget(SimplePlotWidget):
 
         # polygon editing ROI
         self.poly_line_roi = None
+
+        self._last_plot_hash = None
 
         # Signals for mouse click
         # let view box update the selected event in the scatter plot
@@ -90,6 +94,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
                   xscale="linear", yscale="linear", downsample=False,
                   hue_type="none", hue_kwargs=None, isoelastics=False,
                   lut_identifier=None):
+
         self.scene().hoverItems.clear()
         self.rtdc_ds = rtdc_ds
         self.slot = slot
@@ -103,6 +108,15 @@ class QuickViewScatterWidget(SimplePlotWidget):
             self.kde_type = "none"
         else:
             self.kde_type = hue_kwargs["kde_type"]
+
+        # Determine whether we are plotting the same thing.
+        plot_hash = hashobj([
+            rtdc_ds.identifier, rtdc_ds[xax], rtdc_ds[yax], slot,
+            xax, yax, xscale, yscale, downsample, hue_type, hue_kwargs,
+            isoelastics, lut_identifier])
+        if plot_hash == self._last_plot_hash:
+            # same plot, nothing to do
+            return
 
         plot_state = {
             "general": {
@@ -185,6 +199,8 @@ class QuickViewScatterWidget(SimplePlotWidget):
                 channel_width=cfg["setup"]["channel width"],
                 pixel_size=cfg["imaging"]["pixel size"],
                 lut_identifier=lut_identifier)
+
+        self._last_plot_hash = plot_hash
 
     def set_mouse_click_mode(self, mode):
         self.scene().hoverItems.clear()

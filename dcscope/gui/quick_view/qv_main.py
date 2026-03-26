@@ -1040,6 +1040,7 @@ class QuickView(QtWidgets.QWidget):
             self.rtdc_ds = dclab.new_dataset(
                 rtdc_ds,
                 identifier=f"child-of-{rtdc_ds.identifier}")
+
         event_count = self.rtdc_ds.config["experiment"]["event count"]
         if event_count == 0:
             self.enable_interface(False)
