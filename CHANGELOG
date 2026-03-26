@@ -2,6 +2,7 @@
  - fix: possibly fix `KeyError` on hover in QuickView by doing a
    `GraphicsScene.hoverItems.clear()` whenever something changes (#205)
  - fix: disable Block Matrix QuickView selection when QuickView is closed
+ - fix: don't update hidden QuickView panel when the pipeline changes
  - enh: allow to modify caching settings in the "Advanced" preferences tab
  - enh: joint KDE map for scatter and contour visualization (#111)
  - enh: setup basic logging

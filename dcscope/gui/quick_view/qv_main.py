@@ -225,7 +225,7 @@ class QuickView(QtWidgets.QWidget):
                            slot=self.pipeline.slots[qv_dict["slot_index"]])
             self.current_pipeline_element = qv_dict
 
-        if data.get("pipeline"):
+        if data.get("pipeline") and self.isVisible():
             # fetch the slot from the pipeline
             if self.current_pipeline_element is not None:
                 slot_id = self.current_pipeline_element["slot_id"]
