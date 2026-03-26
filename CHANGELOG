@@ -1,6 +1,7 @@
 2.26.1
  - fix: Possibly fix `KeyError` on hover in QuickView by doing a
    `GraphicsScene.hoverItems.clear()` whenever something changes (#205)
+ - enh: allow to modify caching settings in the "Advanced" preferences tab
  - enh: joint KDE map for scatter and contour visualization (#111)
  - enh: setup basic logging
  - enh: inform user about unavailable contour data with dclab 0.71.0 (#207)

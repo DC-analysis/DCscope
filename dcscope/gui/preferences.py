@@ -5,6 +5,7 @@ import traceback
 import importlib.resources
 import platform
 
+from dclab import cached
 from dclab.rtdc_dataset.fmt_dcor import access_token
 from dclab.lme4 import rsetup
 from PyQt6 import uic, QtCore, QtWidgets
@@ -52,9 +53,16 @@ class Preferences(QtWidgets.QDialog):
         else:
             rdefault = ""
 
+        store_keeper = cached.StoreKeeper.get_instance()
+        cpath_act = store_keeper.disk_store.path
+
         #: configuration keys, corresponding widgets, and defaults
         self.config_pairs = [
             ["advanced/developer mode", self.advanced_developer_mode, "0"],
+            ["cache/disk store path", self.lineEdit_cache_path, cpath_act],
+            ["cache/disk store size", self.doubleSpinBox_cache_disk_size, "2"],
+            ["cache/memory num", self.spinBox_cache_mem_num, "200"],
+            ["cache/write interval", self.spinBox_cache_interval, "30"],
             ["check for updates", self.general_check_for_updates, "1"],
             ["dcor/api key", self.dcor_api_key, ""],
             ["dcor/servers", self.dcor_servers, ["dcor.mpl.mpg.de"]],
@@ -105,6 +113,9 @@ class Preferences(QtWidgets.QDialog):
         # lme4 buttons
         self.pushButton_lme4_install.clicked.connect(self.on_lme4_install)
         self.pushButton_lme4_search.clicked.connect(self.on_lme4_search_r)
+        # cache
+        self.pushButton_cache_disk_clear.clicked.connect(self.on_cache_clear)
+        self.pushButton_cache_disk_browse.clicked.connect(self.on_cache_browse)
         # tab changed
         self.tabWidget.currentChanged.connect(self.on_tab_changed)
 
@@ -115,9 +126,11 @@ class Preferences(QtWidgets.QDialog):
             if isinstance(widget, QtWidgets.QCheckBox):
                 widget.setChecked(bool(int(value)))
             elif isinstance(widget, QtWidgets.QLineEdit):
-                widget.setText(value)
+                widget.setText(str(value))
             elif isinstance(widget, QtWidgets.QSpinBox):
                 widget.setValue(int(value))
+            elif isinstance(widget, QtWidgets.QDoubleSpinBox):
+                widget.setValue(float(value))
             elif widget is self.dcor_servers:
                 self.dcor_servers.clear()
                 self.dcor_servers.addItems(value)
@@ -208,6 +221,20 @@ class Preferences(QtWidgets.QDialog):
             self.pushButton_lme4_install.setVisible(lme4_st == "not installed")
             self.label_r_version.setText(r_version)
             self.label_lme4_installed.setText(lme4_st)
+
+    @QtCore.pyqtSlot()
+    def on_cache_clear(self):
+        """Clear the disk store cache"""
+        store_keeper = cached.StoreKeeper.get_instance()
+        store_keeper.disk_store.clear()
+        store_keeper.disk_store.path.mkdir(parents=True, exist_ok=True)
+
+    @QtCore.pyqtSlot()
+    def on_cache_browse(self):
+        """Choose a new caching location"""
+        out = QtWidgets.QFileDialog.getExistingDirectory(self, 'Disk cache')
+        if out:
+            self.lineEdit_cache_path.setText(out)
 
     @QtCore.pyqtSlot()
     def on_dcor_enc_token(self):
@@ -333,23 +360,16 @@ class Preferences(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_settings_apply(self):
         """Save current changes made in UI to settings and reload UI"""
+        restart_required = False
         for key, widget, default in self.config_pairs:
             if isinstance(widget, QtWidgets.QCheckBox):
-                value = int(widget.isChecked())
-                if key == "advanced/developer mode":
-                    devmode = int(self.settings.value(
-                        "advanced/developer mode", 0))
-                    if devmode != value:
-                        msg = QtWidgets.QMessageBox()
-                        msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
-                        msg.setText("Please restart DCscope for the changes "
-                                    + "to take effect.")
-                        msg.setWindowTitle("Restart DCscope")
-                        msg.exec()
+                value = str(int(widget.isChecked()))
             elif isinstance(widget, QtWidgets.QLineEdit):
                 value = widget.text().strip()
             elif isinstance(widget, QtWidgets.QSpinBox):
-                value = widget.value()
+                value = str(widget.value())
+            elif isinstance(widget, QtWidgets.QDoubleSpinBox):
+                value = str(widget.value())
             elif widget is self.dcor_servers:
                 curtext = self.dcor_servers.currentText()
                 items = self.settings.value(key, default)
@@ -372,7 +392,23 @@ class Preferences(QtWidgets.QDialog):
                     signal = self.config_live_signals[key](value)
                     self.pp_mod_send.emit(signal)
 
+            # Determine whether restart is required
+            if key == "advanced/developer mode":
+                if value != self.settings.value(key, "0"):
+                    restart_required = True
+            elif key.startswith("cache/"):
+                if self.settings.value(key) != str(value):
+                    restart_required = True
+
             self.settings.setValue(key, value)
+
+        if restart_required:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
+            msg.setText("Please restart DCscope for the changes "
+                        + "to take effect.")
+            msg.setWindowTitle("Restart DCscope")
+            msg.exec()
 
         # reload UI to give visual feedback
         self.reload()

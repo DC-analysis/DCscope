@@ -120,14 +120,23 @@ class DCscope(QtWidgets.QMainWindow):
                 s3_secret_access_key
 
         # setup memory and disk caching
-        cache_path = pathlib.Path(
+        cpath = pathlib.Path(
             QStandardPaths.writableLocation(
                 QStandardPaths.StandardLocation.CacheLocation))
+        cpath_act = self.settings.value("cache/disk store path", cpath)
+        if not pathlib.Path(cpath_act).is_dir():
+            logger.warning(
+                f"Using cache path '{cpath}' ('{cpath_act}' does not exist)")
+            cpath_act = cpath
+
         store_keeper = cached.StoreKeeper.get_instance()
-        store_keeper.set_disk_store_path(cache_path)
-        store_keeper.set_interval(30)
-        store_keeper.set_disk_store_size_bytes(1024**3)
-        store_keeper.set_memory_store_size(200)
+        store_keeper.set_disk_store_path(cpath_act)
+        store_keeper.set_interval(
+            int(self.settings.value("cache/write interval", "30")))
+        store_keeper.set_disk_store_size_bytes(int(float(
+            self.settings.value("cache/disk store size", "2")) * 1000**3))
+        store_keeper.set_memory_store_size(
+            int(self.settings.value("cache/memory num", "200")))
 
         #: Extensions
         store_path = pathlib.Path(
