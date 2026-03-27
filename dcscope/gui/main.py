@@ -134,7 +134,7 @@ class DCscope(QtWidgets.QMainWindow):
         store_keeper.set_interval(
             int(self.settings.value("cache/write interval", "30")))
         store_keeper.set_disk_store_size_bytes(int(float(
-            self.settings.value("cache/disk store size", "2")) * 1000**3))
+            self.settings.value("cache/disk store size", "9")) * 1000**3))
         store_keeper.set_memory_store_size(
             int(self.settings.value("cache/memory num", "200")))
 

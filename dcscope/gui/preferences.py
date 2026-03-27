@@ -60,7 +60,7 @@ class Preferences(QtWidgets.QDialog):
         self.config_pairs = [
             ["advanced/developer mode", self.advanced_developer_mode, "0"],
             ["cache/disk store path", self.lineEdit_cache_path, cpath_act],
-            ["cache/disk store size", self.doubleSpinBox_cache_disk_size, "2"],
+            ["cache/disk store size", self.doubleSpinBox_cache_disk_size, "9"],
             ["cache/memory num", self.spinBox_cache_mem_num, "200"],
             ["cache/write interval", self.spinBox_cache_interval, "30"],
             ["check for updates", self.general_check_for_updates, "1"],
