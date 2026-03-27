@@ -1,3 +1,5 @@
+2.26.2
+ - setup: bump dclab to 0.71.2 (disk-caching of DCOR/HTTP/S3 data)
 2.26.1
  - fix: possibly fix `KeyError` on hover in QuickView by doing a
    `GraphicsScene.hoverItems.clear()` whenever something changes (#205)
