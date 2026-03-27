@@ -276,7 +276,7 @@ class PlotPanel(QtWidgets.QWidget):
         else:
             self.setEnabled(True)
         if feat is not None:
-            lim = self.pipeline.get_min_max(
+            lim = self.pipeline.get_min_max_coarse(
                 feat=feat, plot_id=self.current_plot.identifier)
             if not (np.isinf(lim[0]) or np.isinf(lim[1])):
                 self.widget_range_feat.setLimits(vmin=lim[0], vmax=lim[1])
@@ -307,16 +307,19 @@ class PlotPanel(QtWidgets.QWidget):
                                   [self.widget_range_x, self.widget_range_y],
                                   ):
             if axis is not None:
-                lim = self.pipeline.get_min_max(feat=axis, plot_id=plot_id)
+                lim = self.pipeline.get_min_max_coarse(
+                    feat=axis,
+                    plot_id=plot_id)
                 if not (np.isinf(lim[0]) or np.isinf(lim[1])):
                     rc.blockSignals(True)
                     rc.setLimits(vmin=lim[0],
                                  vmax=lim[1])
                     if rang is None or rang[0] == rang[1]:
                         # default range is limits + 5% margin
-                        rang = self.pipeline.get_min_max(feat=axis,
-                                                         plot_id=plot_id,
-                                                         margin=0.05)
+                        rang = self.pipeline.get_min_max_coarse(
+                            feat=axis,
+                            plot_id=plot_id,
+                            margin=0.05)
                     rc.write_pipeline_state({"active": True,
                                              "start": rang[0],
                                              "end": rang[1],
@@ -347,11 +350,8 @@ class PlotPanel(QtWidgets.QWidget):
                 spinBox.setSingleStep(10**(-dec + 1))
                 spinBox.setValue(spacing)
 
-    def _set_kde_spacing_auto(self, axis_x=None, axis_y=None):
+    def _set_kde_spacing_simple(self, axis_x=None, axis_y=None):
         """automatically estimate and set the KDE spacing
-
-        - uses :func:`dclab.kde.binning.bin_width_percentile`
-        - uses _set_kde_spacing
 
         Not to be confused with `on_spacing_auto`!
         """
@@ -361,32 +361,28 @@ class PlotPanel(QtWidgets.QWidget):
             return
         else:
             self.setEnabled(True)
-        dslist, _ = self.pipeline.get_plot_datasets(
-            self.current_plot.identifier)
-        if dslist:
-            spacings_xy = []
-            for axis, scaleCombo in zip([axis_x, axis_y],
-                                        [self.comboBox_scale_x,
-                                         self.comboBox_scale_y]):
-                if axis is None:
-                    # nothing to do
-                    spacings_xy.append(None)
-                else:
-                    # determine good approximation
-                    spacings = []
-                    for ds in dslist:
-                        spa = ds.get_kde_spacing(
-                            a=ds[axis],
-                            feat=axis,
-                            scale=scaleCombo.currentData(),
-                            method=dclab.kde.binning.bin_width_percentile,
-                        )
-                        spacings.append(spa)
-                    spacings_xy.append(np.min(spacings))
-            spacing_x, spacing_y = spacings_xy
-            # sets the limits before setting the value
-            self._set_kde_spacing(spacing_x=spacing_x,
-                                  spacing_y=spacing_y)
+
+        spacings_xy = []
+        for feat, scaleCombo in zip([axis_x, axis_y],
+                                    [self.comboBox_scale_x,
+                                     self.comboBox_scale_y]):
+            if feat is None:
+                spacings_xy.append(None)
+            else:
+                vmin, vmax = self.pipeline.get_min_max_coarse(
+                    feat=feat,
+                    plot_id=self.current_plot.identifier)
+
+                if scaleCombo.currentData() == "log":
+                    vmin = np.log(vmin)
+                    vmax = np.log(vmax)
+
+                spacings_xy.append((vmax-vmin)/300)
+
+        spacing_x, spacing_y = spacings_xy
+        # sets the limits before setting the value
+        self._set_kde_spacing(spacing_x=spacing_x,
+                              spacing_y=spacing_y)
 
     @property
     def current_plot(self):
@@ -432,14 +428,14 @@ class PlotPanel(QtWidgets.QWidget):
         gen = self.read_plot_state()["general"]
         if self.sender() == self.comboBox_axis_x:
             self._set_range_xy_state(axis_x=gen["axis x"])
-            self._set_kde_spacing_auto(axis_x=gen["axis x"])
+            self._set_kde_spacing_simple(axis_x=gen["axis x"])
         elif self.sender() == self.comboBox_axis_y:
             self._set_range_xy_state(axis_y=gen["axis y"])
-            self._set_kde_spacing_auto(axis_y=gen["axis y"])
+            self._set_kde_spacing_simple(axis_y=gen["axis y"])
         elif self.sender() == self.comboBox_scale_x:
-            self._set_kde_spacing_auto(axis_x=gen["axis x"])
+            self._set_kde_spacing_simple(axis_x=gen["axis x"])
         elif self.sender() == self.comboBox_scale_y:
-            self._set_kde_spacing_auto(axis_y=gen["axis y"])
+            self._set_kde_spacing_simple(axis_y=gen["axis y"])
 
     @QtCore.pyqtSlot()
     def on_column_num_changed(self):

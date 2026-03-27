@@ -4,6 +4,7 @@ import threading
 import warnings
 
 import dclab
+from dclab.rtdc_dataset import RTDC_Hierarchy
 import numpy as np
 
 from ..idiom import FEATURES_MONOTONOUS
@@ -481,7 +482,9 @@ class Pipeline(object):
             ds = ray.get_dataset(apply_filter=apply_filter)
         return ds
 
-    def get_datasets(self, filt_index=-1, apply_filter=True):
+    def get_datasets(self,
+                     filt_index: int | None = -1,
+                     apply_filter: bool = True):
         """Return all datasets with filters applied
 
         The parameters are passed to :func:`Pipeline.get_dataset`.
@@ -654,8 +657,75 @@ class Pipeline(object):
                               EmptyDatasetWarning)
         if margin:
             diff = fmax - fmin
-            fmin -= margin*diff
-            fmax += margin*diff
+            fmin -= margin * diff
+            fmax += margin * diff
+
+        if np.any(np.isinf([fmin, fmax])):
+            # Set values to 0 if no
+            fmin = fmax = 0
+        return [fmin, fmax]
+
+    def get_min_max_coarse(self, feat, plot_id=None, margin=0.0):
+        """Return coarse minimum and maximum values for a feature
+
+        Coarse feature computation is faster then the accurate
+        :func:`get_min_max`, because it uses metadata stored in the
+        root dataset. The range is thus always equal to or larger
+        than that returned by :func:`get_min_max`.
+
+        Parameters
+        ----------
+        feat: str
+            Feature name
+        plot_id: str
+            Plot identifier
+        margin: float
+            Fraction by which the minimum and maximum are
+            extended. E.g. for plotting with a 5% margin
+            use `margin=0.05`.
+
+        Returns
+        -------
+        [fmin, fmax]: list of float
+            Minimum and maximum values of the feature. If the feature
+            is empty or only-nan, an :class:`EmptyDatasetWarning` is
+            issued and both return values are set to zero.
+        """
+        if plot_id is not None:
+            dslist_children = self.get_plot_datasets(plot_id)[0]
+            dslist = []
+            for ch in dslist_children:
+                if isinstance(ch, RTDC_Hierarchy):
+                    dslist.append(ch.get_root_parent())
+                else:
+                    dslist.append(ch)
+        else:
+            dslist = self.get_datasets(filt_index=None, apply_filter=False)
+
+        fmin = np.inf
+        fmax = -np.inf
+        for ds in dslist:
+            if np.any(ds.filter.all):
+                if feat in ds:
+                    vmin = ds[feat].min()
+                    if not np.isnan(vmin):
+                        fmin = min(vmin, fmin)
+
+                    vmax = ds[feat].max()
+                    if not np.isnan(vmax):
+                        fmax = max(vmax, fmax)
+                else:
+                    warnings.warn(f"Dataset {ds.identifier} does not "
+                                  f"contain the feature '{feat}'!",
+                                  MissingFeatureWarning)
+            else:
+                warnings.warn(f"Dataset {ds.identifier} does not "
+                              f"contain any events when filtered!",
+                              EmptyDatasetWarning)
+        if margin:
+            diff = fmax - fmin
+            fmin -= margin * diff
+            fmax += margin * diff
 
         if np.any(np.isinf([fmin, fmax])):
             # Set values to 0 if no
