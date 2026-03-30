@@ -1,7 +1,9 @@
 2.26.2
  - fix: prevent `pipeline.lock` deadlocks via Qt signal cluttering
+ - fix: update axes ranges when "Auto XY-range" is selected in plotting
  - enh: increase default disk store size from 2GB to 9GB
  - enh: reduce delay after selecting axes in the Plot view
+ - ref: incorporate `PipelinePlot` into sender-receiver signal pyramid
  - setup: bump dclab to 0.71.2 (disk-caching of DCOR/HTTP/S3 data)
 2.26.1
  - fix: possibly fix `KeyError` on hover in QuickView by doing a
@@ -57,7 +59,7 @@
  - enh: improved presentation of multiple datasets with identical sample names
  - ref: tentative `set_pipeline`, so widgets have direct access to the pipeline
  - ref: raise ValueError in unreachable case in DataSlot creation
- - ref: restructure pipeline management through signaling
+ - ref: restructure pipeline management with sender-receiver signal pyramid
  - ref: move slot, plot, and filter duplication to `Pipeline` class
  - ref: refer power to Slot/Plot/Filter creation to `Pipeline`
  - setup: bump pyqtgraph to 0.14.0

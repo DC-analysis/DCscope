@@ -38,6 +38,11 @@ class ContourSpacingTooLarge(UserWarning):
 
 class PipelinePlot(QtWidgets.QWidget):
     """Implements the plotting pipeline using pyqtgraph"""
+    # widgets emit these whenever they changed the pipeline
+    pp_mod_send = QtCore.pyqtSignal(dict)
+    # widgets receive these so they can reflect the pipeline changes
+    pp_mod_recv = QtCore.pyqtSignal(dict)
+
     instances = {}
 
     def __init__(self, parent, pipeline, plot_id, *args, **kwargs):
@@ -57,6 +62,20 @@ class PipelinePlot(QtWidgets.QWidget):
         self.identifier = plot_id
         self.update_content()
         PipelinePlot.instances[plot_id] = self
+
+        self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    @QtCore.pyqtSlot(dict)
+    def on_pp_mod_recv(self, data):
+        pip_data = data.get("pipeline", {})
+        if pip_data.get("plot_changed") == self.identifier:
+            plot = self.pipeline.get_plot(self.identifier)
+            plot_state = plot.__getstate__()
+            self.update_content()
+            if plot.__getstate__() != plot_state:
+                # Updated the range controls
+                self.pp_mod_send.emit(
+                    {"pipeline": {"plot_range_corrected": self.identifier}})
 
     @QtCore.pyqtSlot()
     def update_content(self):
@@ -135,6 +154,8 @@ class PipelinePlot(QtWidgets.QWidget):
             gen["range y"] = self.pipeline.get_min_max(feat=gen["axis y"],
                                                        plot_id=self.identifier,
                                                        margin=0.05)
+            plot = self.pipeline.get_plot(self.identifier)
+            plot.__setstate__(plot_state)
 
         # title
         self.setWindowTitle(lay["name"])

@@ -66,7 +66,7 @@ class MatrixPlot(QtWidgets.QWidget):
                     filt_plot_id=plot_id,
                     active=self.active
                 )
-        self.pp_mod_send.emit({"pipeline": {"plot_toggled": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_changed": plot_id}})
 
     # Other methods
     def abolish(self):

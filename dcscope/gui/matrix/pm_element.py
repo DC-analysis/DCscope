@@ -55,7 +55,7 @@ class PlotMatrixElement(QtWidgets.QWidget):
                     slot_id,
                     plot_id,
                     not self.invalid and not self.active)
-            self.pp_mod_send.emit({"pipeline": {"plot_change": plot_id}})
+            self.pp_mod_send.emit({"pipeline": {"plot_changed": plot_id}})
             event.accept()
 
     @QtCore.pyqtSlot(dict)

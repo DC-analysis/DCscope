@@ -35,7 +35,7 @@ from . import (
     update,
     widgets,
 )
-from .helpers import connect_pp_mod_signals
+from .helpers import connect_pp_mod_signals, disconnect_pp_mod_signals
 
 # global plotting configuration parameters
 pg.setConfigOption("background", None)
@@ -57,7 +57,6 @@ logger = logging.getLogger(__name__)
 
 
 class DCscope(QtWidgets.QMainWindow):
-    plots_changed = QtCore.pyqtSignal()
     # widgets emit these whenever they changed the pipeline
     pp_mod_send = QtCore.pyqtSignal(dict)
     # widgets receive these so they can reflect the pipeline changes
@@ -384,7 +383,7 @@ class DCscope(QtWidgets.QMainWindow):
             pw = pipeline_plot.PipelinePlot(parent=sub,
                                             pipeline=self.pipeline,
                                             plot_id=plot_id)
-            self.plots_changed.connect(pw.update_content)
+            connect_pp_mod_signals(self, pw)
             sub.setWidget(pw)
             pw.update_content()
             self.mdiArea.addSubWindow(sub)
@@ -919,7 +918,7 @@ class DCscope(QtWidgets.QMainWindow):
                     for child in sub.children():
                         # disconnect signals
                         if isinstance(child, pipeline_plot.PipelinePlot):
-                            self.plots_changed.disconnect(child.update_content)
+                            disconnect_pp_mod_signals(self, child)
                             break
                     sub.deleteLater()
 
@@ -942,11 +941,6 @@ class DCscope(QtWidgets.QMainWindow):
 
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
-
-        if data.get("pipeline"):
-            # Update plots after updating block matrix
-            with widgets.ShowWaitCursor():
-                self.plots_changed.emit()
 
         # redraw
         self.mdiArea.update()
