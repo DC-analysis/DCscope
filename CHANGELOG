@@ -1,4 +1,5 @@
 2.26.2
+ - fix: prevent `pipeline.lock` deadlocks via Qt signal cluttering
  - enh: increase default disk store size from 2GB to 9GB
  - enh: reduce delay after selecting axes in the Plot view
  - setup: bump dclab to 0.71.2 (disk-caching of DCOR/HTTP/S3 data)

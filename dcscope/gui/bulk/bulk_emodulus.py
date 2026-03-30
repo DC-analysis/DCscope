@@ -86,8 +86,7 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     def on_ok(self):
         with self.pipeline.lock:
             self.set_emodulus_properties()
-            self.pp_mod_send.emit(
-                {"pipeline": {"feature_changed": "emodulus"}})
+        self.pp_mod_send.emit({"pipeline": {"feature_changed": "emodulus"}})
 
     @QtCore.pyqtSlot()
     def on_cb_medium(self):

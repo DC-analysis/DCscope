@@ -80,20 +80,20 @@ class MatrixDataset(QtWidgets.QWidget):
         with self.pipeline.lock:
             slot_id = self.pipeline.slot_ids[self.slot_index]
             new_id = self.pipeline.duplicate_slot(slot_id)
-            self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
 
     def action_insert_anew(self):
         with self.pipeline.lock:
             new_id = self.pipeline.add_slot(
                 path=self.path,
                 index=self.slot_index+1)
-            self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
 
     def action_remove(self):
         with self.pipeline.lock:
             slot_id = self.pipeline.slot_ids[self.slot_index]
             self.pipeline.remove_slot(slot_id)
-            self.pp_mod_send.emit({"pipeline": {"slot_removed": slot_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_removed": slot_id}})
 
     @QtCore.pyqtSlot()
     def on_active_toggled(self):
@@ -115,13 +115,13 @@ class MatrixDataset(QtWidgets.QWidget):
                     active=self.active
                 )
 
-            self.pp_mod_send.emit({"pipeline": {"slot_toggled": slot_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_toggled": slot_id}})
 
     def on_enabled_toggled(self, b):
         with self.pipeline.lock:
             self.pipeline.slots[self.slot_index].slot_used = b
             state = "enabled" if b else "disabled"
-            self.pp_mod_send.emit({"pipeline": {f"slot {state}": b}})
+        self.pp_mod_send.emit({"pipeline": {f"slot {state}": b}})
 
     def on_modify(self):
         self.modify_clicked.emit(self.identifier)

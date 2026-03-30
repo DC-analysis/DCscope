@@ -496,14 +496,14 @@ class PlotPanel(QtWidgets.QWidget):
         with self.pipeline.lock:
             plot_id = self.current_plot.identifier
             new_id = self.pipeline.duplicate_plot(plot_id)
-            self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
 
     @QtCore.pyqtSlot()
     def on_plot_removed(self):
         with self.pipeline.lock:
             plot_id = self.current_plot.identifier
             self.pipeline.remove_plot(plot_id)
-            self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
@@ -635,4 +635,4 @@ class PlotPanel(QtWidgets.QWidget):
             plot_id = plot_state["identifier"]
             plot_index = self.pipeline.plot_ids.index(plot_id)
             self.pipeline.plots[plot_index].__setstate__(plot_state)
-            self.pp_mod_send.emit({"pipeline": {"plot_changed": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_changed": plot_id}})

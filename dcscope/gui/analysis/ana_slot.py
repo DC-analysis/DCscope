@@ -345,7 +345,7 @@ class SlotPanel(QtWidgets.QWidget):
             new_id = self.pipeline.add_slot(path=slot_state["path"],
                                             index=pos + 1,
                                             )
-            self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
 
     @QtCore.pyqtSlot()
     def on_duplicate_slot(self):
@@ -353,7 +353,7 @@ class SlotPanel(QtWidgets.QWidget):
             # determine the new filter state
             slot_state = self.read_pipeline_state()
             new_id = self.pipeline.duplicate_slot(slot_state["identifier"])
-            self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_created": new_id}})
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
@@ -368,7 +368,7 @@ class SlotPanel(QtWidgets.QWidget):
             slot_state = self.read_pipeline_state()
             slot_id = slot_state["identifier"]
             self.pipeline.remove_slot(slot_id)
-            self.pp_mod_send.emit({"pipeline": {"slot_created": slot_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_created": slot_id}})
 
     @QtCore.pyqtSlot()
     def on_reorder_slots(self):
@@ -505,4 +505,4 @@ class SlotPanel(QtWidgets.QWidget):
             slot_id = slot_state["identifier"]
             slot_index = self.pipeline.slot_ids.index(slot_id)
             self.pipeline.slots[slot_index].__setstate__(slot_state)
-            self.pp_mod_send.emit({"pipeline": {"slot_changed": slot_id}})
+        self.pp_mod_send.emit({"pipeline": {"slot_changed": slot_id}})

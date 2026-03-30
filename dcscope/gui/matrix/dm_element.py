@@ -51,8 +51,8 @@ class DataMatrixElement(QtWidgets.QWidget):
                     self.pipeline.set_element_active(slot_id,
                                                      filter_id,
                                                      not self.active)
-                    self.pp_mod_send.emit(
-                        {"pipeline": {"filter_ray_change": slot_id}})
+                self.pp_mod_send.emit(
+                    {"pipeline": {"filter_ray_change": slot_id}})
 
             event.accept()
 

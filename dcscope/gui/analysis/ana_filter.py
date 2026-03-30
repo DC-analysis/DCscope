@@ -211,7 +211,7 @@ class FilterPanel(QtWidgets.QWidget):
         with self.pipeline.lock:
             filt_id = self.current_filter.identifier
             new_id = self.pipeline.duplicate_filter(filt_id)
-            self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
 
     def get_polygon_filter_selection(self):
         """Return selected polygon filters"""
@@ -309,7 +309,7 @@ class FilterPanel(QtWidgets.QWidget):
         with self.pipeline.lock:
             filt_id = self.current_filter.identifier
             self.pipeline.remove_filter(filt_id)
-            self.pp_mod_send.emit({"pipeline": {"filter_removed": filt_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_removed": filt_id}})
 
     @QtCore.pyqtSlot()
     def on_moreless(self):
@@ -442,4 +442,4 @@ class FilterPanel(QtWidgets.QWidget):
             filt_id = filter_state["identifier"]
             filt_index = self.pipeline.filter_ids.index(filt_id)
             self.pipeline.filters[filt_index].__setstate__(filter_state)
-            self.pp_mod_send.emit({"pipeline": {"filter_modified": filt_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_modified": filt_id}})

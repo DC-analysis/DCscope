@@ -555,7 +555,7 @@ class DCscope(QtWidgets.QMainWindow):
         if yes:
             with self.pipeline.lock:
                 session.clear_session(self.pipeline)
-                self.pp_mod_send.emit({"pipeline": {"cleared": "full"}})
+            self.pp_mod_send.emit({"pipeline": {"cleared": "full"}})
             self.setWindowTitle(f"DCscope {version}")
         return yes
 
@@ -576,8 +576,7 @@ class DCscope(QtWidgets.QMainWindow):
                 slot_ids = list(self.pipeline.slot_ids)
                 for slot_id in slot_ids:
                     self.pipeline.remove_slot(slot_id)
-                self.pp_mod_send.emit(
-                    {"pipeline": {"slots_removed": slot_ids}})
+            self.pp_mod_send.emit({"pipeline": {"slots_removed": slot_ids}})
         return yes
 
     @QtCore.pyqtSlot()
@@ -694,8 +693,8 @@ class DCscope(QtWidgets.QMainWindow):
             settings.set_dir("filters", path, self.settings)
             with self.pipeline.lock:
                 session.import_filters(path, self.pipeline)
-                self.pp_mod_send.emit(
-                    {"pipeline": {"filters_imported": str(path)}})
+            self.pp_mod_send.emit(
+                {"pipeline": {"filters_imported": str(path)}})
 
     @QtCore.pyqtSlot()
     def on_action_open(self, path=None):
@@ -740,8 +739,7 @@ class DCscope(QtWidgets.QMainWindow):
                     else:
                         break
                 self.show()
-                self.pp_mod_send.emit(
-                    {"pipeline": {"session_opened": str(path)}})
+            self.pp_mod_send.emit({"pipeline": {"session_opened": str(path)}})
             self.setWindowTitle(
                 f"{pathlib.Path(path).name} [DCscope {version}]")
 

@@ -66,7 +66,7 @@ class MatrixPlot(QtWidgets.QWidget):
                     filt_plot_id=plot_id,
                     active=self.active
                 )
-            self.pp_mod_send.emit({"pipeline": {"plot_toggled": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_toggled": plot_id}})
 
     # Other methods
     def abolish(self):
@@ -104,13 +104,14 @@ class MatrixPlot(QtWidgets.QWidget):
         with self.pipeline.lock:
             plot_id = self.pipeline.plot_ids[self.plot_index]
             new_id = self.pipeline.duplicate_plot(plot_id)
-            self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_created": new_id}})
 
     def action_remove(self):
         with self.pipeline.lock:
             plot_id = self.pipeline.plot_ids[self.plot_index]
             self.pipeline.remove_plot(plot_id)
-            self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
+        self.pp_mod_send.emit({"pipeline": {"plot_removed": plot_id}})
 
     def on_modify(self):
         self.modify_clicked.emit(self.identifier)

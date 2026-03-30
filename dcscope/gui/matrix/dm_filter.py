@@ -81,7 +81,7 @@ class MatrixFilter(QtWidgets.QWidget):
                     filt_plot_id=filter_id,
                     active=self.active
                 )
-            self.pp_mod_send.emit({"pipeline": {"filter_toggled": filter_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_toggled": filter_id}})
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data: dict):
@@ -116,19 +116,19 @@ class MatrixFilter(QtWidgets.QWidget):
         with self.pipeline.lock:
             filt_id = self.pipeline.filter_ids[self.filt_index]
             new_id = self.pipeline.duplicate_filter(filt_id)
-            self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_added": new_id}})
 
     def action_remove(self):
         with self.pipeline.lock:
             filter_id = self.pipeline.filter_ids[self.filt_index]
             self.pipeline.remove_filter(filter_id)
-            self.pp_mod_send.emit({"pipeline": {"filter_removed": filter_id}})
+        self.pp_mod_send.emit({"pipeline": {"filter_removed": filter_id}})
 
     def on_enabled_toggled(self, b):
         with self.pipeline.lock:
             self.pipeline.filters[self.filt_index].filter_used = b
             state = "enabled" if b else "disabled"
-            self.pp_mod_send.emit({"pipeline": {f"filter {state}": b}})
+        self.pp_mod_send.emit({"pipeline": {f"filter {state}": b}})
 
     def on_modify(self):
         self.modify_clicked.emit(self.identifier)
