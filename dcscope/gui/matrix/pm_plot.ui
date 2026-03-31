@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>94</width>
-    <height>110</height>
+    <height>111</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,17 +18,6 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>120</width>
-    <height>120</height>
-   </size>
-  </property>
-  <property name="font">
-   <font>
-    <pointsize>9</pointsize>
-   </font>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -44,7 +33,7 @@
     <number>0</number>
    </property>
    <property name="sizeConstraint">
-    <enum>QLayout::SetFixedSize</enum>
+    <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -61,16 +50,10 @@
    <item>
     <widget class="QWidget" name="widget" native="true">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>80</width>
-       <height>80</height>
-      </size>
      </property>
      <property name="maximumSize">
       <size>
@@ -79,14 +62,11 @@
       </size>
      </property>
      <property name="layoutDirection">
-      <enum>Qt::LeftToRight</enum>
+      <enum>Qt::LayoutDirection::LeftToRight</enum>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
        <number>2</number>
-      </property>
-      <property name="sizeConstraint">
-       <enum>QLayout::SetFixedSize</enum>
       </property>
       <property name="leftMargin">
        <number>2</number>
@@ -100,7 +80,7 @@
       <property name="bottomMargin">
        <number>2</number>
       </property>
-      <item alignment="Qt::AlignHCenter">
+      <item alignment="Qt::AlignmentFlag::AlignHCenter">
        <widget class="QLabel" name="label">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
@@ -117,7 +97,7 @@
          <string>Name</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+         <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
        </widget>
       </item>
@@ -141,11 +121,10 @@
          <string>edit</string>
         </property>
         <property name="icon">
-         <iconset theme="tools-wizard">
-          <normaloff>.</normaloff>.</iconset>
+         <iconset theme="tools-wizard"/>
         </property>
         <property name="toolButtonStyle">
-         <enum>Qt::ToolButtonTextBesideIcon</enum>
+         <enum>Qt::ToolButtonStyle::ToolButtonTextBesideIcon</enum>
         </property>
         <property name="autoRaise">
          <bool>true</bool>
@@ -181,8 +160,7 @@
            <string>c</string>
           </property>
           <property name="icon">
-           <iconset theme="object-columns">
-            <normaloff>.</normaloff>.</iconset>
+           <iconset theme="object-columns"/>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
@@ -192,7 +170,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -220,20 +198,19 @@
            <string>...</string>
           </property>
           <property name="icon">
-           <iconset theme="preferences-activities">
-            <normaloff>.</normaloff>.</iconset>
+           <iconset theme="preferences-activities"/>
           </property>
           <property name="popupMode">
-           <enum>QToolButton::InstantPopup</enum>
+           <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
           </property>
           <property name="toolButtonStyle">
-           <enum>Qt::ToolButtonIconOnly</enum>
+           <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
           </property>
           <property name="autoRaise">
            <bool>true</bool>
           </property>
           <property name="arrowType">
-           <enum>Qt::NoArrow</enum>
+           <enum>Qt::ArrowType::NoArrow</enum>
           </property>
          </widget>
         </item>

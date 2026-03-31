@@ -30,8 +30,11 @@ class MatrixFilter(QtWidgets.QWidget):
         menu.addAction('duplicate', self.action_duplicate)
         menu.addAction('remove', self.action_remove)
         self.toolButton_opt.setMenu(menu)
-        tbw = self.toolButton_toggle.sizeHint().width()
-        self.toolButton_opt.setMaximumWidth(tbw)
+
+        self.setFixedWidth(int(65))
+        self.setMinimumWidth(int(65))
+        self.setMaximumWidth(int(65))
+        self.adjustSize()
 
         # toggle all active, all inactive, semi state
         self.toolButton_toggle.clicked.connect(self.on_active_toggled)
