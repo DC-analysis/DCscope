@@ -325,6 +325,71 @@ def test_remove_plots_issue_36(qtbot):
     pw.action_remove()
 
 
+def test_reselect_filter(qtbot):
+    """Test that zooming in on contours works correctly"""
+    mw = DCscope()
+    qtbot.addWidget(mw)
+
+    # Add test dataset and create plot
+    slot_id = mw.add_dataslot(paths=[datapath / "calibration_beads_47.rtdc"])
+    plot_id = mw.add_plot()
+
+    # Activate slot-plot pair
+    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+    # Activate the filter
+    em = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+                                    slot_id=slot_id[0])
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+
+    # Edit the filter
+    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    mw.widget_ana_view.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.widget_filter
+    wf.checkBox_limit.setChecked(True)
+    wf.spinBox_limit.setValue(4)
+
+    # click apply
+    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    # Make sure there are only four points in the plot
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
+    assert len(scat.data) == 4
+
+    # Deactivate the filter
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
+    assert len(scat.data) == 47
+
+    # Activate the filter
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
+    assert len(scat.data) == 4
+
+    # Deactivate the filter
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
+    assert len(scat.data) == 47
+
+    # Activate the filter
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
+    assert len(scat.data) == 4
+
+
 def test_changing_lut_identifier_in_analysis_view_plots(qtbot):
     """Test LUT identifier user interaction in analysis view plots."""
     mw = DCscope()

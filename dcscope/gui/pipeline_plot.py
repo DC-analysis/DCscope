@@ -1,6 +1,7 @@
 import copy
 import html
 import importlib.resources
+import threading
 
 import dclab
 import numpy as np
@@ -53,6 +54,7 @@ class PipelinePlot(QtWidgets.QWidget):
 
         # used to avoid unnecessary plotting
         self._plot_data_hash = "unset"
+        self._plot_data_hash_lock = threading.Lock()
 
         self._window_decoration_size = (None, None)
 
@@ -68,14 +70,32 @@ class PipelinePlot(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         pip_data = data.get("pipeline", {})
-        if pip_data.get("plot_changed") == self.identifier:
-            plot = self.pipeline.get_plot(self.identifier)
-            plot_state = plot.__getstate__()
-            self.update_content()
-            if plot.__getstate__() != plot_state:
-                # Updated the range controls
-                self.pp_mod_send.emit(
-                    {"pipeline": {"plot_range_corrected": self.identifier}})
+        if pip_data:
+            # OK, so we would like to only update the plot when necessary.
+            # It is less error prone to exclude known cases than to
+            # explicitly state when the plot should update. We definitely
+            # want the plots to update when filters are added/removed etc.
+            if (
+                # Another plot got updated
+                pip_data.get(
+                    "plot_changed", self.identifier) != self.identifier
+                # A plot was created. Ignore that.
+                or pip_data.get(
+                    "plot_created", self.identifier) != self.identifier
+                # A plot was removed.
+                or pip_data.get("plot_removed")
+                # We are emitting this signal ourself
+                or pip_data.get("plot_range_corrected")
+            ):
+                pass
+            else:
+                plot = self.pipeline.get_plot(self.identifier)
+                plot_state = plot.__getstate__()
+                self.update_content()
+                if plot.__getstate__() != plot_state:
+                    # Updated the range controls
+                    self.pp_mod_send.emit({"pipeline": {
+                        "plot_range_corrected": self.identifier}})
 
     @QtCore.pyqtSlot()
     def update_content(self):
@@ -100,12 +120,13 @@ class PipelinePlot(QtWidgets.QWidget):
                         pf = dclab.PolygonFilter.get_instance_from_id(pid)
                         tohash.append(pf.__getstate__())
         plot_data_hash = util.hashobj(tohash)
-        if plot_data_hash == self._plot_data_hash:
-            # do nothing
-            pass
-        else:
-            self._plot_data_hash = plot_data_hash
-            self.update_content_plot(plot_state, slot_states, dslist)
+        with self._plot_data_hash_lock:
+            if plot_data_hash == self._plot_data_hash:
+                # do nothing
+                pass
+            else:
+                self._plot_data_hash = plot_data_hash
+                self.update_content_plot(plot_state, slot_states, dslist)
 
         # Set size in the end (after layout is populated)
         lay = plot_state["layout"]
