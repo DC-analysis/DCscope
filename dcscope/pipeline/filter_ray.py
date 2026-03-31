@@ -101,6 +101,14 @@ class FilterRay(object):
         # past self
 
         filters = [f for f in filters if f.filter_used]
+        if self.segments:
+            # Make sure that the segments are trimmed to the amount of
+            # filters in the filter ray.
+            self.segments = self.segments[:len(filters)]
+            if self.segments:
+                # Make sure that the final dataset in the segments does not
+                # have any filters applied.
+                self.segments[-1][2].reset_filter()
 
         if filters:
             # apply all filters
@@ -126,11 +134,11 @@ class FilterRay(object):
             final_ds = ds
         else:
             final_ds = ds
-
-        if not external_ds:
+            # make sure no filters are applied to the returned dataset
             ds.reset_filter()
 
         if apply_filter:
+            # Apply all filters in the underlying hierarchy.
             final_ds.apply_filter()
 
         return final_ds
