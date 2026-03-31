@@ -84,8 +84,6 @@ class PipelinePlot(QtWidgets.QWidget):
                     "plot_created", self.identifier) != self.identifier
                 # A plot was removed.
                 or pip_data.get("plot_removed")
-                # We are emitting this signal ourself
-                or pip_data.get("plot_range_corrected")
             ):
                 pass
             else:
@@ -94,8 +92,22 @@ class PipelinePlot(QtWidgets.QWidget):
                 self.update_content()
                 if plot.__getstate__() != plot_state:
                     # Updated the range controls
-                    self.pp_mod_send.emit({"pipeline": {
-                        "plot_range_corrected": self.identifier}})
+                    self.pp_mod_send.emit({"pipeline-rendering": {
+                        "plot_range_corrected": self.identifier,
+                    }})
+
+    @QtCore.pyqtSlot(QtGui.QResizeEvent)
+    def resizeEvent(self, event: QtGui.QResizeEvent):
+        if self.identifier:
+            # Update the plot parameters
+            plot_index = self.pipeline.plot_ids.index(self.identifier)
+            with self.pipeline.lock:
+                state = self.pipeline.plots[plot_index].__getstate__()
+                state["layout"]["size x"] = event.size().width()
+                state["layout"]["size y"] = event.size().height()
+                self.pipeline.plots[plot_index].__setstate__(state)
+            self.pp_mod_send.emit(
+                {"pipeline-rendering": {"plot_size_changed": self.identifier}})
 
     @QtCore.pyqtSlot()
     def update_content(self):

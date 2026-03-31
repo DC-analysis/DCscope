@@ -2,6 +2,7 @@
  - reg: filters not applied in final plots since 2.25.1
  - fix: prevent `pipeline.lock` deadlocks via Qt signal cluttering
  - fix: update axes ranges when "Auto XY-range" is selected in plotting
+ - enh: remember plot size when manually resizing
  - enh: increase default disk store size from 2GB to 9GB
  - enh: reduce delay after selecting axes in the Plot view
  - ref: incorporate `PipelinePlot` into sender-receiver signal pyramid

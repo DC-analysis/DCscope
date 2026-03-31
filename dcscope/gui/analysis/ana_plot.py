@@ -508,15 +508,36 @@ class PlotPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
-        pp_dict = data.get("pipeline")
-        if pp_dict:
-            if self.isVisible():
+        if self.isVisible():
+            pp_dict = data.get("pipeline", {})
+            if "plot_added" in pp_dict:
                 plot_id = pp_dict.get("plot_added")
                 if plot_id is not None:
                     plot_index = self.pipeline.plot_ids.index(plot_id)
                 else:
                     plot_index = None
                 self.update_content(plot_index)
+
+            pr_dict = data.get("pipeline-rendering", {})
+            if "plot_size_changed" in pr_dict:
+                plot_id = pr_dict.get("plot_size_changed")
+                plot_index = self.pipeline.plot_ids.index(plot_id)
+                state = self.pipeline.plots[plot_index].__getstate__()
+                self.spinBox_size_x.setValue(state["layout"]["size x"])
+                self.spinBox_size_y.setValue(state["layout"]["size y"])
+            elif "plot_range_corrected" in pr_dict:
+                plot_id = pr_dict.get("plot_range_corrected")
+                plot_index = self.pipeline.plot_ids.index(plot_id)
+                state = self.pipeline.plots[plot_index].__getstate__()
+                for nm, rc in [("range x", self.widget_range_x),
+                               ("range y", self.widget_range_y)]:
+                    rc.blockSignals(True)
+                    rc.write_pipeline_state({
+                        "active": True,
+                        "start": state["general"][nm][0],
+                        "end": state["general"][nm][1],
+                        })
+                    rc.blockSignals(False)
 
     @QtCore.pyqtSlot()
     @show_wait_cursor
