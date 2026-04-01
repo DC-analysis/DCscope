@@ -1,5 +1,6 @@
 2.26.3
  - enh: fetch QuickView image and trace data in `EventGetterThread`
+ - enh: busy indicator in QuickView when event data is fetched in the background
  - ref: new `qv_event_getter` and `qv_image_vis` submodules
 2.26.2
  - reg: filters not applied in final plots since 2.25.1

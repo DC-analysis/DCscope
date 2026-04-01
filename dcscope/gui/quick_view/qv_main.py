@@ -197,7 +197,9 @@ class QuickView(QtWidgets.QWidget):
 
         # The event getter runs in the background
         self.event_getter = EventGetterThread(self)
-        self.event_getter.new_event_data.connect(self.on_new_event)
+        self.event_getter.new_event_data.connect(self.on_getter_new_event)
+        self.event_getter.busy_fetching_data.connect(self.on_getter_busy)
+
         self.event_getter.start()
 
         # set initial empty dataset
@@ -367,8 +369,20 @@ class QuickView(QtWidgets.QWidget):
             self.imageView_image_amp.setImage(np.full((10, 10), 200))
             self.imageView_image_pha.setImage(np.full((10, 10), 200))
 
+    @QtCore.pyqtSlot(bool)
+    def on_getter_busy(self, busy):
+        if busy:
+            color = "orange"
+            tooltip = "fetching event data"
+        else:
+            color = "black"
+            tooltip = "event data updated"
+        self.widget_waiter.setStyleSheet(
+            f"background-color:{color};border-radius:7px")
+        self.widget_waiter.setToolTip(tooltip)
+
     @QtCore.pyqtSlot(dict)
-    def on_new_event(self, data):
+    def on_getter_new_event(self, data):
         self._last_event_data = data
 
         if self.page_poly.isVisible():
@@ -547,7 +561,7 @@ class QuickView(QtWidgets.QWidget):
     def on_event_scatter_update(self):
         """Just update the event shown"""
         if self._last_event_data:
-            self.on_new_event(self._last_event_data)
+            self.on_getter_new_event(self._last_event_data)
 
     # Polygon Selection
     ###################

@@ -11,6 +11,7 @@ from PyQt6 import QtCore
 
 class EventGetterThread(QtCore.QThread):
     new_event_data = QtCore.pyqtSignal(dict)
+    busy_fetching_data = QtCore.pyqtSignal(bool)
 
     def __init__(self, parent):
         super(EventGetterThread, self).__init__(parent)
@@ -43,8 +44,11 @@ class EventGetterThread(QtCore.QThread):
 
             if ds is not None and event_index is not None:
                 try:
+                    self.busy_fetching_data.emit(True)
                     event_data = self.get_event_data(ds, event_index)
                     self.new_event_data.emit(event_data)
+                    if self.prev_request == self.request:
+                        self.busy_fetching_data.emit(False)
                 except BaseException:
                     self.logger.error(traceback.format_exc())
             else:

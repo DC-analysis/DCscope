@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1013</width>
-    <height>795</height>
+    <height>810</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -184,6 +184,25 @@
               </property>
              </spacer>
             </item>
+            <item alignment="Qt::AlignmentFlag::AlignHCenter">
+             <widget class="QWidget" name="widget_waiter" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>15</width>
+                <height>15</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>15</width>
+                <height>15</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color:orange;border-radius:7px</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>
@@ -199,7 +218,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="page_settings">
        <layout class="QVBoxLayout" name="verticalLayout_4">
