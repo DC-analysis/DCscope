@@ -9,7 +9,10 @@ import pytest
 from PyQt6 import QtCore, QtWidgets
 
 from dcscope import session
-from dcscope.gui.main import DCscope
+from dcscope.gui import DCscope
+
+import conftest  # noqa: F401
+
 
 datapath = pathlib.Path(__file__).parent / "data"
 
@@ -30,9 +33,8 @@ def test_simple(qtbot):
     main_window.close()
 
 
-def test_clear_session_issue_25(qtbot):
+def test_clear_session_issue_25(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/25"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -55,12 +57,11 @@ def test_clear_session_issue_25(qtbot):
     mw.on_action_clear()
 
 
-def test_duplicate_polygon_filter_issue_148(qtbot):
+def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/148
 
     A duplicate polygon filter was created (that could not be deleted).
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -154,9 +155,8 @@ def test_duplicate_polygon_filter_issue_148(qtbot):
 @pytest.mark.filterwarnings('ignore::RuntimeWarning')  # 0-div in kde-methods
 @pytest.mark.filterwarnings('ignore::dcscope.pipeline.core.'
                             + 'EmptyDatasetWarning')
-def test_no_events_disable(qtbot):
+def test_no_events_disable(qtbot, mw):
     """When all events are removed, a message should be displayed"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # This session also contains a plot, so this is essentially
@@ -187,13 +187,12 @@ def test_no_events_disable(qtbot):
     assert not qv.label_noevents.isVisible()
 
 
-def test_no_events_issue_37(qtbot):
+def test_no_events_issue_37(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/37
 
     "ValueError: zero-size array to reduction operation minimum
     which has no identity" when all events are filtered out.
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -246,13 +245,12 @@ def test_no_events_issue_37(qtbot):
 @pytest.mark.filterwarnings('ignore::RuntimeWarning')  # 0-div in kde-methods
 @pytest.mark.filterwarnings('ignore::dclab.features.emodulus.'
                             + 'YoungsModulusLookupTableExceededWarning')
-def test_no_events_issue_223_nan(qtbot):
+def test_no_events_issue_223_nan(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/223
 
     "ValueError: zero-size array to reduction operation minimum
     which has no identity" when all values are NaN.
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -307,7 +305,7 @@ def test_no_events_issue_223_nan(qtbot):
     mw.close()
 
 
-def test_remove_dataset_h5py_error(qtbot):
+def test_remove_dataset_h5py_error(qtbot, mw):
     """Removing an activated dataset and activating Quick View fails
 
     Unhandled exception in DCscope version 2.0.1.post2:
@@ -327,7 +325,6 @@ def test_remove_dataset_h5py_error(qtbot):
       File "h5py/h5o.pyx", line 190, in h5py.h5o.open
     ValueError: Not a location (invalid object ID)
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -361,14 +358,13 @@ def test_remove_dataset_h5py_error(qtbot):
     mw.close()
 
 
-def test_translate_polygon_filter_issue_115(qtbot):
+def test_translate_polygon_filter_issue_115(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/115
 
     When moving (with mouse drag-n-drop) a polygon filter in edit
     mode and then saving it, it is as if the translation is not
     detected. The polygon points are not updated.
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -456,13 +452,12 @@ def test_translate_polygon_filter_issue_115(qtbot):
     assert len(qv.widget_scatter.scatter.getData()[0]) == 8
 
 
-def test_update_polygon_filter_issue_26(qtbot):
+def test_update_polygon_filter_issue_26(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/26
 
     The recomputation of the filter ray was not triggered for some
     reason.
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -548,14 +543,11 @@ def test_update_polygon_filter_issue_26(qtbot):
     assert len(qv.widget_scatter.scatter.getData()[0]) == 8
 
 
-def test_subtract_background(qtbot):
+def test_subtract_background(qtbot, mw):
     """https://github.com/DC-analysis/DCscope/issues/54
 
     Adding the "Subtract Background"-CheckBox
     """
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # Data with feature "image_bg"
@@ -619,11 +611,8 @@ def test_subtract_background(qtbot):
     )
 
 
-def test_auto_contrast(qtbot):
+def test_auto_contrast(qtbot, mw):
     """auto contrast should change the displayed image"""
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     path = datapath / "calibration_beads_47.rtdc"
@@ -678,11 +667,8 @@ def test_auto_contrast(qtbot):
     assert not np.array_equal(image_with_contrast, image_without_contrast)
 
 
-def test_auto_contrast_qpi(qtbot):
+def test_auto_contrast_qpi(qtbot, mw):
     """auto contrast should change the displayed image"""
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     path = datapath / "blood_rbc_qpi_data.rtdc"
@@ -738,11 +724,8 @@ def test_auto_contrast_qpi(qtbot):
         assert not np.array_equal(image_with_contrast, image_without_contrast)
 
 
-def test_auto_contrast_vmin_vmax_qpi(qtbot):
+def test_auto_contrast_vmin_vmax_qpi(qtbot, mw):
     """auto contrast should change the vmin and vmax displayed to the user"""
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     path = datapath / "blood_rbc_qpi_data.rtdc"
@@ -772,6 +755,9 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot):
     event_tool = qv.toolButton_event
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
 
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+
     # Test if checkbox is visible and checked by default
     assert qv.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
     assert qv.checkBox_image_contrast.isChecked(), (
@@ -787,21 +773,25 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot):
                      QtCore.Qt.MouseButton.LeftButton)
     assert not qv.checkBox_image_contrast.isChecked(), (
         "Checkbox should be unchecked")
-    assert qv.img_info["qpi_pha"]["kwargs"]["levels"] == (-3.14, +3.14)
+
+    assert np.allclose(qv.imageView_image_pha.getImageItem().levels,
+                       (-3.14, +3.14),
+                       atol=1e-5, rtol=0
+                       )
 
     # apply auto-contrast
     qtbot.mouseClick(qv.checkBox_image_contrast,
                      QtCore.Qt.MouseButton.LeftButton)
     assert qv.checkBox_image_contrast.isChecked(), (
         "Checkbox should be checked")
-    assert qv.img_info["qpi_pha"]["kwargs"]["levels"] == (-3.13, +3.13)
+    assert np.allclose(qv.imageView_image_pha.getImageItem().levels,
+                       (-3.13, +3.13),
+                       atol=1e-5, rtol=0
+                       )
 
 
-def test_contour_display(qtbot):
+def test_contour_display(qtbot, mw):
     """The contours should be a specific colour depending on the image"""
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     path = datapath / "calibration_beads_47.rtdc"
@@ -831,6 +821,9 @@ def test_contour_display(qtbot):
     event_tool = qv.toolButton_event
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
 
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+
     # Test if checkbox is visible and checked by default
     assert qv.checkBox_image_contour.isVisible(), "Checkbox is not visible"
     assert qv.checkBox_image_contour.isChecked(), (
@@ -852,16 +845,15 @@ def test_contour_display(qtbot):
     assert not np.array_equal(image_with_contour, image_without_contour)
 
     # show that the contour pixels are our "red": [0.7, 0, 0]
-    ch_red = np.array([int(0.7 * 255), 0, 0])
+    vmin, vmax = qv.imageView_image.getImageItem().levels
+    val_red = vmin + (vmax - vmin) * 0.7
+    ch_red = np.array([int(val_red), int(vmin), int(vmin)])
     assert np.sum(np.all(image_with_contour == ch_red, axis=-1))
     assert not np.sum(np.all(image_without_contour == ch_red, axis=-1))
 
 
-def test_contour_display_qpi_amp(qtbot):
+def test_contour_display_qpi_amp(qtbot, mw):
     """The contours should be a specific colour depending on the image"""
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     path = datapath / "blood_rbc_qpi_data.rtdc"
@@ -921,11 +913,8 @@ def test_contour_display_qpi_amp(qtbot):
     assert not np.sum(np.all(image_without_contour == ch_red, axis=-1))
 
 
-def test_contour_display_qpi_pha(qtbot):
+def test_contour_display_qpi_pha(qtbot, mw):
     """The contours should be a specific colour depending on the image"""
-
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     path = datapath / "blood_rbc_qpi_data.rtdc"
@@ -984,7 +973,7 @@ def test_contour_display_qpi_pha(qtbot):
         image_without_contour == lowest_cmap_val, axis=-1))
 
 
-def test_image_without_mask_data(qtbot, tmp_path):
+def test_image_without_mask_data(qtbot, tmp_path, mw):
     """Make sure image is plotted when there is no mask data"""
     path_in = tmp_path / "test.rtdc"
     shutil.copy2(datapath / "calibration_beads_47.rtdc", path_in)
@@ -992,8 +981,6 @@ def test_image_without_mask_data(qtbot, tmp_path):
         del h5["events/contour"]
         del h5["events/mask"]
 
-    # Create main window
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     mw.add_dataslot(paths=[path_in])
@@ -1031,10 +1018,8 @@ def test_image_without_mask_data(qtbot, tmp_path):
     assert np.any(image_with_contrast)
 
 
-def test_isoelasticity_lines_with_lut_selection(qtbot):
+def test_isoelasticity_lines_with_lut_selection(qtbot, mw):
     """Test look-up table selection for isoelasticity lines"""
-
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -1078,13 +1063,11 @@ def test_isoelasticity_lines_with_lut_selection(qtbot):
     assert qv.comboBox_lut.currentData() == "HE-2D-FEM-22"
 
 
-def test_select_x_y_axis_based_on_availiable_feature_name_issue_206(qtbot):
+def test_select_x_y_axis_based_on_availiable_feature_name_issue_206(qtbot, mw):
     """
     Test select X-axis and Y-axis based on feature name that is available
     in both datasets.
     """
-
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add dataslots
@@ -1140,13 +1123,12 @@ def test_select_x_y_axis_based_on_availiable_feature_name_issue_206(qtbot):
     assert qv.comboBox_y.currentData() == "frame", "Check manual selection"
 
 
-def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot):
+def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot,
+                                                                     mw):
     """
     Test select X-axis and Y-axis based on feature name that is not available
     in both datasets.
     """
-
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add dataslots
@@ -1205,10 +1187,8 @@ def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot):
     assert qv.comboBox_y.currentData() == "deform", "Check manual selection"
 
 
-def test_cache_selected_event_using_dataslot_issue_196(qtbot):
+def test_cache_selected_event_using_dataslot_issue_196(qtbot, mw):
     """Event selection should be cached when switching between datasets"""
-
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add dataslots

@@ -3,12 +3,22 @@ import tempfile
 import time
 
 from PyQt6 import QtCore
+import pytest
+
+from dcscope.gui.main import DCscope
 
 
 TMPDIR = tempfile.mkdtemp(prefix=time.strftime(
     "dcscope_test_%H.%M_"))
 
 pytest_plugins = ["pytest-qt"]
+
+
+@pytest.fixture
+def mw():
+    mw = DCscope()
+    yield mw
+    mw.close()
 
 
 def pytest_configure(config):

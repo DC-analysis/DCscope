@@ -3,10 +3,11 @@ import pathlib
 import socket
 
 from dclab.lme4 import rsetup
-from dcscope.gui.main import DCscope
 from dcscope import session
 from dcscope.gui.compute.comp_lme4 import ComputeSignificance
 import pytest
+
+import conftest  # noqa: F401
 
 
 if not (rsetup.has_r() and rsetup.has_lme4()):
@@ -35,13 +36,12 @@ def run_around_tests():
 @pytest.mark.skipif(not NET_AVAILABLE, reason="No network connection!")
 @pytest.mark.filterwarnings(
     'ignore::dclab.rtdc_dataset.config.WrongConfigurationTypeWarning')
-def test_lme4_with_dcor_session(qtbot):
+def test_lme4_with_dcor_session(qtbot, mw):
     """
     Open a session with DCOR data and perform lme4 analysis from
     dclab docs at
     https://dclab.readthedocs.io/en/stable/sec_av_lme4.html
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
     mw.on_action_open(data_path / "version_2_5_0_dcor_lme4.so2")
 
@@ -76,11 +76,10 @@ def test_lme4_with_dcor_session(qtbot):
 @pytest.mark.skipif(not NET_AVAILABLE, reason="No network connection!")
 @pytest.mark.filterwarnings(
     'ignore::dclab.rtdc_dataset.config.WrongConfigurationTypeWarning')
-def test_lme4_with_dcor_session_differential(qtbot):
+def test_lme4_with_dcor_session_differential(qtbot, mw):
     """
     Perform differential deformation test
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
     mw.on_action_open(data_path / "version_2_5_0_dcor_lme4_diff.so2")
 

@@ -2,9 +2,10 @@ import pathlib
 
 from PyQt6 import QtCore
 
-from dcscope.gui.main import DCscope
 from dcscope import session
 import pytest
+
+import conftest  # noqa: F401
 
 
 data_path = pathlib.Path(__file__).parent / "data"
@@ -20,8 +21,7 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_matrix_slots(qtbot):
-    mw = DCscope()
+def test_matrix_slots(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -49,8 +49,7 @@ def test_matrix_slots(qtbot):
     assert not mw.pipeline.is_element_active(slot_id2, filt_id)
 
 
-def test_matrix_filter_duplicate_issue_184(qtbot):
-    mw = DCscope()
+def test_matrix_filter_duplicate_issue_184(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -74,8 +73,7 @@ def test_matrix_filter_duplicate_issue_184(qtbot):
     assert mw.pipeline.filters[0].name != mw.pipeline.filters[1].name
 
 
-def test_matrix_slots_duplicate_issue_96(qtbot):
-    mw = DCscope()
+def test_matrix_slots_duplicate_issue_96(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add a dataslot

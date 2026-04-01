@@ -2,17 +2,19 @@ import collections
 import importlib.resources
 import logging
 import pathlib
-from typing import Dict, Literal, Tuple
 
 import dclab
 import numpy as np
 from PyQt6 import uic, QtCore, QtWidgets
 import pyqtgraph as pg
-from scipy.ndimage import binary_erosion
+
+from ... import idiom, util
 
 from ..compute.comp_stats import STAT_METHODS
-from ... import idiom
 from ..widgets import show_wait_cursor
+
+from .qv_event_getter import EventGetterThread
+from .import qv_image_vis as qvvis
 
 
 #: default choices for x-axis in plots in descending order
@@ -47,6 +49,9 @@ class QuickView(QtWidgets.QWidget):
 
         self.pipeline = None
         self.current_pipeline_element = None
+        self._last_event_data = None
+        self._last_cmap_pha = {}
+
         # set event view as default page
         self.stackedWidget.setCurrentIndex(1)
         self.groupBox_image.setVisible(False)
@@ -174,43 +179,26 @@ class QuickView(QtWidgets.QWidget):
         self.legend_trace = self.graphicsView_trace.addLegend(
             offset=(-.01, +.01))
 
-        # qpi_pha cmaps
-        self.cmap_pha = pg.colormap.get('CET-D1A', skipCache=True)
-        self.cmap_pha_with_black = pg.colormap.get('CET-D1A', skipCache=True)
-        self.cmap_pha_with_black.color[0] = [0, 0, 0, 1]
-
-        # image display default range of values that the cmap will cover
-        self.levels_image = (0, 255)
-        self.levels_qpi_pha = (-3.14, 3.14)
-        self.levels_qpi_amp = (0, 2)
-
-        #: default parameters for the event image
-        self.img_info = {
+        #: dictionary access to image views
+        self.img_views = {
             "image": {
                 "view_event": self.imageView_image,
                 "view_poly": self.imageView_image_poly,
-                "cmap": None,
-                "cmap_changed": {"view_event": False,
-                                 "view_poly": False},
-                "kwargs": dict(autoLevels=False, levels=self.levels_image),
             },
             "qpi_pha": {
                 "view_event": self.imageView_image_pha,
                 "view_poly": self.imageView_image_poly_pha,
-                "cmap": self.cmap_pha,
-                "cmap_changed": {"view_event": False,
-                                 "view_poly": False},
-                "kwargs": dict(autoLevels=False, levels=self.levels_qpi_pha),
             },
             "qpi_amp": {
                 "view_event": self.imageView_image_amp,
                 "view_poly": self.imageView_image_poly_amp,
-                "cmap": None,
-                "cmap_changed": {"view_event": False,
-                                 "view_poly": False},
-                "kwargs": dict(autoLevels=False, levels=self.levels_qpi_amp),
             },
         }
+
+        # The event getter runs in the background
+        self.event_getter = EventGetterThread(self)
+        self.event_getter.new_event_data.connect(self.on_new_event)
+        self.event_getter.start()
 
         # set initial empty dataset
         self._rtdc_ds = None
@@ -221,6 +209,46 @@ class QuickView(QtWidgets.QWidget):
         self._statistics_cache = collections.OrderedDict()
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    def _set_initial_ui(self):
+        self._hover_ds_id = None
+        self._hover_event_idx = None
+        # events label
+        self.label_noevents.setVisible(False)
+        self.enable_interface(False)
+
+    @property
+    def rtdc_ds(self):
+        """Dataset to plot; set to None initially and if the file is closed"""
+        if self._rtdc_ds is not None:
+            if not util.check_file_open(self._rtdc_ds):
+                self._rtdc_ds = None
+        # now check again
+        if self._rtdc_ds is None:
+            self._set_initial_ui()
+        return self._rtdc_ds
+
+    @rtdc_ds.setter
+    def rtdc_ds(self, rtdc_ds):
+        if self._rtdc_ds is not rtdc_ds:
+            self._hover_ds_id = None
+            self._hover_event_idx = None
+
+        self._rtdc_ds = rtdc_ds
+
+        # Hide "Subtract Background"-Checkbox if feature
+        # "image_bg" not in dataset
+        contains_bg_feat = "image_bg" in rtdc_ds
+        self.checkBox_image_background.setVisible(contains_bg_feat)
+
+        # set the dataset for the FeatureComboBoxes
+        self.comboBox_x.set_dataset(rtdc_ds)
+        self.comboBox_y.set_dataset(rtdc_ds)
+        self.comboBox_z_hue.set_dataset(rtdc_ds)
+
+    def close(self):
+        self.event_getter.close()
+        super(QuickView, self).close()
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
@@ -325,28 +353,6 @@ class QuickView(QtWidgets.QWidget):
             self.checkBox_trace_raw.setChecked(event["trace raw"])
             self.checkBox_trace_legend.setChecked(event["trace legend"])
 
-    def _check_file_open(self, rtdc_ds):
-        """Check whether a dataset is still open"""
-        if isinstance(rtdc_ds, dclab.rtdc_dataset.RTDC_HDF5):
-            if rtdc_ds.h5file:
-                # the file is open
-                isopen = True
-            else:
-                isopen = False
-        elif isinstance(rtdc_ds, dclab.rtdc_dataset.RTDC_Hierarchy):
-            isopen = self._check_file_open(rtdc_ds.get_root_parent())
-        else:
-            # DCOR
-            isopen = True
-        return isopen
-
-    def _set_initial_ui(self):
-        self._hover_ds_id = None
-        self._hover_event_idx = None
-        # events label
-        self.label_noevents.setVisible(False)
-        self.enable_interface(False)
-
     def enable_interface(self, value):
         # Initially, only show the info about how QuickView works
         self.widget_tool.setEnabled(value)
@@ -361,210 +367,101 @@ class QuickView(QtWidgets.QWidget):
             self.imageView_image_amp.setImage(np.full((10, 10), 200))
             self.imageView_image_pha.setImage(np.full((10, 10), 200))
 
-    @property
-    def rtdc_ds(self):
-        """Dataset to plot; set to None initially and if the file is closed"""
-        if self._rtdc_ds is not None:
-            if not self._check_file_open(self._rtdc_ds):
-                self._rtdc_ds = None
-        # now check again
-        if self._rtdc_ds is None:
-            self._set_initial_ui()
-        return self._rtdc_ds
+    @QtCore.pyqtSlot(dict)
+    def on_new_event(self, data):
+        self._last_event_data = data
 
-    @rtdc_ds.setter
-    def rtdc_ds(self, rtdc_ds):
-        if self._rtdc_ds is not rtdc_ds:
-            self._hover_ds_id = None
-            self._hover_event_idx = None
+        if self.page_poly.isVisible():
+            view_key = "view_poly"
+        else:
+            view_key = "view_event"
 
-        self._rtdc_ds = rtdc_ds
+        # Image data
+        if "image" in data or "qpi_pha" in data or "qpi_amp" in data:
+            self.groupBox_image.setVisible(True)
+        else:
+            self.groupBox_image.setVisible(False)
 
-        # Hide "Subtract Background"-Checkbox if feature
-        # "image_bg" not in dataset
-        contains_bg_feat = "image_bg" in rtdc_ds
-        self.checkBox_image_background.setVisible(contains_bg_feat)
+        for feat in ["image", "qpi_pha", "qpi_amp"]:
+            view = self.img_views[feat][view_key]
+            if feat in data:
+                self.show_image(feat, view, data)
+                view.setVisible(True)
+            else:
+                view.setVisible(False)
 
-        # set the dataset for the FeatureComboBoxes
-        self.comboBox_x.set_dataset(rtdc_ds)
-        self.comboBox_y.set_dataset(rtdc_ds)
-        self.comboBox_z_hue.set_dataset(rtdc_ds)
+        # Trace data
+        if "traces" in data:
+            self.groupBox_trace.setVisible(True)
+            self.show_traces(data["traces"])
+        else:
+            self.groupBox_trace.setVisible(False)
 
-    # Showing image data
-    ####################
-    def get_event_image(self, ds, event, feat="image"):
-        """Handle the image processing and contour processing for the event"""
+    def show_image(self, feat, view, data):
+        cell_img, vmin, vmax, cmap = qvvis.get_rgb_image(
+            data=data,
+            feat=feat,
+            zoom=self.checkBox_image_zoom.isChecked(),
+            draw_contour=self.checkBox_image_contour.isChecked(),
+            auto_contrast=self.checkBox_image_contrast.isChecked(),
+            subtract_background=self.checkBox_image_background.isChecked(),
+        )
+
+        view.setImage(cell_img,
+                      autoLevels=False,
+                      levels=(vmin, vmax)
+                      )
+
+        if feat == "qpi_pha" and cmap != self._last_cmap_pha.get(view):
+            view.setColorMap(cmap)
+            self._last_cmap_pha[view] = cmap
+
+    def show_traces(self, tdata):
         state = self.read_pipeline_state()
-        if feat == "image":
-            cell_img = self._prepare_event_image_image(ds, event, state)
-        elif feat == "qpi_pha":
-            cell_img = self._prepare_event_image_qpi_pha(ds, event, state)
-        elif feat == "qpi_amp":
-            cell_img = self._prepare_event_image_qpi_amp(ds, event, state)
+        # remove legend items
+        for item in reversed(self.legend_trace.items):
+            self.legend_trace.removeItem(item[1].text)
+        self.legend_trace.setVisible(state["event"]["trace legend"])
+
+        # temporal range (min, max)
+        if state["event"]["trace zoom"]:
+            range_t = [np.inf, -np.inf]
         else:
-            raise NotImplementedError(f"Image feature {feat} not implemented")
+            range_t = [tdata["time"][0], tdata["time"][-1]]
+        # fluorescence intensity
+        range_fl = [0, 0]
 
-        return cell_img
-
-    def _prepare_event_image_image(self, ds, event, state):
-        cell_img = ds["image"][event]
-        # apply background correction
-        if "image_bg" in ds:
-            if state["event"]["image background"]:
-                bgimg = ds["image_bg"][event].astype(np.int16)
-                cell_img = cell_img.astype(np.int16)
-                cell_img = cell_img - bgimg + int(np.mean(bgimg))
-        # automatic contrast
-        if state["event"]["image auto contrast"]:
-            vmin, vmax = cell_img.min(), cell_img.max()
-            cell_img = (cell_img - vmin) / (vmax - vmin) * 255
-        cell_img = self._convert_to_rgb(cell_img)
-        # clip and convert to int
-        cell_img = np.clip(cell_img, 0, 255)
-        cell_img = np.require(cell_img, np.uint8, 'C')
-
-        cell_img = self._insert_contour_and_zoom(
-            cell_img,
-            cmap_levels=self.img_info["image"]["kwargs"]["levels"],
-            contour_style="red",
-            ds=ds,
-            event=event,
-            state=state)
-
-        return cell_img
-
-    def _prepare_event_image_qpi_amp(self, ds, event, state):
-        cell_img = ds["qpi_amp"][event]
-        if state["event"]["image auto contrast"]:
-            vmin, vmax = cell_img.min(), cell_img.max()
-        else:
-            vmin, vmax = self.levels_qpi_amp
-        self.img_info["qpi_amp"]["kwargs"]["levels"] = (vmin, vmax)
-        # to get the correct contour colour it is easier to view the
-        # amplitude as an RGB image
-        cell_img = self._convert_to_rgb(cell_img)
-
-        cell_img = self._insert_contour_and_zoom(
-            cell_img,
-            cmap_levels=self.img_info["qpi_amp"]["kwargs"]["levels"],
-            contour_style="red",
-            ds=ds,
-            event=event,
-            state=state)
-
-        return cell_img
-
-    @staticmethod
-    def _convert_to_rgb(cell_img):
-        cell_img = cell_img.reshape(
-            cell_img.shape[0], cell_img.shape[1], 1)
-        return np.repeat(cell_img, 3, axis=2)
-
-    def _prepare_event_image_qpi_pha(self, ds, event, state):
-        cell_img = ds["qpi_pha"][event]
-        # colormap levels
-        if state["event"]["image auto contrast"]:
-            vmin, vmax = self._vmin_max_around_zero(cell_img)
-            if state["event"]["image contour"]:
-                # offset required for auto-contrast with contour
-                # two times the contrast range, divided by the cmap length
-                # this essentially adds a cmap point for our contour
-                offset = 2 * ((vmax - vmin) / len(self.cmap_pha.color))
-                vmin = vmin - offset
-        else:
-            vmin, vmax = self.levels_qpi_pha
-        self.img_info["qpi_pha"]["kwargs"]["levels"] = (vmin, vmax)
-
-        # update colormap
-        if state["event"]["image contour"]:
-            new_cmap = self.cmap_pha_with_black
-        else:
-            new_cmap = self.cmap_pha
-        if self.img_info["qpi_pha"]["cmap"] != new_cmap:
-            self.img_info["qpi_pha"]["cmap"] = new_cmap
-            # performance
-            self.img_info["qpi_pha"]["cmap_changed"]["view_poly"] = True
-            self.img_info["qpi_pha"]["cmap_changed"]["view_event"] = True
-
-        cell_img = self._insert_contour_and_zoom(
-            cell_img,
-            cmap_levels=self.img_info["qpi_pha"]["kwargs"]["levels"],
-            contour_style="lowest-level",
-            ds=ds,
-            event=event,
-            state=state)
-
-        return cell_img
-
-    def _vmin_max_around_zero(self, cell_img):
-        vmin_abs, vmax_abs = np.abs(cell_img.min()), np.abs(cell_img.max())
-        v_largest = max(vmax_abs, vmin_abs)
-        vmin, vmax = -v_largest, v_largest
-        return vmin, vmax
-
-    def _insert_contour_and_zoom(self,
-                                 cell_img: np.ndarray,
-                                 cmap_levels: Tuple[float, float],
-                                 contour_style: Literal["red", "lowest-level"],
-                                 ds: dclab.rtdc_dataset.RTDCBase,
-                                 event: int,
-                                 state: Dict):
-        if "mask" in ds and len(ds["mask"]) > event:
-            mask = ds["mask"][event]
-            if state["event"]["image contour"]:
-                # Compute contour image from mask. If you are wondering
-                # whether this is kosher, please take a look at issue #76:
-                # https://github.com/DC-analysis/dclab/issues/76
-                cont = mask ^ binary_erosion(mask)
-                if contour_style == "red":
-                    # draw red contour for grayscale images
-                    ch_red = cmap_levels[1] * 0.7
-                    ch_other = int(cmap_levels[0]) if \
-                        cmap_levels[1] == 255 else cmap_levels[0]
-                    # assign channel values for contour
-                    cell_img[cont, 0] = int(
-                        ch_red) if cmap_levels[1] == 255 else ch_red
-                    cell_img[cont, 1] = ch_other
-                    cell_img[cont, 2] = ch_other
-                elif contour_style == "lowest-level":
-                    # use the lowest value from the colormap
-                    # (used for e.g. phase images)
-                    cell_img[cont] = cmap_levels[0]
-
-            if state["event"]["image zoom"]:
-                cell_img = self.image_zoom(cell_img, mask)
-
-        return cell_img
-
-    def get_event_image_and_show(self, ds, event, feat, view):
-        """Convenience method for getting and showing event image"""
-        cell_img = self.get_event_image(ds, event, feat)
-        self.show_image(feat, view, cell_img)
-
-    def show_image(self, feat, view, cell_img):
-        self.img_info[feat][view].setImage(cell_img,
-                                           **self.img_info[feat]["kwargs"])
-
-        if (self.img_info[feat]["cmap"] is not None
-                # performance
-                and self.img_info[feat]["cmap_changed"][view]):
-            self.img_info[feat]["cmap_changed"][view] = False
-            self.img_info[feat][view].setColorMap(self.img_info[feat]["cmap"])
-        self.img_info[feat][view].setVisible(True)
-
-    @staticmethod
-    def image_zoom(cell_img, mask):
-        xv, yv = np.where(mask)
-        idminx = xv.min() - 5
-        idminy = yv.min() - 5
-        idmaxx = xv.max() + 5
-        idmaxy = yv.max() + 5
-        idminx = idminx if idminx >= 0 else 0
-        idminy = idminy if idminy >= 0 else 0
-        shx, shy = mask.shape
-        idmaxx = idmaxx if idmaxx < shx else shx
-        idmaxy = idmaxy if idmaxy < shy else shy
-        return cell_img[idminx:idmaxx, idminy:idmaxy]
+        for name in dclab.dfn.FLUOR_TRACES:
+            if name.count("raw") and not state["event"]["trace raw"]:
+                # hide raw trace data if user decided so
+                show = False
+            else:
+                show = True
+            flid = name.split("_")[0]
+            if name in tdata and show:
+                range_fl[0] = min(range_fl[0], tdata[name].min())
+                range_fl[1] = max(range_fl[1], tdata[name].max())
+                self.trace_plots[name].setData(tdata["time"], tdata[name])
+                self.trace_plots[name].setVisible(True)
+                if state["event"]["trace zoom"]:
+                    range_t[0] = min(
+                        range_t[0],
+                        tdata[f"{flid}_pos"] - 1.5 * tdata[f"{flid}_width"]
+                    )
+                    range_t[1] = max(
+                        range_t[1],
+                        tdata[f"{flid}_pos"] + 1.5 * tdata[f"{flid}_width"]
+                    )
+                # set legend name
+                ln = self.slot.fl_name_dict[f"FL-{name[2]}"] + f" {name[4:]}"
+                self.legend_trace.addItem(self.trace_plots[name], ln)
+                self.legend_trace.update()
+            else:
+                self.trace_plots[name].setVisible(False)
+        self.graphicsView_trace.setXRange(*range_t, padding=0)
+        if range_fl[0] != range_fl[1]:
+            self.graphicsView_trace.setYRange(*range_fl, padding=.01)
+        self.graphicsView_trace.setLimits(xMin=0, xMax=tdata["time"][-1])
 
     # Statistics
     ############
@@ -638,24 +535,8 @@ class QuickView(QtWidgets.QWidget):
                 # remember where we were
                 self._hover_ds_id = id(ds)
                 self._hover_event_idx = event
-                view = "view_poly"
-                for key in self.img_info.keys():
-                    self.img_info[key][view].setVisible(False)
 
-                try:
-                    # if we have qpi data, image might be a different shape
-                    if "qpi_pha" in ds:
-                        self.get_event_image_and_show(
-                            ds, event, "qpi_pha", view)
-                        if "qpi_amp" in ds:
-                            self.get_event_image_and_show(
-                                ds, event, "qpi_amp", view)
-                    elif "image" in ds:
-                        self.get_event_image_and_show(
-                            ds, event, "image", view)
-                except IndexError:
-                    # the plot got updated, and we still have the old data
-                    self.get_event_image_and_show(ds, 0, "image", view)
+                self.event_getter.request_event_data(ds, event)
 
     @QtCore.pyqtSlot(int)
     def on_event_scatter_spin(self, event):
@@ -665,8 +546,8 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_event_scatter_update(self):
         """Just update the event shown"""
-        event = self.spinBox_event.value()
-        self.show_event(event - 1)
+        if self._last_event_data:
+            self.on_new_event(self._last_event_data)
 
     # Polygon Selection
     ###################
@@ -918,7 +799,7 @@ class QuickView(QtWidgets.QWidget):
 
     @show_wait_cursor
     @QtCore.pyqtSlot(int)
-    def show_event(self, event):
+    def show_event(self, event_index):
         """Display the event data (image, contour, trace)
 
         Parameters
@@ -934,91 +815,22 @@ class QuickView(QtWidgets.QWidget):
         # dataset
         ds = self.rtdc_ds
         self._dataset_event_plot_indices_cache[
-            id(self.rtdc_ds.hparent)] = int(event)
+            id(self.rtdc_ds.hparent)] = int(event_index)
         event_count = ds.config["experiment"]["event count"]
         if event_count == 0:
             # nothing to do
             return
+
         # Update spin box data
         self.spinBox_event.blockSignals(True)
-        self.spinBox_event.setValue(event + 1)
+        self.spinBox_event.setValue(event_index + 1)
         self.spinBox_event.blockSignals(False)
 
         # Update selection point in scatter plot
-        self.widget_scatter.setSelection(event)
+        self.widget_scatter.setSelection(event_index)
         if self.tabWidget_event.currentIndex() == 0:
-            # update image
-            state = self.read_pipeline_state()
-
-            view = "view_event"
-            for key in self.img_info.keys():
-                self.img_info[key][view].setVisible(False)
-
-            # if we have qpi data, image might be a different shape
-            if "qpi_pha" in ds:
-                self.get_event_image_and_show(ds, event, "qpi_pha", view)
-                if "qpi_amp" in ds:
-                    self.get_event_image_and_show(ds, event, "qpi_amp", view)
-            elif "image" in ds:
-                self.get_event_image_and_show(ds, event, "image", view)
-
-            if "image" in ds or "qpi_pha" in ds or "qpi_amp" in ds:
-                self.groupBox_image.setVisible(True)
-            else:
-                self.groupBox_image.setVisible(False)
-
-            if "trace" in ds:
-                # remove legend items
-                for item in reversed(self.legend_trace.items):
-                    self.legend_trace.removeItem(item[1].text)
-                self.legend_trace.setVisible(state["event"]["trace legend"])
-                # get slot from identifier
-                # time axis
-                flsamples = ds.config["fluorescence"]["samples per event"]
-                flrate = ds.config["fluorescence"]["sample rate"]
-                fltime = np.arange(flsamples) / flrate * 1e6
-                # temporal range (min, max, fl-peak-maximum)
-                range_t = [fltime[0], fltime[-1], 0]
-                # fluorescence intensity
-                range_fl = [0, 0]
-                for key in dclab.dfn.FLUOR_TRACES:
-                    if key.count("raw") and not state["event"]["trace raw"]:
-                        # hide raw trace data if user decided so
-                        show = False
-                    else:
-                        show = True
-                    flid = key.split("_")[0]
-                    if key in ds["trace"] and show:
-                        # show the trace information
-                        tracey = ds["trace"][key][event]  # trace data
-                        range_fl[0] = min(range_fl[0], tracey.min())
-                        range_fl[1] = max(range_fl[1], tracey.max())
-                        self.trace_plots[key].setData(fltime, tracey)
-                        self.trace_plots[key].setVisible(True)
-                        if state["event"]["trace zoom"]:
-                            flpos = ds["{}_pos".format(flid)][event]
-                            flwidth = ds["{}_width".format(flid)][event]
-                            flmax = ds["{}_max".format(flid)][event]
-                            # use the peak maximum to decide which range to use
-                            if flmax > range_t[2]:
-                                range_t[0] = flpos - 1.5 * flwidth
-                                range_t[1] = flpos + 1.5 * flwidth
-                                range_t[2] = flmax
-                        # set legend name
-                        ln = "{} {}".format(
-                            self.slot.fl_name_dict[
-                                "FL-{}".format(key[2])], key[4:])
-                        self.legend_trace.addItem(self.trace_plots[key], ln)
-                        self.legend_trace.update()
-                    else:
-                        self.trace_plots[key].setVisible(False)
-                self.graphicsView_trace.setXRange(*range_t[:2], padding=0)
-                if range_fl[0] != range_fl[1]:
-                    self.graphicsView_trace.setYRange(*range_fl, padding=.01)
-                self.graphicsView_trace.setLimits(xMin=0, xMax=fltime[-1])
-                self.groupBox_trace.setVisible(True)
-            else:
-                self.groupBox_trace.setVisible(False)
+            # request the data from the event getter
+            self.event_getter.request_event_data(ds, event_index)
         else:
             # only use computed features (speed)
             fcands = ds.features_local
@@ -1028,7 +840,7 @@ class QuickView(QtWidgets.QWidget):
             vals = []
             for lii, fii in lf:
                 keys.append(lii)
-                val = ds[fii][event]
+                val = ds[fii][event_index]
                 if fii in idiom.INTEGER_FEATURES:
                     val = int(np.round(val))
                 vals.append(val)
@@ -1086,16 +898,21 @@ class QuickView(QtWidgets.QWidget):
         # set control ranges
         self.spinBox_event.blockSignals(True)
         self.spinBox_event.setMaximum(event_count)
-        self.spinBox_event.setToolTip("total: {}".format(event_count))
-        cur_value = self._dataset_event_plot_indices_cache.get(
-            id(self.rtdc_ds.hparent), 0) + 1
-        self.spinBox_event.setValue(cur_value)
+        self.spinBox_event.setToolTip(f"total: {event_count}")
+        event_index = self._dataset_event_plot_indices_cache.get(
+            id(self.rtdc_ds.hparent), 0)
+        self.spinBox_event.setValue(event_index + 1)
         self.spinBox_event.blockSignals(False)
 
         # set quick view state
         self.write_pipeline_state(state)
         # scatter plot
         self.plot()
+        try:
+            self.show_event(event_index)
+        except IndexError:
+            self.show_event(0)
+
         # this only updates the size of the tools (because there is no
         # sender)
         self.on_tool()

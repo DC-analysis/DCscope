@@ -8,9 +8,10 @@ import numpy as np
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QEventLoop
 
-from dcscope.gui.main import DCscope
 from dcscope import session
 import pytest
+
+import conftest  # noqa: F401
 
 
 data_path = pathlib.Path(__file__).parent / "data"
@@ -46,7 +47,7 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_box_filter_selection_no_preselection_issue_67(qtbot):
+def test_box_filter_selection_no_preselection_issue_67(qtbot, mw):
     """
     The user creates a filter and selects a few features for box
     filtering. Then the user creates a new filter and tries to add
@@ -54,7 +55,6 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot):
     """
     path = make_fake_dataset()
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add the file
@@ -101,11 +101,10 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot):
     qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
 
-def test_filter_min_max_delete(qtbot):
+def test_filter_min_max_delete(qtbot, mw):
     """Create a box filter, apply it, and delete it again"""
     path = make_fake_dataset()
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add the file
@@ -199,10 +198,9 @@ def test_filter_min_max_delete(qtbot):
     assert np.max(ds2b["area_um"]) > 30
 
 
-def test_filter_min_max_inf(qtbot):
+def test_filter_min_max_inf(qtbot, mw):
     path = make_fake_dataset()
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add the file
@@ -238,7 +236,7 @@ def test_filter_min_max_inf(qtbot):
     assert np.allclose(rcstate["end"], 1.1, rtol=1e-4)
 
 
-def test_polygon_filter_basic(qtbot):
+def test_polygon_filter_basic(qtbot, mw):
     path = data_path / "calibration_beads_47.rtdc"
 
     with dclab.new_dataset(path) as ds:
@@ -251,7 +249,6 @@ def test_polygon_filter_basic(qtbot):
             name="Triangle of Death",
         )
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add the file
@@ -302,7 +299,7 @@ def test_polygon_filter_basic(qtbot):
     assert len(ds) == 5
 
 
-def test_polygon_filter_delete(qtbot):
+def test_polygon_filter_delete(qtbot, mw):
     path = data_path / "calibration_beads_47.rtdc"
 
     with dclab.new_dataset(path) as ds:
@@ -315,7 +312,6 @@ def test_polygon_filter_delete(qtbot):
             name="Triangle of Death",
         )
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add the file

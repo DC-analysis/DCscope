@@ -7,9 +7,12 @@ import h5py
 import numpy as np
 import pytest
 
-from dcscope.gui.main import DCscope
 from dcscope.gui import bulk
 from dcscope import session
+
+# for fixtures
+import conftest  # noqa: F401
+
 
 datapath = pathlib.Path(__file__).parent / "data"
 
@@ -42,9 +45,8 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_manual_basic(qtbot):
+def test_manual_basic(qtbot, mw):
     """Most simple test"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -81,9 +83,8 @@ def test_manual_basic(qtbot):
         assert "emodulus viscosity" not in ds.config["calculation"]
 
 
-def test_manual_wrong_medium(qtbot):
+def test_manual_wrong_medium(qtbot, mw):
     """Deliberately set wrong medium"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -112,8 +113,7 @@ def test_manual_wrong_medium(qtbot):
         assert "emodulus viscosity" not in ds.config["calculation"]
 
 
-def test_temperature_feature(qtbot):
-    mw = DCscope()
+def test_temperature_feature(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add custom dataslot
@@ -138,8 +138,7 @@ def test_temperature_feature(qtbot):
             "buyukurganci-2022"
 
 
-def test_viscosity(qtbot):
-    mw = DCscope()
+def test_viscosity(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add custom dataslot
@@ -164,8 +163,7 @@ def test_viscosity(qtbot):
         assert "emodulus viscosity model" not in ds.config["calculation"]
 
 
-def test_viscosity_compute(qtbot):
-    mw = DCscope()
+def test_viscosity_compute(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add custom dataslot
@@ -197,9 +195,8 @@ def test_viscosity_compute(qtbot):
             == "buyukurganci-2022"
 
 
-def test_wrong_medium_viscosity(qtbot):
+def test_wrong_medium_viscosity(qtbot, mw):
     """Deliberately set wrong visosity"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -226,8 +223,7 @@ def test_wrong_medium_viscosity(qtbot):
             "buyukurganci-2022"
 
 
-def test_lut_selection(qtbot):
-    mw = DCscope()
+def test_lut_selection(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add a dataslot

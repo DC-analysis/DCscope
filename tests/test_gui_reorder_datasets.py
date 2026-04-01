@@ -1,10 +1,12 @@
 """Test of filter functionalities"""
 import pathlib
 
-from dcscope.gui.main import DCscope
 from dcscope.gui.analysis import DlgSlotReorder
 from dcscope import session
 import pytest
+
+import conftest  # noqa: F401
+
 
 datapath = pathlib.Path(__file__).parent / "data"
 
@@ -19,8 +21,7 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_filter_min_max_inf(qtbot):
-    mw = DCscope()
+def test_filter_min_max_inf(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add 3 dataslots

@@ -7,9 +7,10 @@ import dclab
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
 import pytest
-from dcscope.gui.main import DCscope
 from dcscope.gui import export
 from dcscope import session
+
+import conftest  # noqa: F401
 
 
 data_path = pathlib.Path(__file__).parent / "data"
@@ -25,8 +26,7 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_export_datasets_rtdc(qtbot):
-    mw = DCscope()
+def test_export_datasets_rtdc(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add 3 dataslots
@@ -49,9 +49,8 @@ def test_export_datasets_rtdc(qtbot):
     assert len(list(pathlib.Path(tmpd).glob("*.rtdc"))) == 3
 
 
-def test_export_datasets_rtdc_no_override(qtbot):
+def test_export_datasets_rtdc_no_override(qtbot, mw):
     """DCscope should not override existing files during export"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add 3 dataslots
@@ -78,8 +77,7 @@ def test_export_datasets_rtdc_no_override(qtbot):
 
 @pytest.mark.filterwarnings(
     "ignore::dclab.features.emodulus.YoungsModulusLookupTableExceededWarning")
-def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot):
-    mw = DCscope()
+def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add 3 dataslots
@@ -129,8 +127,7 @@ def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot):
         assert "emodulus" not in ds
 
 
-def test_export_datasets_rtdc_logs(qtbot):
-    mw = DCscope()
+def test_export_datasets_rtdc_logs(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add 1 dataslots
@@ -173,8 +170,7 @@ def test_export_datasets_rtdc_logs(qtbot):
 
 @pytest.mark.parametrize("strategy",
                          ["no-basins", "with-basins", "only-basins"])
-def test_export_datasets_basin_based(qtbot, strategy):
-    mw = DCscope()
+def test_export_datasets_basin_based(qtbot, strategy, mw):
     qtbot.addWidget(mw)
 
     # add 1 dataslots

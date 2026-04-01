@@ -1,9 +1,26 @@
 import os.path
 
+import dclab
 # hashobj is imported from several other submodules in DCscope.
 # Would we need to add additional functionalities in the future, which
 # are not within the scope of dclab, then we can patch this method here.
 from dclab.util import hashobj  # noqa: F401
+
+
+def check_file_open(rtdc_ds):
+    """Check whether a dataset is still open"""
+    if isinstance(rtdc_ds, dclab.rtdc_dataset.RTDC_HDF5):
+        if rtdc_ds.h5file:
+            # the file is open
+            isopen = True
+        else:
+            isopen = False
+    elif isinstance(rtdc_ds, dclab.rtdc_dataset.RTDC_Hierarchy):
+        isopen = check_file_open(rtdc_ds.get_root_parent())
+    else:
+        # DCOR
+        isopen = True
+    return isopen
 
 
 def get_valid_filename(value):

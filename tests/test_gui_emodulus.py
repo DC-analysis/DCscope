@@ -7,9 +7,10 @@ from PyQt6 import QtCore, QtWidgets
 import dclab
 import h5py
 import numpy as np
-from dcscope.gui.main import DCscope
 from dcscope import session
 import pytest
+
+import conftest  # noqa: F401
 
 datapath = pathlib.Path(__file__).parent / "data"
 
@@ -42,9 +43,8 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_allow_to_set_manual_temperature_for_known_medium(qtbot):
+def test_allow_to_set_manual_temperature_for_known_medium(qtbot, mw):
     """Fixes regression introduced in 2.4.0"""
-    mw = DCscope()
     qtbot.addWidget(mw)
     # add fake measurement
     path1 = make_dataset(medium=None, temp=23.5)
@@ -73,8 +73,7 @@ def test_allow_to_set_manual_temperature_for_known_medium(qtbot):
     assert wsl.doubleSpinBox_temp.value() == 23.5
 
 
-def test_empty_medium_string_should_offer_user_edit(qtbot):
-    mw = DCscope()
+def test_empty_medium_string_should_offer_user_edit(qtbot, mw):
     qtbot.addWidget(mw)
     # add fake measurement
     path1 = make_dataset(medium=" ")
@@ -93,8 +92,7 @@ def test_empty_medium_string_should_offer_user_edit(qtbot):
     assert wsl.read_pipeline_state()["emodulus"]["emodulus scenario"] is None
 
 
-def test_other_medium_viscosity_editable_issue_49(qtbot):
-    mw = DCscope()
+def test_other_medium_viscosity_editable_issue_49(qtbot, mw):
     qtbot.addWidget(mw)
     # add fake measurement
     path1 = make_dataset(medium=None)
@@ -112,8 +110,7 @@ def test_other_medium_viscosity_editable_issue_49(qtbot):
 
 @pytest.mark.filterwarnings(
     'ignore::dclab.features.emodulus.YoungsModulusLookupTableExceededWarning')
-def test_simple(qtbot):
-    mw = DCscope()
+def test_simple(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add fake measurement
@@ -173,8 +170,7 @@ def test_simple(qtbot):
         pass
 
 
-def test_switch_and_update_chip_region(qtbot):
-    mw = DCscope()
+def test_switch_and_update_chip_region(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add fake measurement
@@ -225,8 +221,7 @@ def test_switch_and_update_chip_region(qtbot):
         pass
 
 
-def test_switch_and_update_medium(qtbot):
-    mw = DCscope()
+def test_switch_and_update_medium(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add fake measurement
@@ -275,8 +270,7 @@ def test_switch_and_update_medium(qtbot):
         pass
 
 
-def test_user_defined_medium_should_work(qtbot):
-    mw = DCscope()
+def test_user_defined_medium_should_work(qtbot, mw):
     qtbot.addWidget(mw)
     # add fake measurement
     path1 = make_dataset(medium="MyMedium")
@@ -298,8 +292,7 @@ def test_user_defined_medium_should_work(qtbot):
     assert wsl.read_pipeline_state()["emodulus"]["emodulus scenario"] is None
 
 
-def test_changeable_lut_selection(qtbot):
-    mw = DCscope()
+def test_changeable_lut_selection(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add fake measurement
@@ -356,8 +349,7 @@ def test_changeable_lut_selection(qtbot):
         pass
 
 
-def test_viscosity_defaults_to_buyukurganci_2022(qtbot):
-    mw = DCscope()
+def test_viscosity_defaults_to_buyukurganci_2022(qtbot, mw):
     qtbot.addWidget(mw)
 
     # add fake measurement

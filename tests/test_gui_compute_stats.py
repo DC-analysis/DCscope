@@ -5,10 +5,12 @@ from unittest import mock
 
 from PyQt6 import QtWidgets
 
-from dcscope.gui.main import DCscope
 from dcscope import session
 from dcscope.gui.compute.comp_stats import ComputeStatistics
 import pytest
+
+import conftest  # noqa: F401
+
 
 data_path = pathlib.Path(__file__).parent / "data"
 
@@ -23,8 +25,7 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_gui_stats_basic(qtbot):
-    mw = DCscope()
+def test_gui_stats_basic(qtbot, mw):
     qtbot.addWidget(mw)
     path = data_path / "calibration_beads_47.rtdc"
     mw.add_dataslot(paths=[path])

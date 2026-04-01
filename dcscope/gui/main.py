@@ -390,11 +390,18 @@ class DCscope(QtWidgets.QMainWindow):
             self.subwindows_plots[plot_id] = sub
         sub.show()
 
+    def close(self):
+        if self.widget_quick_view is not None:
+            self.widget_quick_view.close()
+        return super(DCscope, self).close()
+
     @QtCore.pyqtSlot(QtCore.QEvent)
     def closeEvent(self, event):
         """Determine what happens when the user wants to quit"""
         if self.pipeline.slots or self.pipeline.filters:
             if self.on_action_clear():
+                if self.widget_quick_view is not None:
+                    self.widget_quick_view.close()
                 event.accept()
             else:
                 event.ignore()

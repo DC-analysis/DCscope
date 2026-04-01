@@ -1,3 +1,6 @@
+2.26.3
+ - enh: fetch QuickView image and trace data in `EventGetterThread`
+ - ref: new `qv_event_getter` and `qv_image_vis` submodules
 2.26.2
  - reg: filters not applied in final plots since 2.25.1
  - fix: prevent `pipeline.lock` deadlocks via Qt signal cluttering

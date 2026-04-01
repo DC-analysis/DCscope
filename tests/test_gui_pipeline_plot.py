@@ -4,6 +4,7 @@ import dclab
 
 from dcscope.gui import pipeline_plot
 
+
 datapath = pathlib.Path(__file__).parent / "data"
 
 

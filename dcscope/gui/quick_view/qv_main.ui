@@ -199,7 +199,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="page_settings">
        <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -811,6 +811,9 @@
             <item>
              <widget class="QWidget" name="widget_7" native="true">
               <layout class="QVBoxLayout" name="verticalLayout_18">
+               <property name="sizeConstraint">
+                <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+               </property>
                <property name="leftMargin">
                 <number>6</number>
                </property>
@@ -879,23 +882,6 @@
                        <property name="topMargin">
                         <number>0</number>
                        </property>
-                       <item row="0" column="1">
-                        <widget class="QCheckBox" name="checkBox_trace_zoom">
-                         <property name="text">
-                          <string>Zoom (experimental)</string>
-                         </property>
-                         <property name="checked">
-                          <bool>false</bool>
-                         </property>
-                        </widget>
-                       </item>
-                       <item row="1" column="0">
-                        <widget class="QCheckBox" name="checkBox_trace_legend">
-                         <property name="text">
-                          <string>Legend</string>
-                         </property>
-                        </widget>
-                       </item>
                        <item row="0" column="0">
                         <widget class="QCheckBox" name="checkBox_trace_raw">
                          <property name="text">
@@ -906,7 +892,7 @@
                          </property>
                         </widget>
                        </item>
-                       <item row="0" column="2">
+                       <item row="0" column="3">
                         <spacer name="horizontalSpacer_3">
                          <property name="orientation">
                           <enum>Qt::Orientation::Horizontal</enum>
@@ -919,6 +905,23 @@
                          </property>
                         </spacer>
                        </item>
+                       <item row="0" column="1">
+                        <widget class="QCheckBox" name="checkBox_trace_zoom">
+                         <property name="text">
+                          <string>Zoom</string>
+                         </property>
+                         <property name="checked">
+                          <bool>false</bool>
+                         </property>
+                        </widget>
+                       </item>
+                       <item row="0" column="2">
+                        <widget class="QCheckBox" name="checkBox_trace_legend">
+                         <property name="text">
+                          <string>Legend</string>
+                         </property>
+                        </widget>
+                       </item>
                       </layout>
                      </item>
                      <item>
@@ -926,7 +929,7 @@
                        <property name="minimumSize">
                         <size>
                          <width>0</width>
-                         <height>100</height>
+                         <height>150</height>
                         </size>
                        </property>
                       </widget>

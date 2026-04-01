@@ -8,8 +8,10 @@ from PyQt6 import QtCore, QtWidgets
 
 import pytest
 
-from dcscope.gui.main import DCscope
 from dcscope.gui.export.e2filter import ExportFilter
+
+import conftest  # noqa: F401
+
 
 data_path = pathlib.Path(__file__).parent / "data"
 
@@ -21,7 +23,7 @@ def run_around_tests():
     dclab.PolygonFilter.clear_all_filters()
 
 
-def test_gui_export_filter_ray(qtbot, monkeypatch):
+def test_gui_export_filter_ray(qtbot, monkeypatch, mw):
     tdir = tempfile.mkdtemp()
     path = pathlib.Path(tdir) / "data.rtdc"
     shutil.copy2(data_path / "calibration_beads_47.rtdc", path)
@@ -36,7 +38,6 @@ def test_gui_export_filter_ray(qtbot, monkeypatch):
             name="Triangle of Death",
         )
 
-    mw = DCscope()
     qtbot.addWidget(mw)
     mw.add_dataslot(paths=[path])
 
@@ -74,7 +75,7 @@ def test_gui_export_filter_ray(qtbot, monkeypatch):
     assert sof_out.exists()
 
 
-def test_gui_export_polygon_filters(qtbot, monkeypatch):
+def test_gui_export_polygon_filters(qtbot, monkeypatch, mw):
     path = data_path / "calibration_beads_47.rtdc"
     # create a polygon filter
     with dclab.new_dataset(path) as ds:
@@ -95,7 +96,6 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch):
             name="Second Triangle of Death",
         )
 
-    mw = DCscope()
     qtbot.addWidget(mw)
     mw.add_dataslot(paths=[path])
 

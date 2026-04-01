@@ -9,7 +9,9 @@ import pytest
 from PyQt6 import QtCore, QtWidgets
 
 from dcscope import pipeline, session
-from dcscope.gui.main import DCscope
+
+import conftest  # noqa: F401
+
 
 datapath = pathlib.Path(__file__).parent / "data"
 
@@ -24,12 +26,11 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot):
+def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot, mw):
     """
     Setting "one plot per dataset" for an empty plot resulted in
     zero-division error when determining col/row numbers
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -53,7 +54,7 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot):
     qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
 
-def test_feature_bright_avg_not_present_issue_62(qtbot):
+def test_feature_bright_avg_not_present_issue_62(qtbot, mw):
     """Plot a dataset that does not contain the "bright_avg" feature
 
     ...or any means of computing it (i.e. via "image")
@@ -63,7 +64,6 @@ def test_feature_bright_avg_not_present_issue_62(qtbot):
     with dclab.new_dataset(datapath / "calibration_beads_47.rtdc") as ds:
         ds.export.hdf5(tmp, features=["area_um", "pos_x", "pos_y", "deform"])
 
-    mw = DCscope()
     qtbot.addWidget(mw)
     # add dataset
     slot_id = mw.add_dataslot([tmp])[0]
@@ -75,9 +75,8 @@ def test_feature_bright_avg_not_present_issue_62(qtbot):
     qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
 
 
-def test_handle_axis_selection_empty_plot(qtbot):
+def test_handle_axis_selection_empty_plot(qtbot, mw):
     """User did not add a dataset to a plot and starts changing plot params"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -115,12 +114,11 @@ def test_handle_axis_selection_empty_plot(qtbot):
     pv.comboBox_axis_y.setCurrentIndex(pv.comboBox_axis_y.findData("emodulus"))
 
 
-def test_handle_empty_plots_issue_27(qtbot):
+def test_handle_empty_plots_issue_27(qtbot, mw):
     """Correctly handle empty plots
 
     https://github.com/DC-analysis/DCscope/issues/27
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -179,12 +177,11 @@ def test_handle_empty_plots_issue_27(qtbot):
     'ignore::dclab.kde.binning.KernelDensityEstimationForEmtpyArrayWarning')
 @pytest.mark.filterwarnings(
     'ignore::dcscope.pipeline.core.ContourSpacingWarning')
-def test_handle_empty_plots_issue_223(qtbot):
+def test_handle_empty_plots_issue_223(qtbot, mw):
     """Correctly handle plots with empty datasets (before filtering)
 
     https://github.com/DC-analysis/DCscope/issues/223
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot without any events
@@ -217,11 +214,10 @@ def test_handle_empty_plots_issue_223(qtbot):
 
 @pytest.mark.filterwarnings(
     'ignore::dclab.features.emodulus.YoungsModulusLookupTableExceededWarning')
-def test_handle_nan_valued_feature_color(qtbot):
+def test_handle_nan_valued_feature_color(qtbot, mw):
     """User wants to color scatter data points with feature containing nans"""
     spath = datapath / "version_2_1_2_plot_color_emodulus.so2"
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # lead to:
@@ -230,13 +226,12 @@ def test_handle_nan_valued_feature_color(qtbot):
     mw.on_action_open(spath)
 
 
-def test_hue_feature_not_computed_if_not_selected(qtbot):
+def test_hue_feature_not_computed_if_not_selected(qtbot, mw):
     # generate .rtdc file without bright_avg feature
     tmp = tempfile.mktemp(".rtdc", prefix="example_hue_")
     with dclab.new_dataset(datapath / "calibration_beads_47.rtdc") as ds:
         ds.export.hdf5(tmp, features=["area_um", "pos_x", "pos_y", "image",
                                       "mask", "deform"])
-    mw = DCscope()
     qtbot.addWidget(mw)
     # add dataset
     slot_id = mw.add_dataslot([tmp])[0]
@@ -255,7 +250,7 @@ def test_hue_feature_not_computed_if_not_selected(qtbot):
     assert "bright_avg" not in ds.features_loaded
 
 
-def test_plot_ml_score(qtbot):
+def test_plot_ml_score(qtbot, mw):
     tmp = tempfile.mktemp(".rtdc", prefix="example_ml_score_")
     with dclab.new_dataset(datapath / "calibration_beads_47.rtdc") as ds:
         ds.export.hdf5(tmp, features=["area_um", "pos_x", "pos_y", "image",
@@ -265,7 +260,6 @@ def test_plot_ml_score(qtbot):
     with h5py.File(tmp, "a") as h5:
         h5["/events/ml_score_ds9"] = np.linspace(0, 1, lends)
         h5["/events/ml_score_voy"] = np.linspace(1, 0, lends)
-    mw = DCscope()
     qtbot.addWidget(mw)
     # add dataset
     slot_id = mw.add_dataslot([tmp])[0]
@@ -294,7 +288,7 @@ def test_plot_ml_score(qtbot):
         pass
 
 
-def test_remove_plots_issue_36(qtbot):
+def test_remove_plots_issue_36(qtbot, mw):
     """Correctly handle empty plots
 
     https://github.com/DC-analysis/DCscope/issues/36
@@ -305,7 +299,6 @@ def test_remove_plots_issue_36(qtbot):
         lay = pipeline_state["plots"][plot_index]["layout"]
     IndexError: list index out of range
     """
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslots
@@ -325,9 +318,8 @@ def test_remove_plots_issue_36(qtbot):
     pw.action_remove()
 
 
-def test_reselect_filter(qtbot):
+def test_reselect_filter(qtbot, mw):
     """Test that zooming in on contours works correctly"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # Add test dataset and create plot
@@ -390,9 +382,8 @@ def test_reselect_filter(qtbot):
     assert len(scat.data) == 4
 
 
-def test_changing_lut_identifier_in_analysis_view_plots(qtbot):
+def test_changing_lut_identifier_in_analysis_view_plots(qtbot, mw):
     """Test LUT identifier user interaction in analysis view plots."""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # add a dataslot
@@ -425,9 +416,8 @@ def test_changing_lut_identifier_in_analysis_view_plots(qtbot):
     assert pv.comboBox_lut.currentData() == "HE-3D-FEM-22"
 
 
-def test_zoomin_contours(qtbot):
+def test_zoomin_contours(qtbot, mw):
     """Test that zooming in on contours works correctly"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # Add test dataset and create plot
@@ -464,9 +454,8 @@ def test_zoomin_contours(qtbot):
     assert y_range_after[1] < y_range_before[1], "y-max should decrease"
 
 
-def test_only_contours_division(qtbot):
+def test_only_contours_division(qtbot, mw):
     """Test that 'onlycontours' division mode works correctly"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # Add multiple datasets
@@ -513,9 +502,8 @@ def test_only_contours_division(qtbot):
     assert plot_state["layout"]["division"] == "onlycontours"
 
 
-def test_contour_plot_with_invalid_percentiles(qtbot):
+def test_contour_plot_with_invalid_percentiles(qtbot, mw):
     """Test contour plot with edge case percentiles (e.g., 100% KDE)"""
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     # Add a dataset

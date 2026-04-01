@@ -6,9 +6,10 @@ import tempfile
 
 from PyQt6 import QtWidgets
 import pytest
-from dcscope.gui.main import DCscope
 from dcscope.gui import export
 from dcscope import session
+
+import conftest  # noqa: F401
 
 
 datapath = pathlib.Path(__file__).parent / "data"
@@ -24,11 +25,10 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_export_single_plot(qtbot, monkeypatch):
+def test_export_single_plot(qtbot, monkeypatch, mw):
     """Export of single plots not possible up until version 2.1.4"""
     spath = datapath / "version_2_1_0_basic.so2"
 
-    mw = DCscope()
     qtbot.addWidget(mw)
 
     mw.on_action_open(spath)
