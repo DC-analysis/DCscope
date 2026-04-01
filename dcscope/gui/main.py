@@ -251,6 +251,7 @@ class DCscope(QtWidgets.QMainWindow):
             print(version)
             QtWidgets.QApplication.processEvents(
                 QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+            self.close()
             sys.exit(0)
         else:
             # deal with any other arguments that might have been passed
