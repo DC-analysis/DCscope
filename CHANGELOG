@@ -2,6 +2,8 @@
  - enh: fetch QuickView image and trace data in `EventGetterThread`
  - enh: busy indicator in QuickView when event data is fetched in the background
  - ref: new `qv_event_getter` and `qv_image_vis` submodules
+ - setup: bump dclab to 0.71.6 (disable file locking, improved DCOR support,
+   IndexError during plotting)
 2.26.2
  - reg: filters not applied in final plots since 2.25.1
  - fix: prevent `pipeline.lock` deadlocks via Qt signal cluttering
