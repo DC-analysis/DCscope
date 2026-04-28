@@ -1,6 +1,6 @@
 2.26.4
  - setup: bump dclab to 0.71.7 (ValueError when encountering empty pipeline)
- - ci: bump build pipeline to Python 3.12
+ - ci: bump build pipeline to Python 3.13
 2.26.3
  - enh: fetch QuickView image and trace data in `EventGetterThread`
  - enh: busy indicator in QuickView when event data is fetched in the background
