@@ -47,7 +47,9 @@ jobs:
       run: |
         # prerequisites
         python -m pip install --upgrade pip wheel
-        python -m pip install coverage flake8
+        python -m pip install flake8
+        # https://github.com/coveragepy/coveragepy/issues/2166
+        python -m pip install "coverage==7.5.3"
         # install dependencies
         pip install .
         pip install -r tests/requirements.txt
