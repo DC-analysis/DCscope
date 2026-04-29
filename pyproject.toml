@@ -50,6 +50,9 @@ tracker = "https://github.com/DC-analysis/DCscope/issues"
 documentation = "https://dcscope.readthedocs.io"
 changelog = "https://github.com/DC-analysis/DCscope/blob/main/CHANGELOG"
 
+[tool.setuptools]
+packages = ["dcscope"]
+
 [tool.setuptools_scm]
 write_to = "dcscope/_version.py"
 version_scheme = "post-release"
