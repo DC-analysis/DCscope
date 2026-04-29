@@ -1,11 +1,10 @@
-import importlib.resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 import dclab
 
-from ..widgets import RangeControl
 from ... import idiom
+from ..widgets import RangeControl
+from .ana_filter_ui import Ui_Form
 
 
 class FilterPanel(QtWidgets.QWidget):
@@ -28,10 +27,10 @@ class FilterPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(FilterPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.analysis") / "ana_filter.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
         # current DCscope pipeline
         self.pipeline = None
 
@@ -41,28 +40,28 @@ class FilterPanel(QtWidgets.QWidget):
         self._populate_box_filters()
         self._polygon_checkboxes = {}
         self.update_polygon_filters()
-        self.toolButton_duplicate.clicked.connect(self.on_duplicate_filter)
-        self.toolButton_remove.clicked.connect(self.on_remove_filter)
-        self.pushButton_apply.clicked.connect(self.write_filter)
-        self.pushButton_reset.clicked.connect(self.update_content)
+        self.ui.toolButton_duplicate.clicked.connect(self.on_duplicate_filter)
+        self.ui.toolButton_remove.clicked.connect(self.on_remove_filter)
+        self.ui.pushButton_apply.clicked.connect(self.write_filter)
+        self.ui.pushButton_reset.clicked.connect(self.update_content)
 
         # polygon buttons
-        self.pushButton_polygon_add.clicked.connect(
+        self.ui.pushButton_polygon_add.clicked.connect(
             self.request_new_polygon_filter)
-        self.pushButton_polygon_edit.clicked.connect(
+        self.ui.pushButton_polygon_edit.clicked.connect(
             self.on_polygon_edit)
-        self.pushButton_polygon_duplicate.clicked.connect(
+        self.ui.pushButton_polygon_duplicate.clicked.connect(
             self.on_polygon_duplicate)
-        self.pushButton_polygon_remove.clicked.connect(
+        self.ui.pushButton_polygon_remove.clicked.connect(
             self.on_polygon_remove)
 
         # polygon selection
-        self.listWidget_polygon.itemSelectionChanged.connect(
+        self.ui.listWidget_polygon.itemSelectionChanged.connect(
             self.on_polygon_selection)
 
-        self.comboBox_filters.currentIndexChanged.connect(self.update_content)
-        self.toolButton_moreless.clicked.connect(self.on_moreless)
-        self.label_box_edit.setVisible(False)
+        self.ui.comboBox_filters.currentIndexChanged.connect(self.update_content)
+        self.ui.toolButton_moreless.clicked.connect(self.on_moreless)
+        self.ui.label_box_edit.setVisible(False)
         self._box_edit_view = False
         self.setUpdatesEnabled(True)
 
@@ -71,12 +70,12 @@ class FilterPanel(QtWidgets.QWidget):
     def read_filter_state(self):
         """Read filter state from UI"""
         state = {
-            "filter used": self.checkBox_enable.isChecked(),
+            "filter used": self.ui.checkBox_enable.isChecked(),
             "identifier": self.current_filter.identifier,
-            "limit events bool": self.checkBox_limit.isChecked(),
-            "limit events num": self.spinBox_limit.value(),
-            "name": self.lineEdit_name.text(),
-            "remove invalid events": self.checkBox_invalid.isChecked(),
+            "limit events bool": self.ui.checkBox_limit.isChecked(),
+            "limit events num": self.ui.spinBox_limit.value(),
+            "name": self.ui.lineEdit_name.text(),
+            "remove invalid events": self.ui.checkBox_invalid.isChecked(),
         }
         # box filters
         box = {}
@@ -103,11 +102,11 @@ class FilterPanel(QtWidgets.QWidget):
         """Write filter state to UI"""
         if self.current_filter.identifier != state["identifier"]:
             raise ValueError("Filter identifier mismatch!")
-        self.checkBox_enable.setChecked(state["filter used"])
-        self.lineEdit_name.setText(state["name"])
-        self.checkBox_limit.setChecked(state["limit events bool"])
-        self.spinBox_limit.setValue(state["limit events num"])
-        self.checkBox_invalid.setChecked(state["remove invalid events"])
+        self.ui.checkBox_enable.setChecked(state["filter used"])
+        self.ui.lineEdit_name.setText(state["name"])
+        self.ui.checkBox_limit.setChecked(state["limit events bool"])
+        self.ui.spinBox_limit.setValue(state["limit events num"])
+        self.ui.checkBox_invalid.setChecked(state["remove invalid events"])
         # box filters
         box = state["box filters"]
         for feat in self._box_range_controls:
@@ -142,7 +141,7 @@ class FilterPanel(QtWidgets.QWidget):
         """
         feats, labs = self.get_features_labels()
 
-        self.verticalLayout_box.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.ui.verticalLayout_box.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
         for lab, feat in sorted(zip(labs, feats)):
             integer = True if feat in idiom.INTEGER_FEATURES else False
@@ -160,7 +159,7 @@ class FilterPanel(QtWidgets.QWidget):
                 rcf = list(self._box_range_controls.keys())
                 rcl = [dclab.dfn.get_feature_label(ft) for ft in rcf]
                 index = sorted(rcl + [lab]).index(lab)
-                self.verticalLayout_box.insertWidget(index, rc)
+                self.ui.verticalLayout_box.insertWidget(index, rc)
                 self._box_range_controls[feat] = rc
 
     @property
@@ -175,7 +174,7 @@ class FilterPanel(QtWidgets.QWidget):
     @property
     def current_filter(self):
         if self.filter_ids:
-            filt_index = self.comboBox_filters.currentIndex()
+            filt_index = self.ui.comboBox_filters.currentIndex()
             filt = self.pipeline.filters[filt_index]
         else:
             filt = None
@@ -215,7 +214,7 @@ class FilterPanel(QtWidgets.QWidget):
 
     def get_polygon_filter_selection(self):
         """Return selected polygon filters"""
-        items = self.listWidget_polygon.selectedItems()
+        items = self.ui.listWidget_polygon.selectedItems()
         pfs = []
         pf_ids = []
         for (pfid, item) in self._polygon_checkboxes.items():
@@ -226,12 +225,12 @@ class FilterPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_polygon_selection(self):
-        num_selected = len(self.listWidget_polygon.selectedItems())
+        num_selected = len(self.ui.listWidget_polygon.selectedItems())
         if num_selected == 0:
-            self.widget_selection.setEnabled(False)
+            self.ui.widget_selection.setEnabled(False)
         else:
-            self.widget_selection.setEnabled(True)
-            self.pushButton_polygon_edit.setEnabled(num_selected == 1)
+            self.ui.widget_selection.setEnabled(True)
+            self.ui.pushButton_polygon_edit.setEnabled(num_selected == 1)
 
     @QtCore.pyqtSlot()
     def on_polygon_duplicate(self):
@@ -323,24 +322,24 @@ class FilterPanel(QtWidgets.QWidget):
             for feat, rc in self._box_range_controls.items():
                 if feat in features:
                     rc.setVisible(True)
-                    rc.checkBox.setVisible(True)
-                    rc.doubleSpinBox_min.setEnabled(False)
-                    rc.doubleSpinBox_max.setEnabled(False)
-                    rc.range_slider.setEnabled(False)
-            self.toolButton_moreless.setText("...Finish editing")
-            self.label_box_edit.setVisible(True)
+                    rc.ui.checkBox.setVisible(True)
+                    rc.ui.doubleSpinBox_min.setEnabled(False)
+                    rc.ui.doubleSpinBox_max.setEnabled(False)
+                    rc.ui.range_slider.setEnabled(False)
+            self.ui.toolButton_moreless.setText("...Finish editing")
+            self.ui.label_box_edit.setVisible(True)
             self._box_edit_view = True
         else:
             # Hide all filters that are not active
             for _, rc in self._box_range_controls.items():
                 if not rc.is_active():
                     rc.setVisible(False)
-                rc.checkBox.setVisible(False)
-                rc.doubleSpinBox_min.setEnabled(True)
-                rc.doubleSpinBox_max.setEnabled(True)
-                rc.range_slider.setEnabled(True)
-            self.toolButton_moreless.setText("Choose filters...")
-            self.label_box_edit.setVisible(False)
+                rc.ui.checkBox.setVisible(False)
+                rc.ui.doubleSpinBox_min.setEnabled(True)
+                rc.ui.doubleSpinBox_max.setEnabled(True)
+                rc.ui.range_slider.setEnabled(True)
+            self.ui.toolButton_moreless.setText("Choose filters...")
+            self.ui.label_box_edit.setVisible(False)
             self._box_edit_view = False
             # Update box filter ranges
             self.update_box_ranges()
@@ -357,24 +356,24 @@ class FilterPanel(QtWidgets.QWidget):
     def update_content(self, filt_index=None, **kwargs):
         if self.pipeline and self.pipeline.filters:
             # remember the previous filter index and make sure it is sane
-            prev_index = self.comboBox_filters.currentIndex()
+            prev_index = self.ui.comboBox_filters.currentIndex()
             if prev_index is None or prev_index < 0:
                 prev_index = len(self.filter_ids) - 1
 
             self.setEnabled(True)
             self.update_polygon_filters()
             # update combobox
-            self.comboBox_filters.blockSignals(True)
+            self.ui.comboBox_filters.blockSignals(True)
             if filt_index is None or filt_index < 0:
                 # fallback to previous filter index
                 filt_index = prev_index
             filt_index = min(filt_index, len(self.filter_ids) - 1)
 
-            self.comboBox_filters.clear()
-            self.comboBox_filters.addItems(
+            self.ui.comboBox_filters.clear()
+            self.ui.comboBox_filters.addItems(
                 [filt.name for filt in self.pipeline.filters])
-            self.comboBox_filters.setCurrentIndex(filt_index)
-            self.comboBox_filters.blockSignals(False)
+            self.ui.comboBox_filters.setCurrentIndex(filt_index)
+            self.ui.comboBox_filters.blockSignals(False)
             # populate content
             filt = self.pipeline.filters[filt_index]
             state = filt.__getstate__()
@@ -407,25 +406,25 @@ class FilterPanel(QtWidgets.QWidget):
     def update_polygon_filters(self):
         """Update the layout containing the polygon filters"""
         # clear layout
-        for _ in range(self.listWidget_polygon.count()):
-            self.listWidget_polygon.takeItem(0)
+        for _ in range(self.ui.listWidget_polygon.count()):
+            self.ui.listWidget_polygon.takeItem(0)
 
         self._polygon_checkboxes = {}  # must come after getting the state
         if dclab.PolygonFilter.instances:
-            self.listWidget_polygon.setEnabled(True)
+            self.ui.listWidget_polygon.setEnabled(True)
             for pf in dclab.PolygonFilter.instances:
                 item = QtWidgets.QListWidgetItem(pf.name)
                 item.setFlags(
                     item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
                 item.setCheckState(QtCore.Qt.CheckState.Unchecked)
-                self.listWidget_polygon.addItem(item)
+                self.ui.listWidget_polygon.addItem(item)
                 item.setToolTip(f"{pf.unique_id}: {pf.name}")
                 self._polygon_checkboxes[pf.unique_id] = item
         else:
-            self.listWidget_polygon.addItem(
+            self.ui.listWidget_polygon.addItem(
                 "No polygon filters have been created yet.")
-            self.listWidget_polygon.setEnabled(False)
-            self.widget_selection.setEnabled(False)
+            self.ui.listWidget_polygon.setEnabled(False)
+            self.ui.widget_selection.setEnabled(False)
 
         if self.current_filter is not None:
             filt_id = self.current_filter.identifier

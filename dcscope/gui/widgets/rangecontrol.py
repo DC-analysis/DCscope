@@ -1,7 +1,7 @@
-import importlib.resources
-
 import numpy as np
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+
+from .rangecontrol_ui import Ui_Form
 
 
 #: Precision for these features (``data``) should not go below this value.
@@ -21,12 +21,11 @@ class RangeControl(QtWidgets.QWidget):
     def __init__(self, parent, label="feature", checkbox=True, integer=False,
                  data=None, *args, **kwargs):
         super(RangeControl, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.widgets") / "rangecontrol.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
 
-        for spinbox in (self.doubleSpinBox_min, self.doubleSpinBox_max):
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
+        for spinbox in (self.ui.doubleSpinBox_min, self.ui.doubleSpinBox_max):
             spinbox.setOpts(
                 format="{scaledValue:.{decimals}f}{suffixGap}{suffix}",
                 compactHeight=False,
@@ -44,37 +43,37 @@ class RangeControl(QtWidgets.QWidget):
 
         # enable/disable checkbox
         if not checkbox:
-            self.checkBox.hide()
+            self.ui.checkBox.hide()
 
         # integer-valued control
         if integer:
-            self.doubleSpinBox_min.setDecimals(1)
-            self.doubleSpinBox_max.setDecimals(1)
+            self.ui.doubleSpinBox_min.setDecimals(1)
+            self.ui.doubleSpinBox_max.setDecimals(1)
         self.is_integer = integer
 
         # reduce font size of name
-        font = self.label.font()
+        font = self.ui.label.font()
         font.setPointSize(font.pointSize()-1)
-        self.label.setFont(font)
+        self.ui.label.setFont(font)
 
         # signals
-        self.range_slider.rangeChanged.connect(self.on_range)
-        self.doubleSpinBox_min.valueChanged.connect(self.on_spinbox)
-        self.doubleSpinBox_max.valueChanged.connect(self.on_spinbox)
+        self.ui.range_slider.rangeChanged.connect(self.on_range)
+        self.ui.doubleSpinBox_min.valueChanged.connect(self.on_spinbox)
+        self.ui.doubleSpinBox_max.valueChanged.connect(self.on_spinbox)
 
         # call show to make sure slider is updated
         self.show()
 
     def read_pipeline_state(self):
         state = {
-            "active": self.checkBox.isChecked(),
-            "start": self.doubleSpinBox_min.value(),
-            "end": self.doubleSpinBox_max.value(),
+            "active": self.ui.checkBox.isChecked(),
+            "start": self.ui.doubleSpinBox_min.value(),
+            "end": self.ui.doubleSpinBox_max.value(),
         }
         return state
 
     def write_pipeline_state(self, state):
-        self.checkBox.setChecked(state["active"])
+        self.ui.checkBox.setChecked(state["active"])
         self.setSpinRange(state["start"], state["end"])
 
     def check_boundary(self, old_value):
@@ -95,15 +94,15 @@ class RangeControl(QtWidgets.QWidget):
     def map_spin_values_to_range_slider(self):
         """Read values from spin controls and update the slider UI"""
         # spin values
-        smin = self.doubleSpinBox_min.value()
-        smax = self.doubleSpinBox_max.value()
+        smin = self.ui.doubleSpinBox_min.value()
+        smax = self.ui.doubleSpinBox_max.value()
         # limits
         lmin = self.minimum
         lmax = self.maximum
 
         # current range slider limits [a.u.]
-        rmin = self.range_slider.min()
-        rmax = self.range_slider.max()
+        rmin = self.ui.range_slider.min()
+        rmax = self.ui.range_slider.max()
         # ranges for translating to handle widths
         dr = rmax - rmin  # handle range
         dl = lmax - lmin  # value range
@@ -116,18 +115,18 @@ class RangeControl(QtWidgets.QWidget):
         if hmin < rmin:
             hmin = 0
         if hmax > rmax:
-            hmax = self.range_slider._INT_NUM
+            hmax = self.ui.range_slider._INT_NUM
 
         # make range selection stick tight to edges
         if hmin < 10:
             hmin = 0
-        if hmin > self.range_slider._INT_NUM - 10:
-            hmax = self.range_slider._INT_NUM
+        if hmin > self.ui.range_slider._INT_NUM - 10:
+            hmax = self.ui.range_slider._INT_NUM
 
-        self.range_slider.update()
-        self.range_slider.blockSignals(True)
-        self.range_slider.setRange(hmin, hmax)
-        self.range_slider.blockSignals(False)
+        self.ui.range_slider.update()
+        self.ui.range_slider.blockSignals(True)
+        self.ui.range_slider.setRange(hmin, hmax)
+        self.ui.range_slider.blockSignals(False)
         return hmin, hmax
 
     @QtCore.pyqtSlot(int, int)
@@ -135,18 +134,18 @@ class RangeControl(QtWidgets.QWidget):
         """Return the respective value of the current range
 
         Range limits are defined by
-        - self.doubleSpinBox_min.minimum()
-        - self.doubleSpinBox_min.maximum()
+        - self.ui.doubleSpinBox_min.minimum()
+        - self.ui.doubleSpinBox_min.maximum()
         """
         # limits
         lmin = self.minimum
         lmax = self.maximum
         # range slider limits
-        rmin = self.range_slider.min()
-        rmax = self.range_slider.max()
+        rmin = self.ui.range_slider.min()
+        rmax = self.ui.range_slider.max()
         # range slider handles
-        hmin = self.range_slider.start()
-        hmax = self.range_slider.end()
+        hmin = self.ui.range_slider.start()
+        hmax = self.ui.range_slider.end()
         # compute values
         dr = rmax - rmin
         dl = lmax - lmin
@@ -160,44 +159,44 @@ class RangeControl(QtWidgets.QWidget):
         return vmin, vmax
 
     def is_active(self):
-        return self.checkBox.isChecked()
+        return self.ui.checkBox.isChecked()
 
     @QtCore.pyqtSlot()
     def on_range(self):
         self.map_range_slider_to_spin_values()
-        self.range_changed.emit(self.doubleSpinBox_min.value(),
-                                self.doubleSpinBox_max.value())
+        self.range_changed.emit(self.ui.doubleSpinBox_min.value(),
+                                self.ui.doubleSpinBox_max.value())
 
     @QtCore.pyqtSlot()
     def on_spinbox(self):
-        self.doubleSpinBox_min.setValue(
-            self.check_boundary(self.doubleSpinBox_min.value()))
-        self.doubleSpinBox_max.setValue(
-            self.check_boundary(self.doubleSpinBox_max.value()))
+        self.ui.doubleSpinBox_min.setValue(
+            self.check_boundary(self.ui.doubleSpinBox_min.value()))
+        self.ui.doubleSpinBox_max.setValue(
+            self.check_boundary(self.ui.doubleSpinBox_max.value()))
 
         self.map_spin_values_to_range_slider()
-        self.range_changed.emit(self.doubleSpinBox_min.value(),
-                                self.doubleSpinBox_max.value())
+        self.range_changed.emit(self.ui.doubleSpinBox_min.value(),
+                                self.ui.doubleSpinBox_max.value())
 
     def reset_range(self):
-        self.doubleSpinBox_min.setValue(self.minimum)
-        self.doubleSpinBox_max.setValue(self.maximum)
+        self.ui.doubleSpinBox_min.setValue(self.minimum)
+        self.ui.doubleSpinBox_max.setValue(self.maximum)
 
     def setActive(self, b=True):
-        self.checkBox.setChecked(b)
+        self.ui.checkBox.setChecked(b)
 
     def setCheckable(self, b=True):
-        self.checkBox.setVisible(b)
+        self.ui.checkBox.setVisible(b)
 
     def setInteger(self, b=True):
         self.is_integer = b
 
     def setLabel(self, label):
         if label:
-            self.label.setText(label)
-            self.label.show()
+            self.ui.label.setText(label)
+            self.ui.label.show()
         else:
-            self.label.hide()
+            self.ui.label.hide()
 
     def setLimits(self, vmin, vmax, hard_limit=False):
         """Set the limits of the range control
@@ -251,10 +250,10 @@ class RangeControl(QtWidgets.QWidget):
         via ``SPIN_CONTROL_PRECISION[data] = precision``.
         """
         # min/max
-        self.doubleSpinBox_min.setMinimum(vmin)
-        self.doubleSpinBox_max.setMinimum(vmin)
-        self.doubleSpinBox_min.setMaximum(vmax)
-        self.doubleSpinBox_max.setMaximum(vmax)
+        self.ui.doubleSpinBox_min.setMinimum(vmin)
+        self.ui.doubleSpinBox_max.setMinimum(vmin)
+        self.ui.doubleSpinBox_min.setMaximum(vmax)
+        self.ui.doubleSpinBox_max.setMaximum(vmax)
 
         # decimals
         if not self.is_integer:
@@ -267,10 +266,10 @@ class RangeControl(QtWidgets.QWidget):
                     dec = 1
             if self.data in SPIN_CONTROL_PRECISION:
                 dec = max(dec, SPIN_CONTROL_PRECISION[self.data])
-            self.doubleSpinBox_min.setDecimals(dec)
-            self.doubleSpinBox_max.setDecimals(dec)
-            self.doubleSpinBox_min.setSingleStep(10**-dec)
-            self.doubleSpinBox_max.setSingleStep(10**-dec)
+            self.ui.doubleSpinBox_min.setDecimals(dec)
+            self.ui.doubleSpinBox_max.setDecimals(dec)
+            self.ui.doubleSpinBox_min.setSingleStep(10**-dec)
+            self.ui.doubleSpinBox_max.setSingleStep(10**-dec)
 
     def setSpinRange(self, vmin, vmax):
         """Set values of left and right spin controls (not the limits)
@@ -294,15 +293,15 @@ class RangeControl(QtWidgets.QWidget):
         if limits_changed:
             self.setLimits(limit_min, limit_max)
 
-        self.doubleSpinBox_min.blockSignals(True)
-        self.doubleSpinBox_max.blockSignals(True)
-        self.doubleSpinBox_min.setValue(vmin)
-        self.doubleSpinBox_max.setValue(vmax)
-        self.doubleSpinBox_min.blockSignals(False)
-        self.doubleSpinBox_max.blockSignals(False)
+        self.ui.doubleSpinBox_min.blockSignals(True)
+        self.ui.doubleSpinBox_max.blockSignals(True)
+        self.ui.doubleSpinBox_min.setValue(vmin)
+        self.ui.doubleSpinBox_max.setValue(vmax)
+        self.ui.doubleSpinBox_min.blockSignals(False)
+        self.ui.doubleSpinBox_max.blockSignals(False)
 
-        self.range_slider.blockSignals(True)
+        self.ui.range_slider.blockSignals(True)
         self.map_spin_values_to_range_slider()
-        self.range_slider.blockSignals(False)
+        self.ui.range_slider.blockSignals(False)
 
         self.range_changed.emit(vmin, vmax)

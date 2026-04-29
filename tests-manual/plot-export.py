@@ -29,8 +29,8 @@ with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     dlg = export.ExportPlot(mw, pipeline=mw.pipeline)
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[0]
-    plot_index = dlg.comboBox_plot.findData(plot_id)
-    dlg.comboBox_plot.setCurrentIndex(plot_index)
+    plot_index = dlg.ui.comboBox_plot.findData(plot_id)
+    dlg.ui.comboBox_plot.setCurrentIndex(plot_index)
     dlg.export_plots()
 
 
@@ -43,8 +43,8 @@ with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     dlg = export.ExportPlot(mw, pipeline=mw.pipeline)
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[1]
-    plot_index = dlg.comboBox_plot.findData(plot_id)
-    dlg.comboBox_plot.setCurrentIndex(plot_index)
+    plot_index = dlg.ui.comboBox_plot.findData(plot_id)
+    dlg.ui.comboBox_plot.setCurrentIndex(plot_index)
     dlg.export_plots()
 
 
@@ -55,11 +55,11 @@ with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
          ".svg")
     # create export dialog manually
     dlg = export.ExportPlot(mw, pipeline=mw.pipeline)
-    dlg.comboBox_fmt.setCurrentIndex(1)
+    dlg.ui.comboBox_fmt.setCurrentIndex(1)
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[0]
-    plot_index = dlg.comboBox_plot.findData(plot_id)
-    dlg.comboBox_plot.setCurrentIndex(plot_index)
+    plot_index = dlg.ui.comboBox_plot.findData(plot_id)
+    dlg.ui.comboBox_plot.setCurrentIndex(plot_index)
     dlg.export_plots()
 
 
@@ -72,8 +72,8 @@ with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
     dlg = export.ExportPlot(mw, pipeline=mw.pipeline)
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[2]
-    plot_index = dlg.comboBox_plot.findData(plot_id)
-    dlg.comboBox_plot.setCurrentIndex(plot_index)
+    plot_index = dlg.ui.comboBox_plot.findData(plot_id)
+    dlg.ui.comboBox_plot.setCurrentIndex(plot_index)
     dlg.export_plots()
 
 
@@ -84,11 +84,11 @@ with mock.patch("PyQt6.QtWidgets.QFileDialog.getSaveFileName") as gsfn:
          ".svg")
     # create export dialog manually
     dlg = export.ExportPlot(mw, pipeline=mw.pipeline)
-    dlg.comboBox_fmt.setCurrentIndex(1)
+    dlg.ui.comboBox_fmt.setCurrentIndex(1)
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[2]
-    plot_index = dlg.comboBox_plot.findData(plot_id)
-    dlg.comboBox_plot.setCurrentIndex(plot_index)
+    plot_index = dlg.ui.comboBox_plot.findData(plot_id)
+    dlg.ui.comboBox_plot.setCurrentIndex(plot_index)
     dlg.export_plots()
 
 

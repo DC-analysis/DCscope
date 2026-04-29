@@ -20,7 +20,7 @@ mw.add_dataslot(paths=["Figure3_Blood_Initial.rtdc"])
 
 # open the dialog window
 dlg = export.ExportData(mw, pipeline=mw.pipeline)
-dlg.lineEdit_path.setText("/home/user/DCscope-Exports")
+dlg.ui.lineEdit_path.setText("/home/user/DCscope-Exports")
 dlg.show()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 dlg.grab().save("_qg_export_data.png")

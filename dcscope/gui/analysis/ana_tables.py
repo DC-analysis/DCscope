@@ -1,9 +1,10 @@
-import importlib.resources
 import io
 
 import numpy as np
 import pyqtgraph as pg
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
+
+from .ana_tables_ui import Ui_Form
 
 #: Fallback graph colors
 FALLBACK_COLORS = {
@@ -50,10 +51,10 @@ class TablesPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(TablesPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.analysis") / "ana_tables.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
         # current DCscope pipeline
         self.pipeline = None
         self._selected_table = None
@@ -61,15 +62,15 @@ class TablesPanel(QtWidgets.QWidget):
 
         self.legend = pg.LegendItem((80, 60),
                                     offset=(40, 20))
-        self.legend.setParentItem(self.graphicsView_lines.graphicsItem())
-        self.graphicsView_lines.showGrid(True, True)
-        self.tabWidget.setCurrentIndex(0)
+        self.legend.setParentItem(self.ui.graphicsView_lines.graphicsItem())
+        self.ui.graphicsView_lines.showGrid(True, True)
+        self.ui.tabWidget.setCurrentIndex(0)
 
-        self.listWidget_dataset.currentRowChanged.connect(
+        self.ui.listWidget_dataset.currentRowChanged.connect(
             self.on_select_dataset)
-        self.listWidget_table_name.currentRowChanged.connect(
+        self.ui.listWidget_table_name.currentRowChanged.connect(
             self.on_select_table)
-        self.listWidget_table_graphs.itemSelectionChanged.connect(
+        self.ui.listWidget_table_graphs.itemSelectionChanged.connect(
             self.on_select_graphs)
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
@@ -84,27 +85,27 @@ class TablesPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
         """Show the tables of the dataset in the right-hand list widget"""
-        self.listWidget_table_name.clear()
-        self.listWidget_table_graphs.clear()
+        self.ui.listWidget_table_name.clear()
+        self.ui.listWidget_table_graphs.clear()
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
             table_names = list(ds.tables.keys())
-            self.listWidget_table_name.blockSignals(True)
+            self.ui.listWidget_table_name.blockSignals(True)
             for table in table_names:
-                self.listWidget_table_name.addItem(table)
-            self.listWidget_table_name.blockSignals(False)
+                self.ui.listWidget_table_name.addItem(table)
+            self.ui.listWidget_table_name.blockSignals(False)
 
             # Apply previously selected tables
             if self._selected_table in table_names:
                 table_idx = table_names.index(self._selected_table)
-                self.listWidget_table_name.setCurrentRow(table_idx)
+                self.ui.listWidget_table_name.setCurrentRow(table_idx)
             elif len(table_names):
-                self.listWidget_table_name.setCurrentRow(0)
+                self.ui.listWidget_table_name.setCurrentRow(0)
 
     @QtCore.pyqtSlot(int)
     def on_select_table(self, table_index):
         """Show the tables of the dataset in the right-hand list widget"""
-        ds_idx = self.listWidget_dataset.currentRow()
+        ds_idx = self.ui.listWidget_dataset.currentRow()
         if ds_idx >= 0 and table_index >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
             self._selected_table = list(ds.tables.keys())[table_index]
@@ -113,48 +114,48 @@ class TablesPanel(QtWidgets.QWidget):
 
             if names is not None:
                 # We have a rec-array, a list of graphs in the table
-                self.listWidget_table_graphs.setEnabled(True)
-                self.stackedWidget_plot.setCurrentWidget(self.page_graph)
+                self.ui.listWidget_table_graphs.setEnabled(True)
+                self.ui.stackedWidget_plot.setCurrentWidget(self.page_graph)
                 # Update list of graphs names
-                self.listWidget_table_graphs.blockSignals(True)
-                self.listWidget_table_graphs.clear()
+                self.ui.listWidget_table_graphs.blockSignals(True)
+                self.ui.listWidget_table_graphs.clear()
                 for ii, graph in enumerate(names):
-                    self.listWidget_table_graphs.addItem(graph)
+                    self.ui.listWidget_table_graphs.addItem(graph)
                     color = table.meta.get(f"COLOR_{graph}",
                                            FALLBACK_COLORS.get(graph,
                                                                "black")
                                            )
-                    self.listWidget_table_graphs.item(ii).setBackground(
+                    self.ui.listWidget_table_graphs.item(ii).setBackground(
                         QtGui.QColor(color))
-                    self.listWidget_table_graphs.item(ii).setForeground(
+                    self.ui.listWidget_table_graphs.item(ii).setForeground(
                         QtGui.QColor(get_foreground_for_background(color)))
 
                 # Apply previously selected graphs
                 for graph in names:
                     if graph in list(self._selected_graphs):
                         graph_index = names.index(graph)
-                        item = self.listWidget_table_graphs.item(graph_index)
+                        item = self.ui.listWidget_table_graphs.item(graph_index)
                         if item:
                             item.setSelected(True)
-                self.listWidget_table_graphs.blockSignals(False)
+                self.ui.listWidget_table_graphs.blockSignals(False)
                 self.on_select_graphs()
             else:
-                self.listWidget_table_graphs.setEnabled(False)
-                self.listWidget_table_graphs.clear()
-                self.stackedWidget_plot.setCurrentWidget(self.page_image)
-                self.graphicsView_image.setImage(table[:])
+                self.ui.listWidget_table_graphs.setEnabled(False)
+                self.ui.listWidget_table_graphs.clear()
+                self.ui.stackedWidget_plot.setCurrentWidget(self.page_image)
+                self.ui.graphicsView_image.setImage(table[:])
         else:
-            self.listWidget_table_graphs.setEnabled(False)
-            self.listWidget_table_name.clear()
-            self.listWidget_table_graphs.clear()
+            self.ui.listWidget_table_graphs.setEnabled(False)
+            self.ui.listWidget_table_name.clear()
+            self.ui.listWidget_table_graphs.clear()
 
     @QtCore.pyqtSlot()
     def on_select_graphs(self):
         """Show the graphs of one table of a dataset"""
-        ds_idx = self.listWidget_dataset.currentRow()
-        table_index = self.listWidget_table_name.currentRow()
+        ds_idx = self.ui.listWidget_dataset.currentRow()
+        table_index = self.ui.listWidget_table_name.currentRow()
         if ds_idx >= 0 and table_index >= 0:
-            items = self.listWidget_table_graphs.selectedIndexes()
+            items = self.ui.listWidget_table_graphs.selectedIndexes()
             new_selection = [it.data() for it in items]
             if new_selection:
                 self._selected_graphs = new_selection
@@ -185,11 +186,11 @@ class TablesPanel(QtWidgets.QWidget):
                     # show the graph
                     self.show_graph(x_vals, graph_list)
                     self.show_raw_data(graph_list)
-                    self.graphicsView_lines.autoRange()
+                    self.ui.graphicsView_lines.autoRange()
                 else:
-                    self.graphicsView_lines.clear()
+                    self.ui.graphicsView_lines.clear()
         else:
-            self.listWidget_table_graphs.clear()
+            self.ui.listWidget_table_graphs.clear()
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
@@ -197,10 +198,10 @@ class TablesPanel(QtWidgets.QWidget):
         self.pipeline = pipeline
 
     def show_graph(self, x_vals, graph_list):
-        self.graphicsView_lines.clear()
+        self.ui.graphicsView_lines.clear()
         self.legend.clear()
         for item in graph_list:
-            pl = self.graphicsView_lines.plot(
+            pl = self.ui.graphicsView_lines.plot(
                 pen={"color": item["color"],
                      "width": 2},
                 x=x_vals["data"],
@@ -209,7 +210,7 @@ class TablesPanel(QtWidgets.QWidget):
             )
 
             self.legend.addItem(pl, item["name"])
-        self.graphicsView_lines.plotItem.setLabels(bottom=x_vals["name"])
+        self.ui.graphicsView_lines.plotItem.setLabels(bottom=x_vals["name"])
 
     def show_raw_data(self, graph_list):
         text = "\t".join(it["name"] for it in graph_list)
@@ -217,22 +218,22 @@ class TablesPanel(QtWidgets.QWidget):
         s = io.StringIO()
         data = np.array([it["data"] for it in graph_list]).transpose()
         np.savetxt(s, data, delimiter="\t", fmt="%.5g", header=text)
-        self.plainTextEdit_raw.setPlainText(s.getvalue())
+        self.ui.plainTextEdit_raw.setPlainText(s.getvalue())
 
     def update_content(self, slot_index=None, **kwargs):
         if self.pipeline and self.pipeline.slots:
             self.setEnabled(True)
             self.setUpdatesEnabled(False)
-            self.listWidget_dataset.clear()
-            self.listWidget_table_name.clear()
+            self.ui.listWidget_dataset.clear()
+            self.ui.listWidget_table_name.clear()
             for name in self.pipeline.deduce_display_names():
-                self.listWidget_dataset.addItem(name)
+                self.ui.listWidget_dataset.addItem(name)
             self.setUpdatesEnabled(True)
             if slot_index is None or slot_index < 0:
-                slot_index = max(0, self.listWidget_dataset.currentRow())
+                slot_index = max(0, self.ui.listWidget_dataset.currentRow())
             slot_index = min(slot_index, self.pipeline.num_slots - 1)
-            self.listWidget_dataset.setCurrentRow(slot_index)
+            self.ui.listWidget_dataset.setCurrentRow(slot_index)
         else:
             self.setEnabled(False)
-            self.listWidget_dataset.clear()
-            self.listWidget_table_name.clear()
+            self.ui.listWidget_dataset.clear()
+            self.ui.listWidget_table_name.clear()

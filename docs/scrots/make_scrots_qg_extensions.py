@@ -22,7 +22,7 @@ mw.extensions.import_extension_from_path(
 
 # open the dialog window
 dlg = preferences.Preferences(mw)
-dlg.tabWidget.setCurrentIndex(4)
+dlg.ui.tabWidget.setCurrentIndex(4)
 
 dlg.show()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)

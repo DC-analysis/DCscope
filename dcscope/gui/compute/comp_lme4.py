@@ -1,22 +1,20 @@
-import importlib.resources
 import webbrowser
 
 from dclab import lme4
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
-
-from .comp_lme4_dataset import LME4Dataset
-from .comp_lme4_results import Rlme4ResultsDialog
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 from ..widgets import ShowWaitCursor
+from .comp_lme4_ui import Ui_Dialog
+from .comp_lme4_dataset import LME4Dataset
+from .comp_lme4_results import Rlme4ResultsDialog
 
 
 class ComputeSignificance(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeSignificance, self).__init__(parent, *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.compute") / "comp_lme4.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         # set pipeline
         self.pipeline = pipeline
@@ -25,35 +23,35 @@ class ComputeSignificance(QtWidgets.QDialog):
         feats, labs = pipeline.get_features(scalar=True, label_sort=True,
                                             union=False, ret_labels=True)
         for feat, lab in zip(feats, labs):
-            self.comboBox_feat.addItem(lab, feat)
+            self.ui.comboBox_feat.addItem(lab, feat)
 
         # populate datasets
         self.datasets = []
         for slot in self.pipeline.slots:
             dw = LME4Dataset(self, slot=slot)
-            self.dataset_layout.addWidget(dw)
+            self.ui.dataset_layout.addWidget(dw)
             self.datasets.append(dw)
         spacer = QtWidgets.QSpacerItem(20, 0,
                                        QtWidgets.QSizePolicy.Policy.Minimum,
                                        QtWidgets.QSizePolicy.Policy.Expanding)
-        self.dataset_layout.addItem(spacer)
+        self.ui.dataset_layout.addItem(spacer)
         self.update()
 
         # button signals
-        btn_close = self.buttonBox.button(
+        btn_close = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this dialog")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_openlme4 = self.buttonBox.button(
+        btn_openlme4 = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_openlme4.clicked.connect(self.on_lme4)
         btn_openlme4.setToolTip("Perform lme4 analysis")
         btn_openlme4.setText("Run R-lme4")
         picon = QtGui.QIcon.fromTheme("rlang")
         btn_openlme4.setIcon(picon)
-        btn_help = self.buttonBox.button(
+        btn_help = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Help)
         btn_help.clicked.connect(self.on_help)
         btn_help.setToolTip("View R-lme4 Quick Guide online")
@@ -62,11 +60,11 @@ class ComputeSignificance(QtWidgets.QDialog):
 
     @property
     def feature(self):
-        return self.comboBox_feat.currentData()
+        return self.ui.comboBox_feat.currentData()
 
     @property
     def model(self):
-        if self.radioButton_lmer.isChecked():
+        if self.ui.radioButton_lmer.isChecked():
             return "lmer"
         else:
             return "glmer+loglink"

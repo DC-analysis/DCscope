@@ -5,7 +5,7 @@ import pathlib
 
 import dclab
 import numpy as np
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 import pyqtgraph as pg
 
 from ... import idiom, util
@@ -15,6 +15,7 @@ from ..widgets import show_wait_cursor
 
 from .qv_event_getter import EventGetterThread
 from .import qv_image_vis as qvvis
+from .qv_main_ui import Ui_Form
 
 
 #: default choices for x-axis in plots in descending order
@@ -42,10 +43,9 @@ class QuickView(QtWidgets.QWidget):
         self._hover_ds_id = None
         self._hover_event_idx = None
         super(QuickView, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.quick_view") / "qv_main.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = None
         self.current_pipeline_element = None
@@ -53,101 +53,101 @@ class QuickView(QtWidgets.QWidget):
         self._last_cmap_pha = {}
 
         # set event view as default page
-        self.stackedWidget.setCurrentIndex(1)
-        self.groupBox_image.setVisible(False)
-        self.groupBox_trace.setVisible(False)
-        self.imageView_image.setVisible(False)
-        self.imageView_image_amp.setVisible(False)
-        self.imageView_image_pha.setVisible(False)
+        self.ui.stackedWidget.setCurrentIndex(1)
+        self.ui.groupBox_image.setVisible(False)
+        self.ui.groupBox_trace.setVisible(False)
+        self.ui.imageView_image.setVisible(False)
+        self.ui.imageView_image_amp.setVisible(False)
+        self.ui.imageView_image_pha.setVisible(False)
 
         ref = importlib.resources.files(
             "dcscope.gui.quick_view") / "qv_style.css"
         with importlib.resources.as_file(ref) as path_css:
             stylesheet = pathlib.Path(path_css).read_text()
-        self.groupBox_image.setStyleSheet(stylesheet)
-        self.groupBox_trace.setStyleSheet(stylesheet)
-        self.comboBox_x.default_choices = AXES_DEFAULT_CHOICES_X
-        self.comboBox_y.default_choices = AXES_DEFAULT_CHOICES_Y
+        self.ui.groupBox_image.setStyleSheet(stylesheet)
+        self.ui.groupBox_trace.setStyleSheet(stylesheet)
+        self.ui.comboBox_x.default_choices = AXES_DEFAULT_CHOICES_X
+        self.ui.comboBox_y.default_choices = AXES_DEFAULT_CHOICES_Y
 
         self.setWindowTitle("Quick View")
 
         self._set_initial_ui()
 
         # Set scale options (with data)
-        for cb in [self.comboBox_xscale, self.comboBox_yscale]:
+        for cb in [self.ui.comboBox_xscale, self.ui.comboBox_yscale]:
             cb.clear()
             cb.addItem("linear", "linear")
             cb.addItem("logarithmic", "log")
 
         # Set marker hue options (with data)
-        self.comboBox_hue.clear()
-        self.comboBox_hue.addItem("KDE", "kde")
-        self.comboBox_hue.addItem("feature", "feature")
+        self.ui.comboBox_hue.clear()
+        self.ui.comboBox_hue.addItem("KDE", "kde")
+        self.ui.comboBox_hue.addItem("feature", "feature")
 
         # Set look-up table options for isoelasticity lines
-        self.comboBox_lut.clear()
+        self.ui.comboBox_lut.clear()
         lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
         for lut_id in lut_dict.keys():
-            self.comboBox_lut.addItem(lut_id, lut_id)
+            self.ui.comboBox_lut.addItem(lut_id, lut_id)
         # Set LE-2D-FEM-19 as a default
-        idx = self.comboBox_lut.findData("LE-2D-FEM-19")
-        self.comboBox_lut.setCurrentIndex(idx)
+        idx = self.ui.comboBox_lut.findData("LE-2D-FEM-19")
+        self.ui.comboBox_lut.setCurrentIndex(idx)
 
         # settings button
-        self.toolButton_event.toggled.connect(self.on_tool)
-        self.toolButton_poly.toggled.connect(self.on_tool)
-        self.toolButton_settings.toggled.connect(self.on_tool)
+        self.ui.toolButton_event.toggled.connect(self.on_tool)
+        self.ui.toolButton_poly.toggled.connect(self.on_tool)
+        self.ui.toolButton_settings.toggled.connect(self.on_tool)
 
         # polygon filter signals
-        self.label_poly_create.setVisible(False)
-        self.label_poly_modify.setVisible(False)
-        self.pushButton_poly_save.setVisible(False)
-        self.pushButton_poly_cancel.setVisible(False)
-        self.pushButton_poly_delete.setVisible(False)
-        self.pushButton_poly_create.clicked.connect(self.on_poly_create)
-        self.pushButton_poly_save.clicked.connect(self.on_poly_done_save)
-        self.pushButton_poly_cancel.clicked.connect(self.on_poly_done_cancel)
-        self.pushButton_poly_delete.clicked.connect(self.on_poly_done_delete)
-        self.comboBox_poly.currentIndexChanged.connect(self.on_poly_modify)
+        self.ui.label_poly_create.setVisible(False)
+        self.ui.label_poly_modify.setVisible(False)
+        self.ui.pushButton_poly_save.setVisible(False)
+        self.ui.pushButton_poly_cancel.setVisible(False)
+        self.ui.pushButton_poly_delete.setVisible(False)
+        self.ui.pushButton_poly_create.clicked.connect(self.on_poly_create)
+        self.ui.pushButton_poly_save.clicked.connect(self.on_poly_done_save)
+        self.ui.pushButton_poly_cancel.clicked.connect(self.on_poly_done_cancel)
+        self.ui.pushButton_poly_delete.clicked.connect(self.on_poly_done_delete)
+        self.ui.comboBox_poly.currentIndexChanged.connect(self.on_poly_modify)
         self.update_polygon_panel()
 
         # event changed signal
-        self.widget_scatter.scatter.sigClicked.connect(
+        self.ui.widget_scatter.scatter.sigClicked.connect(
             self.on_event_scatter_clicked)
-        self.widget_scatter.update_hover_pos.connect(
+        self.ui.widget_scatter.update_hover_pos.connect(
             self.on_event_scatter_hover)
-        self.spinBox_event.valueChanged.connect(self.on_event_scatter_spin)
-        self.checkBox_image_contour.stateChanged.connect(
+        self.ui.spinBox_event.valueChanged.connect(self.on_event_scatter_spin)
+        self.ui.checkBox_image_contour.stateChanged.connect(
             self.on_event_scatter_update)
-        self.checkBox_image_contrast.stateChanged.connect(
+        self.ui.checkBox_image_contrast.stateChanged.connect(
             self.on_event_scatter_update)
-        self.checkBox_image_zoom.stateChanged.connect(
+        self.ui.checkBox_image_zoom.stateChanged.connect(
             self.on_event_scatter_update)
-        self.checkBox_image_background.stateChanged.connect(
+        self.ui.checkBox_image_background.stateChanged.connect(
             self.on_event_scatter_update)
-        self.checkBox_trace_raw.stateChanged.connect(
+        self.ui.checkBox_trace_raw.stateChanged.connect(
             self.on_event_scatter_update)
-        self.checkBox_trace_legend.stateChanged.connect(
+        self.ui.checkBox_trace_legend.stateChanged.connect(
             self.on_event_scatter_update)
-        self.checkBox_trace_zoom.stateChanged.connect(
+        self.ui.checkBox_trace_zoom.stateChanged.connect(
             self.on_event_scatter_update)
-        self.tabWidget_event.currentChanged.connect(
+        self.ui.tabWidget_event.currentChanged.connect(
             self.on_event_scatter_update)
 
         # apply button
-        self.toolButton_apply.clicked.connect(self.plot)
+        self.ui.toolButton_apply.clicked.connect(self.plot)
         # value changed signals for plot
-        self.signal_widgets = [self.checkBox_downsample,
-                               self.spinBox_downsample,
-                               self.comboBox_x,
-                               self.comboBox_y,
-                               self.comboBox_xscale,
-                               self.comboBox_yscale,
-                               self.checkBox_isoelastics,
-                               self.comboBox_z_hue,
-                               self.comboBox_hue,
-                               self.checkBox_hue,
-                               self.comboBox_lut
+        self.signal_widgets = [self.ui.checkBox_downsample,
+                               self.ui.spinBox_downsample,
+                               self.ui.comboBox_x,
+                               self.ui.comboBox_y,
+                               self.ui.comboBox_xscale,
+                               self.ui.comboBox_yscale,
+                               self.ui.checkBox_isoelastics,
+                               self.ui.comboBox_z_hue,
+                               self.ui.comboBox_hue,
+                               self.ui.checkBox_hue,
+                               self.ui.comboBox_lut
                                ]
         for w in self.signal_widgets:
             if hasattr(w, "currentIndexChanged"):
@@ -157,7 +157,7 @@ class QuickView(QtWidgets.QWidget):
             elif hasattr(w, "valueChanged"):
                 w.valueChanged.connect(self.plot_auto)
         # copy statistics to clipboard
-        self.toolButton_stats2clipboard.clicked.connect(
+        self.ui.toolButton_stats2clipboard.clicked.connect(
             self.on_stats2clipboard)
 
         # Set individual plots
@@ -171,27 +171,27 @@ class QuickView(QtWidgets.QWidget):
             "fl3_median": pg.PlotDataItem(pen="#BF0C00", **kw0),  # red
         }
         for key in self.trace_plots:
-            self.graphicsView_trace.addItem(self.trace_plots[key])
+            self.ui.graphicsView_trace.addItem(self.trace_plots[key])
             self.trace_plots[key].setVisible(False)
 
-        self.graphicsView_trace.plotItem.setLabels(
+        self.ui.graphicsView_trace.plotItem.setLabels(
             left="Fluorescence [a.u.]", bottom="Event time [µs]")
-        self.legend_trace = self.graphicsView_trace.addLegend(
+        self.legend_trace = self.ui.graphicsView_trace.addLegend(
             offset=(-.01, +.01))
 
         #: dictionary access to image views
         self.img_views = {
             "image": {
-                "view_event": self.imageView_image,
-                "view_poly": self.imageView_image_poly,
+                "view_event": self.ui.imageView_image,
+                "view_poly": self.ui.imageView_image_poly,
             },
             "qpi_pha": {
-                "view_event": self.imageView_image_pha,
-                "view_poly": self.imageView_image_poly_pha,
+                "view_event": self.ui.imageView_image_pha,
+                "view_poly": self.ui.imageView_image_poly_pha,
             },
             "qpi_amp": {
-                "view_event": self.imageView_image_amp,
-                "view_poly": self.imageView_image_poly_amp,
+                "view_event": self.ui.imageView_image_amp,
+                "view_poly": self.ui.imageView_image_poly_amp,
             },
         }
 
@@ -216,7 +216,7 @@ class QuickView(QtWidgets.QWidget):
         self._hover_ds_id = None
         self._hover_event_idx = None
         # events label
-        self.label_noevents.setVisible(False)
+        self.ui.label_noevents.setVisible(False)
         self.enable_interface(False)
 
     @property
@@ -241,12 +241,12 @@ class QuickView(QtWidgets.QWidget):
         # Hide "Subtract Background"-Checkbox if feature
         # "image_bg" not in dataset
         contains_bg_feat = "image_bg" in rtdc_ds
-        self.checkBox_image_background.setVisible(contains_bg_feat)
+        self.ui.checkBox_image_background.setVisible(contains_bg_feat)
 
         # set the dataset for the FeatureComboBoxes
-        self.comboBox_x.set_dataset(rtdc_ds)
-        self.comboBox_y.set_dataset(rtdc_ds)
-        self.comboBox_z_hue.set_dataset(rtdc_ds)
+        self.ui.comboBox_x.set_dataset(rtdc_ds)
+        self.ui.comboBox_y.set_dataset(rtdc_ds)
+        self.ui.comboBox_z_hue.set_dataset(rtdc_ds)
 
     def close(self):
         self.event_getter.close()
@@ -284,27 +284,27 @@ class QuickView(QtWidgets.QWidget):
 
     def read_pipeline_state(self):
         plot = {
-            "downsampling": self.checkBox_downsample.isChecked(),
-            "downsampling value": self.spinBox_downsample.value(),
-            "axis x": self.comboBox_x.currentData(),
-            "axis y": self.comboBox_y.currentData(),
-            "scale x": self.comboBox_xscale.currentData(),
-            "scale y": self.comboBox_yscale.currentData(),
-            "isoelastics": self.checkBox_isoelastics.isChecked(),
-            "lut": self.comboBox_lut.currentData(),
-            "marker hue": self.checkBox_hue.isChecked(),
-            "marker hue value": self.comboBox_hue.currentData(),
-            "marker hue feature": self.comboBox_z_hue.currentData(),
+            "downsampling": self.ui.checkBox_downsample.isChecked(),
+            "downsampling value": self.ui.spinBox_downsample.value(),
+            "axis x": self.ui.comboBox_x.currentData(),
+            "axis y": self.ui.comboBox_y.currentData(),
+            "scale x": self.ui.comboBox_xscale.currentData(),
+            "scale y": self.ui.comboBox_yscale.currentData(),
+            "isoelastics": self.ui.checkBox_isoelastics.isChecked(),
+            "lut": self.ui.comboBox_lut.currentData(),
+            "marker hue": self.ui.checkBox_hue.isChecked(),
+            "marker hue value": self.ui.comboBox_hue.currentData(),
+            "marker hue feature": self.ui.comboBox_z_hue.currentData(),
         }
         event = {
-            "index": self.spinBox_event.value(),
-            "image auto contrast": self.checkBox_image_contrast.isChecked(),
-            "image contour": self.checkBox_image_contour.isChecked(),
-            "image zoom": self.checkBox_image_zoom.isChecked(),
-            "image background": self.checkBox_image_background.isChecked(),
-            "trace legend": self.checkBox_trace_legend.isChecked(),
-            "trace raw": self.checkBox_trace_raw.isChecked(),
-            "trace zoom": self.checkBox_trace_zoom.isChecked(),
+            "index": self.ui.spinBox_event.value(),
+            "image auto contrast": self.ui.checkBox_image_contrast.isChecked(),
+            "image contour": self.ui.checkBox_image_contour.isChecked(),
+            "image zoom": self.ui.checkBox_image_zoom.isChecked(),
+            "image background": self.ui.checkBox_image_background.isChecked(),
+            "trace legend": self.ui.checkBox_trace_legend.isChecked(),
+            "trace raw": self.ui.checkBox_trace_raw.isChecked(),
+            "trace zoom": self.ui.checkBox_trace_zoom.isChecked(),
         }
         state = {
             "plot": plot,
@@ -317,57 +317,57 @@ class QuickView(QtWidgets.QWidget):
         for tb in self.signal_widgets:
             tb.blockSignals(True)
         # downsampling
-        self.checkBox_downsample.setChecked(plot["downsampling"])
-        self.spinBox_downsample.setValue(plot["downsampling value"])
-        self.checkBox_hue.setChecked(plot["marker hue"])
+        self.ui.checkBox_downsample.setChecked(plot["downsampling"])
+        self.ui.spinBox_downsample.setValue(plot["downsampling value"])
+        self.ui.checkBox_hue.setChecked(plot["marker hue"])
         # combo box key selection
         self.update_feature_choices()
         for key, cb in [
             # axes labels
-            ("axis x", self.comboBox_x),
-            ("axis y", self.comboBox_y),
+            ("axis x", self.ui.comboBox_x),
+            ("axis y", self.ui.comboBox_y),
             # scaling
-            ("scale x", self.comboBox_xscale),
-            ("scale y", self.comboBox_yscale),
+            ("scale x", self.ui.comboBox_xscale),
+            ("scale y", self.ui.comboBox_yscale),
             # look up table
-            ("lut", self.comboBox_lut),
+            ("lut", self.ui.comboBox_lut),
             # marker hue
-            ("marker hue value", self.comboBox_hue),
-            ("marker hue feature", self.comboBox_z_hue),
+            ("marker hue value", self.ui.comboBox_hue),
+            ("marker hue feature", self.ui.comboBox_z_hue),
         ]:
             idx = cb.findData(plot[key])
             idx = idx if idx > 0 else 0
             cb.setCurrentIndex(idx)
 
         # isoelastics
-        self.checkBox_isoelastics.setChecked(plot["isoelastics"])
+        self.ui.checkBox_isoelastics.setChecked(plot["isoelastics"])
         for tb in self.signal_widgets:
             tb.blockSignals(False)
         if "event" in state:
             event = state["event"]
-            self.checkBox_image_contrast.setChecked(
+            self.ui.checkBox_image_contrast.setChecked(
                 event["image auto contrast"])
-            self.checkBox_image_contour.setChecked(event["image contour"])
-            self.checkBox_image_zoom.setChecked(event["image zoom"])
-            self.checkBox_image_background.setChecked(
+            self.ui.checkBox_image_contour.setChecked(event["image contour"])
+            self.ui.checkBox_image_zoom.setChecked(event["image zoom"])
+            self.ui.checkBox_image_background.setChecked(
                 event["image background"])
-            self.spinBox_event.setValue(event["index"])
-            self.checkBox_trace_raw.setChecked(event["trace raw"])
-            self.checkBox_trace_legend.setChecked(event["trace legend"])
+            self.ui.spinBox_event.setValue(event["index"])
+            self.ui.checkBox_trace_raw.setChecked(event["trace raw"])
+            self.ui.checkBox_trace_legend.setChecked(event["trace legend"])
 
     def enable_interface(self, value):
         # Initially, only show the info about how QuickView works
-        self.widget_tool.setEnabled(value)
-        self.widget_scatter.setVisible(value)
+        self.ui.widget_tool.setEnabled(value)
+        self.ui.widget_scatter.setVisible(value)
         # stacked widget
-        self.stackedWidget.setEnabled(value)
+        self.ui.stackedWidget.setEnabled(value)
         # how-to label
-        self.label_howto.setVisible(not value)
+        self.ui.label_howto.setVisible(not value)
 
         if not value:
-            self.imageView_image.setImage(np.full((10, 10), 200))
-            self.imageView_image_amp.setImage(np.full((10, 10), 200))
-            self.imageView_image_pha.setImage(np.full((10, 10), 200))
+            self.ui.imageView_image.setImage(np.full((10, 10), 200))
+            self.ui.imageView_image_amp.setImage(np.full((10, 10), 200))
+            self.ui.imageView_image_pha.setImage(np.full((10, 10), 200))
 
     @QtCore.pyqtSlot(bool)
     def on_getter_busy(self, busy):
@@ -377,24 +377,24 @@ class QuickView(QtWidgets.QWidget):
         else:
             color = "black"
             tooltip = "event data updated"
-        self.widget_waiter.setStyleSheet(
+        self.ui.widget_waiter.setStyleSheet(
             f"background-color:{color};border-radius:7px")
-        self.widget_waiter.setToolTip(tooltip)
+        self.ui.widget_waiter.setToolTip(tooltip)
 
     @QtCore.pyqtSlot(dict)
     def on_getter_new_event(self, data):
         self._last_event_data = data
 
-        if self.page_poly.isVisible():
+        if self.ui.page_poly.isVisible():
             view_key = "view_poly"
         else:
             view_key = "view_event"
 
         # Image data
         if "image" in data or "qpi_pha" in data or "qpi_amp" in data:
-            self.groupBox_image.setVisible(True)
+            self.ui.groupBox_image.setVisible(True)
         else:
-            self.groupBox_image.setVisible(False)
+            self.ui.groupBox_image.setVisible(False)
 
         for feat in ["image", "qpi_pha", "qpi_amp"]:
             view = self.img_views[feat][view_key]
@@ -406,19 +406,19 @@ class QuickView(QtWidgets.QWidget):
 
         # Trace data
         if "traces" in data:
-            self.groupBox_trace.setVisible(True)
+            self.ui.groupBox_trace.setVisible(True)
             self.show_traces(data["traces"])
         else:
-            self.groupBox_trace.setVisible(False)
+            self.ui.groupBox_trace.setVisible(False)
 
     def show_image(self, feat, view, data):
         cell_img, vmin, vmax, cmap = qvvis.get_rgb_image(
             data=data,
             feat=feat,
-            zoom=self.checkBox_image_zoom.isChecked(),
-            draw_contour=self.checkBox_image_contour.isChecked(),
-            auto_contrast=self.checkBox_image_contrast.isChecked(),
-            subtract_background=self.checkBox_image_background.isChecked(),
+            zoom=self.ui.checkBox_image_zoom.isChecked(),
+            draw_contour=self.ui.checkBox_image_contour.isChecked(),
+            auto_contrast=self.ui.checkBox_image_contrast.isChecked(),
+            subtract_background=self.ui.checkBox_image_background.isChecked(),
         )
 
         view.setImage(cell_img,
@@ -472,17 +472,17 @@ class QuickView(QtWidgets.QWidget):
                 self.legend_trace.update()
             else:
                 self.trace_plots[name].setVisible(False)
-        self.graphicsView_trace.setXRange(*range_t, padding=0)
+        self.ui.graphicsView_trace.setXRange(*range_t, padding=0)
         if range_fl[0] != range_fl[1]:
-            self.graphicsView_trace.setYRange(*range_fl, padding=.01)
-        self.graphicsView_trace.setLimits(xMin=0, xMax=tdata["time"][-1])
+            self.ui.graphicsView_trace.setYRange(*range_fl, padding=.01)
+        self.ui.graphicsView_trace.setLimits(xMin=0, xMax=tdata["time"][-1])
 
     # Statistics
     ############
     def get_statistics(self):
         if self.rtdc_ds is not None:
-            features = [self.comboBox_x.currentData(),
-                        self.comboBox_y.currentData()]
+            features = [self.ui.comboBox_x.currentData(),
+                        self.ui.comboBox_y.currentData()]
             # cache statistics from
             dsid = "-".join(features
                             + [self.rtdc_ds.identifier,
@@ -513,9 +513,9 @@ class QuickView(QtWidgets.QWidget):
         point: QPoint
             Selected point (determined by scatter plot widget)
         """
-        if self.widget_scatter.events_plotted is not None:
+        if self.ui.widget_scatter.events_plotted is not None:
             # plotted events
-            plotted = self.widget_scatter.events_plotted
+            plotted = self.ui.widget_scatter.events_plotted
             # get corrected index
             ds_idx = np.where(plotted)[0][point.index()]
             self.show_event(ds_idx)
@@ -524,22 +524,22 @@ class QuickView(QtWidgets.QWidget):
         # only after that the desired one. This would be a drawback when
         # events come from remote locations.
         #
-        # `self.on_tool` (`self.toolButton_event`) takes care of this:
-        # self.widget_scatter.select.setVisible(True)
-        if not self.toolButton_event.isChecked():
+        # `self.on_tool` (`self.ui.toolButton_event`) takes care of this:
+        # self.ui.widget_scatter.select.setVisible(True)
+        if not self.ui.toolButton_event.isChecked():
             # emulate mouse toggle
-            self.toolButton_event.setChecked(True)
-            self.toolButton_event.toggled.emit(True)
+            self.ui.toolButton_event.setChecked(True)
+            self.ui.toolButton_event.toggled.emit(True)
 
     @QtCore.pyqtSlot(QtCore.QPointF)
     def on_event_scatter_hover(self, pos):
         """Update the image view in the polygon widget """
-        if self.rtdc_ds is not None and self.toolButton_poly.isChecked():
+        if self.rtdc_ds is not None and self.ui.toolButton_poly.isChecked():
             ds = self.rtdc_ds
             # plotted events
-            plotted = self.widget_scatter.events_plotted
-            spos = self.widget_scatter.scatter.mapFromView(pos)
-            point = self.widget_scatter.scatter.pointAt(spos)
+            plotted = self.ui.widget_scatter.events_plotted
+            spos = self.ui.widget_scatter.scatter.mapFromView(pos)
+            point = self.ui.widget_scatter.scatter.pointAt(spos)
             # get corrected index
             event = np.where(plotted)[0][point.index()]
 
@@ -568,19 +568,19 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_poly_create(self):
         """User wants to create a polygon filter"""
-        self.toolButton_poly.setChecked(True)
-        self.pushButton_poly_create.setEnabled(False)
-        self.comboBox_poly.setEnabled(False)
-        self.groupBox_poly.setEnabled(True)
-        self.label_poly_create.setVisible(True)
-        self.label_poly_modify.setVisible(False)
-        self.pushButton_poly_save.setVisible(True)
-        self.pushButton_poly_cancel.setVisible(True)
+        self.ui.toolButton_poly.setChecked(True)
+        self.ui.pushButton_poly_create.setEnabled(False)
+        self.ui.comboBox_poly.setEnabled(False)
+        self.ui.groupBox_poly.setEnabled(True)
+        self.ui.label_poly_create.setVisible(True)
+        self.ui.label_poly_modify.setVisible(False)
+        self.ui.pushButton_poly_save.setVisible(True)
+        self.ui.pushButton_poly_cancel.setVisible(True)
         # defaults
-        self.lineEdit_poly.setText("Polygon Filter {}".format(
+        self.ui.lineEdit_poly.setText("Polygon Filter {}".format(
             dclab.PolygonFilter._instance_counter + 1))
-        self.checkBox_poly.setChecked(False)
-        self.widget_scatter.activate_poly_mode()
+        self.ui.checkBox_poly.setChecked(False)
+        self.ui.widget_scatter.activate_poly_mode()
         # trigger resize and redraw
         mdiwin = self.parent()
         mdiwin.adjustSize()
@@ -590,16 +590,16 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_poly_done(self, mode="none"):
         """User is done creating or modifying a polygon filter"""
-        self.pushButton_poly_create.setEnabled(True)
-        self.label_poly_create.setVisible(False)
-        self.label_poly_modify.setVisible(False)
-        self.pushButton_poly_save.setVisible(False)
-        self.pushButton_poly_cancel.setVisible(False)
-        self.pushButton_poly_delete.setVisible(False)
+        self.ui.pushButton_poly_create.setEnabled(True)
+        self.ui.label_poly_create.setVisible(False)
+        self.ui.label_poly_modify.setVisible(False)
+        self.ui.pushButton_poly_save.setVisible(False)
+        self.ui.pushButton_poly_cancel.setVisible(False)
+        self.ui.pushButton_poly_delete.setVisible(False)
         # remove the PolyLineRoi
-        self.widget_scatter.activate_scatter_mode()
+        self.ui.widget_scatter.activate_scatter_mode()
         self.update_polygon_panel()
-        idp = self.comboBox_poly.currentData()
+        idp = self.ui.comboBox_poly.currentData()
         if mode == "create":
             self.pp_mod_send.emit({"filter": {"polygon_filter_added": idp}})
         elif mode == "modify":
@@ -609,7 +609,7 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_poly_done_delete(self):
         # delete the polygon filter
-        idp = self.comboBox_poly.currentData()
+        idp = self.ui.comboBox_poly.currentData()
         if idp is not None:
             # There is a polygon filter that we want to delete
             self.polygon_filter_about_to_be_deleted.emit(idp)
@@ -626,13 +626,13 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_poly_done_save(self):
         # save the polygon filter
-        points = self.widget_scatter.get_poly_points()
-        name = self.lineEdit_poly.text()
-        inverted = self.checkBox_poly.isChecked()
-        axes = self.widget_scatter.xax, self.widget_scatter.yax
+        points = self.ui.widget_scatter.get_poly_points()
+        name = self.ui.lineEdit_poly.text()
+        inverted = self.ui.checkBox_poly.isChecked()
+        axes = self.ui.widget_scatter.xax, self.ui.widget_scatter.yax
         # determine whether to create a new polygon filter or whether
         # to update an existing one.
-        idp = self.comboBox_poly.currentData()
+        idp = self.ui.comboBox_poly.currentData()
         if idp is None:
             dclab.PolygonFilter(axes=axes, points=points, name=name,
                                 inverted=inverted)
@@ -648,21 +648,21 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_poly_modify(self, polygon_filter_id=None):
         """User wants to modify a polygon filter"""
-        self.toolButton_poly.setChecked(True)
-        self.pushButton_poly_create.setEnabled(False)
-        self.comboBox_poly.setEnabled(False)
-        self.groupBox_poly.setEnabled(True)
-        self.label_poly_modify.setVisible(True)
-        self.pushButton_poly_save.setVisible(True)
-        self.pushButton_poly_cancel.setVisible(True)
-        self.pushButton_poly_delete.setVisible(True)
+        self.ui.toolButton_poly.setChecked(True)
+        self.ui.pushButton_poly_create.setEnabled(False)
+        self.ui.comboBox_poly.setEnabled(False)
+        self.ui.groupBox_poly.setEnabled(True)
+        self.ui.label_poly_modify.setVisible(True)
+        self.ui.pushButton_poly_save.setVisible(True)
+        self.ui.pushButton_poly_cancel.setVisible(True)
+        self.ui.pushButton_poly_delete.setVisible(True)
         if polygon_filter_id is None:
             # get the polygon filter id
-            polygon_filter_id = self.comboBox_poly.currentData()
+            polygon_filter_id = self.ui.comboBox_poly.currentData()
         pf = dclab.PolygonFilter.get_instance_from_id(polygon_filter_id)
         # set UI information
-        self.lineEdit_poly.setText(pf.name)
-        self.checkBox_poly.setChecked(pf.inverted)
+        self.ui.lineEdit_poly.setText(pf.name)
+        self.ui.checkBox_poly.setChecked(pf.inverted)
         # set axes
         state = self.read_pipeline_state()
         state["plot"]["axis x"] = pf.axes[0]
@@ -670,7 +670,7 @@ class QuickView(QtWidgets.QWidget):
         self.write_pipeline_state(state)
         self.plot()
         # add ROI
-        self.widget_scatter.activate_poly_mode(pf.points)
+        self.ui.widget_scatter.activate_poly_mode(pf.points)
 
     # Buttons
     #########
@@ -689,9 +689,9 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_tool(self, collapse=False):
         """Show and hide tools when the user selected a tool button"""
-        toblock = [self.toolButton_event,
-                   self.toolButton_poly,
-                   self.toolButton_settings,
+        toblock = [self.ui.toolButton_event,
+                   self.ui.toolButton_poly,
+                   self.ui.toolButton_settings,
                    ]
         for b in toblock:
             b.blockSignals(True)
@@ -706,36 +706,36 @@ class QuickView(QtWidgets.QWidget):
             # prevent a tool buttons from unchecking itself
             sender.setChecked(True)
 
-        if sender == self.toolButton_event:
-            show_event = self.toolButton_event.isChecked()
-        elif sender == self.toolButton_poly:
-            show_poly = self.toolButton_poly.isChecked()
-        elif sender == self.toolButton_settings:
-            show_settings = self.toolButton_settings.isChecked()
+        if sender == self.ui.toolButton_event:
+            show_event = self.ui.toolButton_event.isChecked()
+        elif sender == self.ui.toolButton_poly:
+            show_poly = self.ui.toolButton_poly.isChecked()
+        elif sender == self.ui.toolButton_settings:
+            show_settings = self.ui.toolButton_settings.isChecked()
         elif collapse:
             # show nothing
             pass
         else:
             # keep everything as-is but update the sizes
-            show_event = self.stackedWidget.currentWidget() is self.page_event
+            show_event = self.ui.stackedWidget.currentWidget() is self.ui.page_event
             show_settings = (
-                self.stackedWidget.currentWidget() is self.page_settings)
-            show_poly = self.stackedWidget.currentWidget() is self.page_poly
+                self.ui.stackedWidget.currentWidget() is self.ui.page_settings)
+            show_poly = self.ui.stackedWidget.currentWidget() is self.ui.page_poly
 
         # toolbutton checked
-        self.toolButton_event.setChecked(show_event)
-        self.toolButton_poly.setChecked(show_poly)
-        self.toolButton_settings.setChecked(show_settings)
+        self.ui.toolButton_event.setChecked(show_event)
+        self.ui.toolButton_poly.setChecked(show_poly)
+        self.ui.toolButton_settings.setChecked(show_settings)
 
         # stack widget visibility
         if show_event:
-            self.stackedWidget.setCurrentWidget(self.page_event)
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_event)
         elif show_settings:
-            self.stackedWidget.setCurrentWidget(self.page_settings)
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_settings)
         elif show_poly:
-            self.stackedWidget.setCurrentWidget(self.page_poly)
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_poly)
 
-        self.widget_scatter.select.setVisible(show_event)  # point in scatter
+        self.ui.widget_scatter.select.setVisible(show_event)  # point in scatter
 
         if show_event:
             # update event plot (maybe axes changed)
@@ -757,16 +757,16 @@ class QuickView(QtWidgets.QWidget):
             plot = self.read_pipeline_state()["plot"]
             downsample = plot["downsampling"] * plot["downsampling value"]
             hue_kwargs = {}
-            if self.checkBox_hue.isChecked():
-                hue_type = self.comboBox_hue.currentData()
+            if self.ui.checkBox_hue.isChecked():
+                hue_type = self.ui.comboBox_hue.currentData()
                 if hue_type == "kde":
                     hue_kwargs = {"kde_type": "histogram"}
                 if hue_type == "feature":
-                    hue_kwargs = {"feat": self.comboBox_z_hue.currentData()}
+                    hue_kwargs = {"feat": self.ui.comboBox_z_hue.currentData()}
             else:
                 hue_type = "none"
 
-            self.widget_scatter.plot_data(rtdc_ds=self.rtdc_ds,
+            self.ui.widget_scatter.plot_data(rtdc_ds=self.rtdc_ds,
                                           slot=self.slot,
                                           downsample=downsample,
                                           xax=plot["axis x"],
@@ -781,9 +781,9 @@ class QuickView(QtWidgets.QWidget):
             # (e.g. scatter select)
             self.on_tool()
             # update polygon filter axis names
-            self.label_poly_x.setText(
+            self.ui.label_poly_x.setText(
                 dclab.dfn.get_feature_label(plot["axis x"]))
-            self.label_poly_y.setText(
+            self.ui.label_poly_y.setText(
                 dclab.dfn.get_feature_label(plot["axis y"]))
             self.show_statistics()
             # Make sure features are properly colored in the comboboxes
@@ -792,12 +792,12 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def plot_auto(self):
         """Update the plot only if the "Auto-apply" checkbox is checked"""
-        if self.checkBox_auto_apply.isChecked():
+        if self.ui.checkBox_auto_apply.isChecked():
             sender = self.sender()
             for cb, sen in [
-                (self.checkBox_downsample, [self.spinBox_downsample]),
-                (self.checkBox_hue, [self.comboBox_hue,
-                                     self.comboBox_z_hue])]:
+                (self.ui.checkBox_downsample, [self.ui.spinBox_downsample]),
+                (self.ui.checkBox_hue, [self.ui.comboBox_hue,
+                                     self.ui.comboBox_z_hue])]:
                 # Do not replot if the user changes the options for a
                 # disabled settings (e.g. downsampling, hue)
                 if sender in sen:
@@ -820,7 +820,7 @@ class QuickView(QtWidgets.QWidget):
         ----------
         event: int
             Event index of the dataset; indices start at 0
-            If set to None, the index from `self.spinBox_event`
+            If set to None, the index from `self.ui.spinBox_event`
             will be used.
         """
         if self.rtdc_ds is None:
@@ -836,13 +836,13 @@ class QuickView(QtWidgets.QWidget):
             return
 
         # Update spin box data
-        self.spinBox_event.blockSignals(True)
-        self.spinBox_event.setValue(event_index + 1)
-        self.spinBox_event.blockSignals(False)
+        self.ui.spinBox_event.blockSignals(True)
+        self.ui.spinBox_event.setValue(event_index + 1)
+        self.ui.spinBox_event.blockSignals(False)
 
         # Update selection point in scatter plot
-        self.widget_scatter.setSelection(event_index)
-        if self.tabWidget_event.currentIndex() == 0:
+        self.ui.widget_scatter.setSelection(event_index)
+        if self.ui.tabWidget_event.currentIndex() == 0:
             # request the data from the event getter
             self.event_getter.request_event_data(ds, event_index)
         else:
@@ -858,7 +858,7 @@ class QuickView(QtWidgets.QWidget):
                 if fii in idiom.INTEGER_FEATURES:
                     val = int(np.round(val))
                 vals.append(val)
-            self.tableWidget_feats.set_key_vals(keys, vals)
+            self.ui.tableWidget_feats.set_key_vals(keys, vals)
 
     @show_wait_cursor
     @QtCore.pyqtSlot(object, object)
@@ -877,16 +877,16 @@ class QuickView(QtWidgets.QWidget):
         event_count = self.rtdc_ds.config["experiment"]["event count"]
         if event_count == 0:
             self.enable_interface(False)
-            self.label_noevents.setVisible(True)
+            self.ui.label_noevents.setVisible(True)
             self.on_tool(collapse=True)
             # reset image view
-            self.groupBox_image.setVisible(False)
-            self.groupBox_trace.setVisible(False)
+            self.ui.groupBox_image.setVisible(False)
+            self.ui.groupBox_trace.setVisible(False)
             return
         else:
             # make things visible
             self.enable_interface(True)
-            self.label_noevents.setVisible(False)
+            self.ui.label_noevents.setVisible(False)
 
         # get the state
         state = self.read_pipeline_state()
@@ -910,13 +910,13 @@ class QuickView(QtWidgets.QWidget):
                 plot["axis y"] = ds_features[0]
 
         # set control ranges
-        self.spinBox_event.blockSignals(True)
-        self.spinBox_event.setMaximum(event_count)
-        self.spinBox_event.setToolTip(f"total: {event_count}")
+        self.ui.spinBox_event.blockSignals(True)
+        self.ui.spinBox_event.setMaximum(event_count)
+        self.ui.spinBox_event.setToolTip(f"total: {event_count}")
         event_index = self._dataset_event_plot_indices_cache.get(
             id(self.rtdc_ds.hparent), 0)
-        self.spinBox_event.setValue(event_index + 1)
-        self.spinBox_event.blockSignals(False)
+        self.ui.spinBox_event.setValue(event_index + 1)
+        self.ui.spinBox_event.blockSignals(False)
 
         # set quick view state
         self.write_pipeline_state(state)
@@ -934,7 +934,7 @@ class QuickView(QtWidgets.QWidget):
     def show_statistics(self):
         h, v = self.get_statistics()
         if h is not None:
-            self.tableWidget_stat.set_key_vals(keys=h, vals=v)
+            self.ui.tableWidget_stat.set_key_vals(keys=h, vals=v)
 
     def update_feature_choices(self):
         """Updates the axes comboboxes choices
@@ -943,27 +943,27 @@ class QuickView(QtWidgets.QWidget):
         """
         if self.rtdc_ds is not None:
             # axes combobox choices
-            self.comboBox_x.update_feature_list()
-            self.comboBox_y.update_feature_list()
-            self.comboBox_z_hue.update_feature_list()
+            self.ui.comboBox_x.update_feature_list()
+            self.ui.comboBox_y.update_feature_list()
+            self.ui.comboBox_z_hue.update_feature_list()
 
     @QtCore.pyqtSlot()
     def update_polygon_panel(self):
         """Update polygon filter combobox etc."""
-        if self.label_poly_modify.isVisible():
+        if self.ui.label_poly_modify.isVisible():
             # User is currently modifying a polygon filter (issue 148).
             # We discard the user's changes.
             self.on_poly_done_cancel()
 
         pfts = dclab.PolygonFilter.instances
-        self.comboBox_poly.blockSignals(True)
-        self.comboBox_poly.clear()
-        self.comboBox_poly.addItem("Choose...", None)
+        self.ui.comboBox_poly.blockSignals(True)
+        self.ui.comboBox_poly.clear()
+        self.ui.comboBox_poly.addItem("Choose...", None)
         for pf in pfts:
-            self.comboBox_poly.addItem(pf.name, pf.unique_id)
-        self.comboBox_poly.blockSignals(False)
-        self.comboBox_poly.setEnabled(True)
+            self.ui.comboBox_poly.addItem(pf.name, pf.unique_id)
+        self.ui.comboBox_poly.blockSignals(False)
+        self.ui.comboBox_poly.setEnabled(True)
         if not pfts:
             # disable combo box if there are no filters
-            self.comboBox_poly.setEnabled(False)
-        self.groupBox_poly.setEnabled(False)
+            self.ui.comboBox_poly.setEnabled(False)
+        self.ui.groupBox_poly.setEnabled(False)

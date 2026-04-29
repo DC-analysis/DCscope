@@ -1,6 +1,6 @@
-import importlib.resources
-
 from PyQt6 import uic, QtWidgets, QtCore
+
+from .dm_element_ui import Ui_Form
 
 
 class PlotMatrixElement(QtWidgets.QWidget):
@@ -11,10 +11,9 @@ class PlotMatrixElement(QtWidgets.QWidget):
 
     def __init__(self, pipeline, slot_index, plot_index, *args, **kwargs):
         super(PlotMatrixElement, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.matrix") / "dm_element.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = pipeline
 
@@ -103,8 +102,8 @@ class PlotMatrixElement(QtWidgets.QWidget):
             label = "inactive\n(unused)"
             tooltip = "Click to activate"
 
-        self.label.setText(label)
+        self.ui.label.setText(label)
         self.setToolTip(tooltip)
-        self.label.setToolTip(tooltip)
+        self.ui.label.setToolTip(tooltip)
         self.setStyleSheet(
             "background-color:{};color:black".format(color))

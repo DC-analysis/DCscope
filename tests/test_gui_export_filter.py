@@ -44,7 +44,7 @@ def test_gui_export_filter_ray(qtbot, monkeypatch, mw):
     # enable the filter
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
-    em = mw.block_matrix.get_widget(slot_id, filt_id)
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
@@ -52,16 +52,16 @@ def test_gui_export_filter_ray(qtbot, monkeypatch, mw):
     assert len(mw.pipeline.filter_ids) == 1, "automatically added"
 
     # enable the polygon filter
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
     wf._polygon_checkboxes[pf1.unique_id].setCheckState(
         QtCore.Qt.CheckState.Checked)
     assert wf._polygon_checkboxes[pf1.unique_id].checkState() \
         == QtCore.Qt.CheckState.Checked
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # check the filter
     assert pf1.unique_id in mw.pipeline.filters[0].polylist
@@ -102,7 +102,7 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch, mw):
     # enable the filter
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
-    em = mw.block_matrix.get_widget(slot_id, filt_id)
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
@@ -110,9 +110,9 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch, mw):
     assert len(mw.pipeline.filter_ids) == 1, "automatically added"
 
     # enable the polygon filter
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
     filter_ids = list(wf._polygon_checkboxes.keys())
     # sanity check
     assert filter_ids == [pf1.unique_id, pf2.unique_id]
@@ -127,7 +127,7 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch, mw):
         == QtCore.Qt.CheckState.Checked
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # check the filter
     assert pf1.unique_id in mw.pipeline.filters[0].polylist
@@ -140,7 +140,7 @@ def test_gui_export_polygon_filters(qtbot, monkeypatch, mw):
     dlg = mw.on_action_export_filter_polygon()
     assert dlg.file_format == "poly"
 
-    qtbot.mouseClick(dlg.radioButton_multiple,
+    qtbot.mouseClick(dlg.ui.radioButton_multiple,
                      QtCore.Qt.MouseButton.LeftButton)
     assert dlg.file_mode == "multiple"
 

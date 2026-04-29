@@ -1,15 +1,15 @@
-import importlib.resources
-
 import dclab
 from dclab.features.emodulus.viscosity import (
     KNOWN_MEDIA, SAME_MEDIA, get_viscosity
 )
 import numpy as np
 
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from dcscope.gui.analysis.ana_slot import SlotPanel
 from dcscope.gui.widgets import show_wait_cursor
+
+from .bulk_emodulus_ui import Ui_Dialog
 
 
 class BulkActionEmodulus(QtWidgets.QDialog):
@@ -19,10 +19,9 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(BulkActionEmodulus, self).__init__(parent=parent,
                                                  *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.bulk") / "bulk_emodulus.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         # main
         self.parent = self.parent
@@ -31,8 +30,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         self.pipeline = pipeline
 
         # ui choices
-        self.comboBox_medium.clear()
-        self.comboBox_medium.addItem("Other", "other")
+        self.ui.comboBox_medium.clear()
+        self.ui.comboBox_medium.addItem("Other", "other")
         for name in SAME_MEDIA:
             for sk in SAME_MEDIA[name]:
                 if sk.count("Cell"):  # just add CellCarrier information
@@ -40,45 +39,45 @@ class BulkActionEmodulus(QtWidgets.QDialog):
                     break
             else:
                 info = ""
-            self.comboBox_medium.addItem(name + info, name)
+            self.ui.comboBox_medium.addItem(name + info, name)
 
-        self.comboBox_medium.addItem("Not defined", "undefined")
-        self.comboBox_medium.addItem("Unchanged", "unchanged")
-        self.comboBox_medium.setCurrentIndex(
-            self.comboBox_medium.findData("unchanged"))
-        self.comboBox_medium.currentIndexChanged.connect(self.on_cb_medium)
+        self.ui.comboBox_medium.addItem("Not defined", "undefined")
+        self.ui.comboBox_medium.addItem("Unchanged", "unchanged")
+        self.ui.comboBox_medium.setCurrentIndex(
+            self.ui.comboBox_medium.findData("unchanged"))
+        self.ui.comboBox_medium.currentIndexChanged.connect(self.on_cb_medium)
 
-        self.comboBox_temp.clear()
-        self.comboBox_temp.addItem("From feature", "feature")
-        self.comboBox_temp.addItem("From meta data", "config")
-        self.comboBox_temp.addItem("Manual", "manual")
-        self.comboBox_temp.setCurrentIndex(
-            self.comboBox_temp.findData("feature"))
-        self.comboBox_temp.currentIndexChanged.connect(self.on_cb_temp)
+        self.ui.comboBox_temp.clear()
+        self.ui.comboBox_temp.addItem("From feature", "feature")
+        self.ui.comboBox_temp.addItem("From meta data", "config")
+        self.ui.comboBox_temp.addItem("Manual", "manual")
+        self.ui.comboBox_temp.setCurrentIndex(
+            self.ui.comboBox_temp.findData("feature"))
+        self.ui.comboBox_temp.currentIndexChanged.connect(self.on_cb_temp)
 
-        self.comboBox_visc_model.clear()
-        self.comboBox_visc_model.addItem("buyukurganci-2022",
+        self.ui.comboBox_visc_model.clear()
+        self.ui.comboBox_visc_model.addItem("buyukurganci-2022",
                                          "buyukurganci-2022")
-        self.comboBox_visc_model.addItem("herold-2017", "herold-2017")
-        self.comboBox_visc_model.setCurrentIndex(
-            self.comboBox_visc_model.findData("buyukurganci-2022"))
-        self.comboBox_visc_model.currentIndexChanged.connect(self.on_cb_medium)
+        self.ui.comboBox_visc_model.addItem("herold-2017", "herold-2017")
+        self.ui.comboBox_visc_model.setCurrentIndex(
+            self.ui.comboBox_visc_model.findData("buyukurganci-2022"))
+        self.ui.comboBox_visc_model.currentIndexChanged.connect(self.on_cb_medium)
 
-        self.comboBox_lut.clear()
+        self.ui.comboBox_lut.clear()
         lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
         for lut_id in lut_dict.keys():
-            self.comboBox_lut.addItem(lut_id, lut_id)
+            self.ui.comboBox_lut.addItem(lut_id, lut_id)
         # Set default LUT
-        idx = self.comboBox_lut.findData("LE-2D-FEM-19")
-        self.comboBox_lut.setCurrentIndex(idx)
+        idx = self.ui.comboBox_lut.findData("LE-2D-FEM-19")
+        self.ui.comboBox_lut.setCurrentIndex(idx)
 
         # buttons
-        btn_ok = self.buttonBox.button(
+        btn_ok = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Ok)
         btn_ok.clicked.connect(self.on_ok)
 
         # spin control
-        self.doubleSpinBox_temp.valueChanged.connect(self.on_cb_temp)
+        self.ui.doubleSpinBox_temp.valueChanged.connect(self.on_cb_temp)
 
         self.on_cb_medium()
 
@@ -91,29 +90,29 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_cb_medium(self):
         """User changed medium"""
-        medium = self.comboBox_medium.currentData()
+        medium = self.ui.comboBox_medium.currentData()
         if medium in list(SAME_MEDIA.keys()) + ["unchanged"]:
-            self.doubleSpinBox_visc.setEnabled(False)
-            self.comboBox_temp.setEnabled(True)
-            self.comboBox_visc_model.setEnabled(True)
+            self.ui.doubleSpinBox_visc.setEnabled(False)
+            self.ui.comboBox_temp.setEnabled(True)
+            self.ui.comboBox_visc_model.setEnabled(True)
         else:
-            self.doubleSpinBox_visc.setEnabled(True)
-            self.comboBox_temp.setEnabled(False)
-            self.comboBox_visc_model.setEnabled(False)
+            self.ui.doubleSpinBox_visc.setEnabled(True)
+            self.ui.comboBox_temp.setEnabled(False)
+            self.ui.comboBox_visc_model.setEnabled(False)
         self.on_cb_temp()
 
     @QtCore.pyqtSlot()
     def on_cb_temp(self):
         """User changed temperature"""
-        temp = self.comboBox_temp.currentData()
+        temp = self.ui.comboBox_temp.currentData()
 
-        if not self.comboBox_temp.isEnabled() or temp in ["feature", "config"]:
-            self.doubleSpinBox_temp.setEnabled(False)
-            self.doubleSpinBox_temp.setValue(np.nan)
+        if not self.ui.comboBox_temp.isEnabled() or temp in ["feature", "config"]:
+            self.ui.doubleSpinBox_temp.setEnabled(False)
+            self.ui.doubleSpinBox_temp.setValue(np.nan)
         else:
-            self.doubleSpinBox_temp.setEnabled(True)
-            if np.isnan(self.doubleSpinBox_temp.value()):
-                self.doubleSpinBox_temp.setValue(23)
+            self.ui.doubleSpinBox_temp.setEnabled(True)
+            if np.isnan(self.ui.doubleSpinBox_temp.value()):
+                self.ui.doubleSpinBox_temp.setValue(23)
 
         self.update_viscosity()
 
@@ -121,19 +120,19 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def set_emodulus_properties(self):
         """Set the given emodulus properties for all datasets"""
-        medium = self.comboBox_medium.currentData()
-        visc_model = self.comboBox_visc_model.currentData()
-        lut = self.comboBox_lut.currentData()
-        if self.comboBox_temp.isEnabled():
-            scen = self.comboBox_temp.currentData()
+        medium = self.ui.comboBox_medium.currentData()
+        visc_model = self.ui.comboBox_visc_model.currentData()
+        lut = self.ui.comboBox_lut.currentData()
+        if self.ui.comboBox_temp.isEnabled():
+            scen = self.ui.comboBox_temp.currentData()
         else:
             scen = None
-        if self.doubleSpinBox_temp.isEnabled():
-            tempval = self.doubleSpinBox_temp.value()
+        if self.ui.doubleSpinBox_temp.isEnabled():
+            tempval = self.ui.doubleSpinBox_temp.value()
         else:
             tempval = None
-        if self.doubleSpinBox_visc.isEnabled():
-            viscval = self.doubleSpinBox_visc.value()
+        if self.ui.doubleSpinBox_visc.isEnabled():
+            viscval = self.ui.doubleSpinBox_visc.value()
         else:
             viscval = None
 
@@ -174,23 +173,23 @@ class BulkActionEmodulus(QtWidgets.QDialog):
 
     def update_viscosity(self):
         """Update viscosity shown"""
-        temp = self.comboBox_temp.currentData()
+        temp = self.ui.comboBox_temp.currentData()
 
-        if not self.comboBox_temp.isEnabled() or temp in ["feature", "config"]:
-            self.doubleSpinBox_visc.setValue(np.nan)
-            self.doubleSpinBox_visc.setToolTip("unique values per dataset")
+        if not self.ui.comboBox_temp.isEnabled() or temp in ["feature", "config"]:
+            self.ui.doubleSpinBox_visc.setValue(np.nan)
+            self.ui.doubleSpinBox_visc.setToolTip("unique values per dataset")
         else:
             # update the viscosity value shown in the spin control
-            medium = self.comboBox_medium.currentData()
+            medium = self.ui.comboBox_medium.currentData()
             if medium in KNOWN_MEDIA:
                 visc = get_viscosity(
-                    temperature=self.doubleSpinBox_temp.value(),
+                    temperature=self.ui.doubleSpinBox_temp.value(),
                     medium=medium,
-                    model=self.comboBox_visc_model.currentData(),
+                    model=self.ui.comboBox_visc_model.currentData(),
                 )
                 tooltip = "valid for 0.16 µL/s flow rate and 20 µm channel"
             else:
                 visc = np.nan
                 tooltip = ""
-            self.doubleSpinBox_visc.setValue(visc)
-            self.doubleSpinBox_visc.setToolTip(tooltip)
+            self.ui.doubleSpinBox_visc.setValue(visc)
+            self.ui.doubleSpinBox_visc.setToolTip(tooltip)

@@ -1,6 +1,5 @@
-import importlib.resources
-
-from PyQt6 import uic, QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
+from .dm_element_ui import Ui_Form
 
 
 class DataMatrixElement(QtWidgets.QWidget):
@@ -11,10 +10,9 @@ class DataMatrixElement(QtWidgets.QWidget):
 
     def __init__(self, pipeline, slot_index, filt_index, *args, **kwargs):
         super(DataMatrixElement, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.matrix") / "dm_element.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = pipeline
 
@@ -150,7 +148,7 @@ class DataMatrixElement(QtWidgets.QWidget):
             else:
                 tooltip += "\nShift+Click for Quick View"
 
-        self.label.setText(label)
+        self.ui.label.setText(label)
         self.setToolTip(tooltip)
-        self.label.setToolTip(tooltip)
+        self.ui.label.setToolTip(tooltip)
         self.setStyleSheet(f"background-color:{color};color:black")

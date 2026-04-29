@@ -3,4 +3,4 @@ include LICENSE
 include README.rst
 recursive-include examples *.py
 recursive-include tests *.py
-recursive-include dcscope *.css *.png *.py *.svg *.theme *.ui COPYING* LICENSE README
+recursive-include dcscope *.css *.png *.py *.svg *.theme COPYING* LICENSE README

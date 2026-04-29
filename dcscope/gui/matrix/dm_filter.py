@@ -1,6 +1,5 @@
-import importlib.resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+from .dm_filter_ui import Ui_Form
 
 
 class MatrixFilter(QtWidgets.QWidget):
@@ -13,10 +12,9 @@ class MatrixFilter(QtWidgets.QWidget):
 
     def __init__(self, pipeline, filt_index, *args, **kwargs):
         super(MatrixFilter, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.matrix") / "dm_filter.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = pipeline
         self.filt_index = filt_index
@@ -29,7 +27,7 @@ class MatrixFilter(QtWidgets.QWidget):
         menu = QtWidgets.QMenu()
         menu.addAction('duplicate', self.action_duplicate)
         menu.addAction('remove', self.action_remove)
-        self.toolButton_opt.setMenu(menu)
+        self.ui.toolButton_opt.setMenu(menu)
 
         self.setFixedWidth(int(65))
         self.setMinimumWidth(int(65))
@@ -37,13 +35,13 @@ class MatrixFilter(QtWidgets.QWidget):
         self.adjustSize()
 
         # toggle all active, all inactive, semi state
-        self.toolButton_toggle.clicked.connect(self.on_active_toggled)
+        self.ui.toolButton_toggle.clicked.connect(self.on_active_toggled)
 
         # toggle enabled/disabled state
-        self.checkBox.clicked.connect(self.on_enabled_toggled)
+        self.ui.checkBox.clicked.connect(self.on_enabled_toggled)
 
         # modify filter button
-        self.toolButton_modify.clicked.connect(self.on_modify)
+        self.ui.toolButton_modify.clicked.connect(self.on_modify)
 
         self.setMouseTracking(True)
 
@@ -101,7 +99,7 @@ class MatrixFilter(QtWidgets.QWidget):
                 self.write_pipeline_state(pp_state)
 
     def read_pipeline_state(self):
-        state = {"filter used": self.checkBox.isChecked(),
+        state = {"filter used": self.ui.checkBox.isChecked(),
                  "identifier": self.identifier,
                  "name": self.name,
                  }
@@ -111,11 +109,11 @@ class MatrixFilter(QtWidgets.QWidget):
         self.identifier = state["identifier"]
         self.name = state["name"]
 
-        self.label.setToolTip(self.name)
+        self.ui.label.setToolTip(self.name)
         self.set_label_string(self.name)
-        self.checkBox.blockSignals(True)
-        self.checkBox.setChecked(state["filter used"])
-        self.checkBox.blockSignals(False)
+        self.ui.checkBox.blockSignals(True)
+        self.ui.checkBox.setChecked(state["filter used"])
+        self.ui.checkBox.blockSignals(False)
 
     def action_duplicate(self):
         with self.pipeline.lock:
@@ -139,14 +137,14 @@ class MatrixFilter(QtWidgets.QWidget):
         self.modify_clicked.emit(self.identifier)
 
     def set_label_string(self, string):
-        if self.label.fontMetrics().boundingRect(string).width() < 60:
+        if self.ui.label.fontMetrics().boundingRect(string).width() < 60:
             nstring = string
         else:
             nstring = string + "..."
             while True:
-                width = self.label.fontMetrics().boundingRect(nstring).width()
+                width = self.ui.label.fontMetrics().boundingRect(nstring).width()
                 if width > 60:
                     nstring = nstring[:-4] + "..."
                 else:
                     break
-        self.label.setText(nstring)
+        self.ui.label.setText(nstring)

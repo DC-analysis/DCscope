@@ -26,20 +26,20 @@ dlg = compute.ComputeSignificance(mw, pipeline=mw.pipeline)
 
 # set the variables
 # treatment rep 1
-dlg.datasets[0].comboBox_group.setCurrentIndex(1)
+dlg.datasets[0].ui.comboBox_group.setCurrentIndex(1)
 # treatment rep 2
-dlg.datasets[1].comboBox_group.setCurrentIndex(1)
-dlg.datasets[1].spinBox_repeat.setValue(2)
+dlg.datasets[1].ui.comboBox_group.setCurrentIndex(1)
+dlg.datasets[1].ui.spinBox_repeat.setValue(2)
 # control rep 1
 pass
 # control rep 2
-dlg.datasets[3].spinBox_repeat.setValue(2)
+dlg.datasets[3].ui.spinBox_repeat.setValue(2)
 # control rep 3
-dlg.datasets[4].spinBox_repeat.setValue(3)
+dlg.datasets[4].ui.spinBox_repeat.setValue(3)
 
 # set the feature
-feat_id = dlg.comboBox_feat.findData("deform")
-dlg.comboBox_feat.setCurrentIndex(feat_id)
+feat_id = dlg.ui.comboBox_feat.findData("deform")
+dlg.ui.comboBox_feat.setCurrentIndex(feat_id)
 
 dlg.show()
 QApplication.processEvents()

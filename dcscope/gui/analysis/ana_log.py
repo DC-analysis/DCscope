@@ -1,7 +1,7 @@
-import importlib.resources
-
 from pygments import highlight, lexers, formatters
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+
+from .ana_log_ui import Ui_Form
 
 
 class LogPanel(QtWidgets.QWidget):
@@ -16,17 +16,16 @@ class LogPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(LogPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.analysis") / "ana_log.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
         # current DCscope pipeline
         self.pipeline = None
         self._selected_log = None
 
-        self.listWidget_dataset.currentRowChanged.connect(
+        self.ui.listWidget_dataset.currentRowChanged.connect(
             self.on_select_dataset)
-        self.listWidget_log_name.currentRowChanged.connect(
+        self.ui.listWidget_log_name.currentRowChanged.connect(
             self.on_select_log)
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
@@ -41,29 +40,29 @@ class LogPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
         """Show the logs of the dataset in the right-hand list widget"""
-        self.listWidget_log_name.clear()
+        self.ui.listWidget_log_name.clear()
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
             log_names = list(ds.logs.keys())
             for log in log_names:
-                self.listWidget_log_name.addItem(log)
+                self.ui.listWidget_log_name.addItem(log)
 
             # Apply previously selected log
             if self._selected_log in log_names:
                 log_idx = log_names.index(self._selected_log)
-                self.listWidget_log_name.setCurrentRow(log_idx)
+                self.ui.listWidget_log_name.setCurrentRow(log_idx)
             elif len(log_names):
-                self.listWidget_log_name.setCurrentRow(0)
+                self.ui.listWidget_log_name.setCurrentRow(0)
 
     @QtCore.pyqtSlot(int)
     def on_select_log(self, log_index):
         """Show the logs of the dataset in the right-hand list widget"""
-        ds_idx = self.listWidget_dataset.currentRow()
+        ds_idx = self.ui.listWidget_dataset.currentRow()
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
             if len(ds.logs) == 0:
-                self.listWidget_log_name.clear()
-                self.textEdit.clear()
+                self.ui.listWidget_log_name.clear()
+                self.ui.textEdit.clear()
                 return
 
             if log_index >= len(ds.logs):
@@ -112,10 +111,10 @@ class LogPanel(QtWidgets.QWidget):
 
                 text = "\n".join(lines)
 
-            self.textEdit.setText(text)
+            self.ui.textEdit.setText(text)
         else:
-            self.listWidget_log_name.clear()
-            self.textEdit.clear()
+            self.ui.listWidget_log_name.clear()
+            self.ui.textEdit.clear()
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
@@ -126,17 +125,17 @@ class LogPanel(QtWidgets.QWidget):
         if self.pipeline and self.pipeline.slots:
             self.setEnabled(True)
             self.setUpdatesEnabled(False)
-            self.listWidget_dataset.clear()
-            self.listWidget_log_name.clear()
+            self.ui.listWidget_dataset.clear()
+            self.ui.listWidget_log_name.clear()
             for name in self.pipeline.deduce_display_names():
-                self.listWidget_dataset.addItem(name)
+                self.ui.listWidget_dataset.addItem(name)
             self.setUpdatesEnabled(True)
             if slot_index is None or slot_index < 0:
-                slot_index = max(0, self.listWidget_dataset.currentRow())
+                slot_index = max(0, self.ui.listWidget_dataset.currentRow())
             slot_index = min(slot_index, self.pipeline.num_slots - 1)
-            self.listWidget_dataset.setCurrentRow(slot_index)
+            self.ui.listWidget_dataset.setCurrentRow(slot_index)
         else:
             self.setEnabled(False)
-            self.listWidget_dataset.clear()
-            self.listWidget_log_name.clear()
-            self.textEdit.clear()
+            self.ui.listWidget_dataset.clear()
+            self.ui.listWidget_log_name.clear()
+            self.ui.textEdit.clear()

@@ -1,6 +1,5 @@
-import importlib.resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+from .bulk_list_ui import Ui_Form
 
 
 class BulkList(QtWidgets.QWidget):
@@ -8,10 +7,9 @@ class BulkList(QtWidgets.QWidget):
     def __init__(self, parent, title=None, items=None, *args, **kwargs):
         """A checkable list with bulk (de-)selection button"""
         super(BulkList, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.widgets") / "bulk_list.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         if title is not None:
             self.set_title(title)
@@ -23,13 +21,13 @@ class BulkList(QtWidgets.QWidget):
         self.on_select_none()
 
         # signals
-        self.toolButton_all.clicked.connect(self.on_select_all)
-        self.toolButton_none.clicked.connect(self.on_select_none)
+        self.ui.toolButton_all.clicked.connect(self.on_select_all)
+        self.ui.toolButton_none.clicked.connect(self.on_select_none)
 
     def get_selection(self):
         items = []
-        for ii in range(self.listWidget.count()):
-            wid = self.listWidget.item(ii)
+        for ii in range(self.ui.listWidget.count()):
+            wid = self.ui.listWidget.item(ii)
             if wid.checkState() == QtCore.Qt.CheckState.Checked:
                 items.append(wid.data(101))
         return items
@@ -49,31 +47,31 @@ class BulkList(QtWidgets.QWidget):
         """
         if labels is None:
             labels = items
-        self.listWidget.clear()
+        self.ui.listWidget.clear()
         for item, label in zip(items, labels):
             wid = QtWidgets.QListWidgetItem(label)
             wid.setData(101, item)
             wid.setCheckState(QtCore.Qt.CheckState.Unchecked)
-            self.listWidget.addItem(wid)
+            self.ui.listWidget.addItem(wid)
 
     def set_title(self, title):
         """Set the title of the group box"""
-        self.groupBox.setTitle(title)
+        self.ui.groupBox.setTitle(title)
 
     @QtCore.pyqtSlot()
     def on_select_all(self):
         """Select all items"""
-        self.toolButton_none.setVisible(True)
-        self.toolButton_all.setVisible(False)
-        for ii in range(self.listWidget.count()):
-            wid = self.listWidget.item(ii)
+        self.ui.toolButton_none.setVisible(True)
+        self.ui.toolButton_all.setVisible(False)
+        for ii in range(self.ui.listWidget.count()):
+            wid = self.ui.listWidget.item(ii)
             wid.setCheckState(QtCore.Qt.CheckState.Checked)
 
     @QtCore.pyqtSlot()
     def on_select_none(self):
         """Deselect all items"""
-        self.toolButton_none.setVisible(False)
-        self.toolButton_all.setVisible(True)
-        for ii in range(self.listWidget.count()):
-            wid = self.listWidget.item(ii)
+        self.ui.toolButton_none.setVisible(False)
+        self.ui.toolButton_all.setVisible(True)
+        for ii in range(self.ui.listWidget.count()):
+            wid = self.ui.listWidget.item(ii)
             wid.setCheckState(QtCore.Qt.CheckState.Unchecked)

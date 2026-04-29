@@ -47,10 +47,10 @@ def test_export_single_plot(qtbot, monkeypatch, mw):
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[0]
     assert isinstance(plot_id, str)
-    plot_index = dlg.comboBox_plot.findData(plot_id)
+    plot_index = dlg.ui.comboBox_plot.findData(plot_id)
     assert plot_index > 0
-    dlg.comboBox_plot.setCurrentIndex(plot_index)
-    assert dlg.comboBox_plot.currentData() == plot_id
+    dlg.ui.comboBox_plot.setCurrentIndex(plot_index)
+    assert dlg.ui.comboBox_plot.currentData() == plot_id
 
     dlg.export_plots()
     assert pathlib.Path(tmpf).with_suffix(".png").exists()

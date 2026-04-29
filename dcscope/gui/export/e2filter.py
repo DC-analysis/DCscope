@@ -1,5 +1,4 @@
 import pathlib
-import importlib.resources
 
 from PyQt6 import uic, QtWidgets
 
@@ -7,14 +6,15 @@ import dclab
 
 from ... import session
 from ...util import get_valid_filename
+from .e2filter_ui import Ui_Dialog
 
 
 class ExportFilter(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, file_format, *args, **kwargs):
         super(ExportFilter, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files("dcscope.gui.export") / "e2filter.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         #: current analysis pipeline
         self.pipeline = pipeline
@@ -23,7 +23,7 @@ class ExportFilter(QtWidgets.QDialog):
 
     @property
     def file_mode(self):
-        if self.radioButton_single.isChecked():
+        if self.ui.radioButton_single.isChecked():
             return "single"
         else:
             return "multiple"

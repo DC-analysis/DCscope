@@ -42,7 +42,7 @@ def test_export_datasets_rtdc(qtbot, mw):
 
     # Everything is set-up already (.rtdc export, innate features
     # selected). Click OK.
-    buttons = dlg.buttonBox.buttons()
+    buttons = dlg.ui.buttonBox.buttons()
     qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have three .rtdc files
@@ -68,7 +68,7 @@ def test_export_datasets_rtdc_no_override(qtbot, mw):
         # Everything is set-up already (.rtdc export, all features
         # selected).
         # Click OK.
-        buttons = dlg.buttonBox.buttons()
+        buttons = dlg.ui.buttonBox.buttons()
         qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have six .rtdc files, because we exported twice
@@ -85,12 +85,12 @@ def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot, mw):
     mw.add_dataslot(paths=[path, path, path])
 
     # set metadata for Young's modulus only in one slot
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_slot)
-    wsl = mw.widget_ana_view.widget_slot
-    wsl.comboBox_slots.setCurrentIndex(0)
-    wsl.doubleSpinBox_temp.setValue(23)
-    qtbot.mouseClick(wsl.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_slot)
+    wsl = mw.widget_ana_view.ui.widget_slot
+    wsl.ui.comboBox_slots.setCurrentIndex(0)
+    wsl.ui.doubleSpinBox_temp.setValue(23)
+    qtbot.mouseClick(wsl.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # make sure that worked
     ds0 = mw.pipeline.slots[0].get_dataset()
     assert "emodulus" in ds0
@@ -103,13 +103,13 @@ def test_export_datasets_rtdc_emodulus_only_in_one_issue_80(qtbot, mw):
         # create export dialog manually (asks user for directory)
         dlg = export.ExportData(mw, pipeline=mw.pipeline)
         # select all features
-        qtbot.mouseClick(dlg.bulklist_features.toolButton_all,
+        qtbot.mouseClick(dlg.ui.bulklist_features.ui.toolButton_all,
                          QtCore.Qt.MouseButton.LeftButton)
 
         # Everything is set-up already
         # (.rtdc export, innate features selected).
         # Click OK.
-        buttons = dlg.buttonBox.buttons()
+        buttons = dlg.ui.buttonBox.buttons()
         qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
         # make sure that we got two warning messages
@@ -149,7 +149,7 @@ def test_export_datasets_rtdc_logs(qtbot, mw):
 
     # Everything is set-up already (.rtdc export, innate features selected).
     # Click OK.
-    buttons = dlg.buttonBox.buttons()
+    buttons = dlg.ui.buttonBox.buttons()
     qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have one .rtdc file
@@ -189,13 +189,13 @@ def test_export_datasets_basin_based(qtbot, strategy, mw):
 
     # create export dialog manually (asks user for directory)
     dlg = export.ExportData(mw, pipeline=mw.pipeline)
-    data_index = dlg.comboBox_storage.findData(strategy)
+    data_index = dlg.ui.comboBox_storage.findData(strategy)
     assert data_index >= 0, "sanity check"
-    dlg.comboBox_storage.setCurrentIndex(data_index)
+    dlg.ui.comboBox_storage.setCurrentIndex(data_index)
 
     # Everything is set up already (.rtdc export, innate features selected).
     # Click OK.
-    buttons = dlg.buttonBox.buttons()
+    buttons = dlg.ui.buttonBox.buttons()
     qtbot.mouseClick(buttons[0], QtCore.Qt.MouseButton.LeftButton)
 
     # make sure we have one .rtdc file

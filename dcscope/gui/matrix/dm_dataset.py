@@ -1,8 +1,7 @@
-import importlib.resources
-
-from PyQt6 import uic, QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 
 from ... import meta_tool
+from .dm_dataset_ui import Ui_Form
 
 
 class MatrixDataset(QtWidgets.QWidget):
@@ -16,10 +15,9 @@ class MatrixDataset(QtWidgets.QWidget):
     def __init__(self, pipeline, slot_index, *args, **kwargs):
         """Create a new dataset matrix element"""
         super(MatrixDataset, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.matrix") / "dm_dataset.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = pipeline
         self.slot_index = slot_index
@@ -32,7 +30,7 @@ class MatrixDataset(QtWidgets.QWidget):
         menu.addAction('insert anew', self.action_insert_anew)
         menu.addAction('duplicate', self.action_duplicate)
         menu.addAction('remove', self.action_remove)
-        self.toolButton_opt.setMenu(menu)
+        self.ui.toolButton_opt.setMenu(menu)
 
         # Widget width
         self.settings = QtCore.QSettings()
@@ -43,13 +41,13 @@ class MatrixDataset(QtWidgets.QWidget):
         self.setMaximumWidth(int(slot_width))
 
         # toggle all active, all inactive, semi state
-        self.toolButton_toggle.clicked.connect(self.on_active_toggled)
+        self.ui.toolButton_toggle.clicked.connect(self.on_active_toggled)
 
         # toggle enabled/disabled state
-        self.checkBox.clicked.connect(self.on_enabled_toggled)
+        self.ui.checkBox.clicked.connect(self.on_enabled_toggled)
 
         # modify slot button
-        self.toolButton_modify.clicked.connect(self.on_modify)
+        self.ui.toolButton_modify.clicked.connect(self.on_modify)
 
         # signal received
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
@@ -154,36 +152,36 @@ class MatrixDataset(QtWidgets.QWidget):
     def read_pipeline_state(self):
         state = {"path": self.path,
                  "identifier": self.identifier,
-                 "slot used": self.checkBox.isChecked(),
+                 "slot used": self.ui.checkBox.isChecked(),
                  }
         return state
 
     def write_pipeline_state(self, state):
         self.identifier = state["identifier"]
         self.path = state["path"]
-        self.checkBox.setChecked(state["slot used"])
+        self.ui.checkBox.setChecked(state["slot used"])
         self.update_content()
 
     def set_label_string(self, string):
         max_width = self.width()
-        if self.label.fontMetrics().boundingRect(string).width() < max_width:
+        if self.ui.label.fontMetrics().boundingRect(string).width() < max_width:
             nstring = string
         else:
             nstring = string + "..."
             while True:
-                width = self.label.fontMetrics().boundingRect(nstring).width()
+                width = self.ui.label.fontMetrics().boundingRect(nstring).width()
                 if width > max_width:
                     nstring = nstring[:-4] + "..."
                 else:
                     break
-        self.label.setText(nstring)
+        self.ui.label.setText(nstring)
 
     def update_content(self):
         """Reset tool tips and title"""
         if self.path is not None:
             tip = meta_tool.get_repr(self.path, append_path=True)
             self.setToolTip(tip)
-            self.label.setToolTip(tip)
+            self.ui.label.setToolTip(tip)
             slot_index = self.pipeline.slot_ids.index(self.identifier)
             name = self.pipeline.reduced_sample_names[slot_index]
             self.set_label_string(name)
@@ -193,8 +191,8 @@ class MatrixDataset(QtWidgets.QWidget):
                                         key="chip region")
             icon = QtGui.QIcon.fromTheme("region_{}".format(region))
             pixmap = icon.pixmap(16)
-            self.label_region.setPixmap(pixmap)
-            self.label_region.setToolTip(region)
+            self.ui.label_region.setPixmap(pixmap)
+            self.ui.label_region.setToolTip(region)
             if region == "channel":
                 # Set flow rate
                 flow_rate = meta_tool.get_info(self.path,
@@ -202,9 +200,9 @@ class MatrixDataset(QtWidgets.QWidget):
                                                key="flow rate")
                 long_fl_label = f"{flow_rate:.4g} µL/s"
                 short_fl_label = f"{flow_rate:.4g}"
-                self.label_flowrate.setText(
+                self.ui.label_flowrate.setText(
                     long_fl_label if self.width() > 70 else short_fl_label)
-                self.label_flowrate.setToolTip(long_fl_label)
+                self.ui.label_flowrate.setToolTip(long_fl_label)
             else:
-                self.label_flowrate.setText(region[:3])
-                self.label_flowrate.setToolTip(region)
+                self.ui.label_flowrate.setText(region[:3])
+                self.ui.label_flowrate.setToolTip(region)

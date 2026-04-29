@@ -1,22 +1,20 @@
-import importlib.resources
-
-from PyQt6 import uic, QtGui, QtWidgets
+from PyQt6 import QtGui, QtWidgets
 
 from ... import meta_tool
+from .comp_lme4_dataset_ui import Ui_Form
 
 
 class LME4Dataset(QtWidgets.QDialog):
     def __init__(self, parent, slot, *args, **kwargs):
         super(LME4Dataset, self).__init__(parent, *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.compute") / "comp_lme4_dataset.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.identifier = slot.identifier
 
         # set dataset label
-        self.checkBox_dataset.setText(slot.name)
+        self.ui.checkBox_dataset.setText(slot.name)
 
         # set region icon
         region = meta_tool.get_info(slot.path,
@@ -24,8 +22,8 @@ class LME4Dataset(QtWidgets.QDialog):
                                     key="chip region")
         icon = QtGui.QIcon.fromTheme("region_{}".format(region))
         pixmap = icon.pixmap(16)
-        self.label_region.setPixmap(pixmap)
-        self.label_region.setToolTip(region)
+        self.ui.label_region.setPixmap(pixmap)
+        self.ui.label_region.setToolTip(region)
 
     def add_to_rlme4(self, pipeline, rlme4):
         """Add the dataset to an Rlme4 analysis
@@ -42,10 +40,10 @@ class LME4Dataset(QtWidgets.QDialog):
         -----
         If the check box is not checked, then the dataset is ignored.
         """
-        if self.checkBox_dataset.isChecked():
+        if self.ui.checkBox_dataset.isChecked():
             ds_index = pipeline.slot_ids.index(self.identifier)
             ds = pipeline.get_dataset(ds_index)
-            group_id = self.comboBox_group.currentIndex()
+            group_id = self.ui.comboBox_group.currentIndex()
             group = "control" if group_id == 0 else "treatment"
-            repetition = self.spinBox_repeat.value()
+            repetition = self.ui.spinBox_repeat.value()
             rlme4.add_dataset(ds=ds, group=group, repetition=repetition)

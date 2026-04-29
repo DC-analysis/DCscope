@@ -95,7 +95,7 @@ class SimpleViewBox(pg.ViewBox):
         menu = self.scene().addParentContextMenus(self, self.menu, ev)
 
         # Only keep list of actions defined in `self.right_click_actions`
-        for action in self.menu.actions():
+        for action in self.menu.ui.actions():
             if action.text() in self.right_click_actions.values():
                 pass
             elif action.text() not in self.right_click_actions:

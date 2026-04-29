@@ -1,6 +1,5 @@
-import importlib.resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+from .pm_plot_ui import Ui_Form
 
 
 class MatrixPlot(QtWidgets.QWidget):
@@ -13,9 +12,9 @@ class MatrixPlot(QtWidgets.QWidget):
 
     def __init__(self, pipeline, plot_index, *args, **kwargs):
         super(MatrixPlot, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files("dcscope.gui.matrix") / "pm_plot.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = pipeline
         self.plot_index = plot_index
@@ -34,8 +33,8 @@ class MatrixPlot(QtWidgets.QWidget):
         self.adjustSize()
 
         # toggle all active, all inactive, semi state
-        self.toolButton_toggle.clicked.connect(self.on_active_toggled)
-        self.toolButton_modify.clicked.connect(self.on_modify)
+        self.ui.toolButton_toggle.clicked.connect(self.on_active_toggled)
+        self.ui.toolButton_modify.clicked.connect(self.on_modify)
 
         self.setMouseTracking(True)
 
@@ -121,21 +120,21 @@ class MatrixPlot(QtWidgets.QWidget):
         self.modify_clicked.emit(self.identifier)
 
     def set_label_string(self, string):
-        if self.label.fontMetrics().boundingRect(string).width() < 60:
+        if self.ui.label.fontMetrics().boundingRect(string).width() < 60:
             nstring = string
         else:
             nstring = string + "..."
             while True:
-                width = self.label.fontMetrics().boundingRect(nstring).width()
+                width = self.ui.label.fontMetrics().boundingRect(nstring).width()
                 if width > 60:
                     nstring = nstring[:-4] + "..."
                 else:
                     break
-        self.label.setText(nstring)
+        self.ui.label.setText(nstring)
 
     @QtCore.pyqtSlot()
     def update_content(self):
         """Reset tool tips and title"""
-        self.label.setToolTip(self.name)
+        self.ui.label.setToolTip(self.name)
         self.set_label_string(self.name)
         self.update()

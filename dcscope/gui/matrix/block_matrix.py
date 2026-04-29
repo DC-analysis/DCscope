@@ -1,8 +1,7 @@
-import importlib.resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ..helpers import connect_pp_mod_signals
+from .block_matrix_ui import Ui_Form
 
 
 class BlockMatrix(QtWidgets.QWidget):
@@ -18,27 +17,26 @@ class BlockMatrix(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         """Helper class that wraps DataMatrix and PlotMatrix"""
         super(BlockMatrix, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.matrix") / "block_matrix.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = None
 
         # Signals
         # DataMatrix buttons
-        self.data_matrix.filter_modify_clicked.connect(
+        self.ui.data_matrix.filter_modify_clicked.connect(
             self.filter_modify_clicked)
-        self.data_matrix.slot_modify_clicked.connect(
+        self.ui.data_matrix.slot_modify_clicked.connect(
             self.slot_modify_clicked)
         # PlotMatrix buttons
-        self.plot_matrix.plot_modify_clicked.connect(
+        self.ui.plot_matrix.plot_modify_clicked.connect(
             self.plot_modify_clicked)
         # Other widgets
 
         # plot matrix must be connected after filter matrix (geometry updates)
-        connect_pp_mod_signals(self, self.data_matrix)
-        connect_pp_mod_signals(self, self.plot_matrix)
+        connect_pp_mod_signals(self, self.ui.data_matrix)
+        connect_pp_mod_signals(self, self.ui.plot_matrix)
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
         self.setMouseTracking(True)
@@ -75,38 +73,38 @@ class BlockMatrix(QtWidgets.QWidget):
         if data.get("pipeline"):
             # Enable plot button
             if self.pipeline.slots:
-                self.toolButton_new_plot.setEnabled(True)
+                self.ui.toolButton_new_plot.setEnabled(True)
             else:
-                self.toolButton_new_plot.setEnabled(False)
+                self.ui.toolButton_new_plot.setEnabled(False)
 
         if data.get("block_matrix"):
             # Workaound: If this is not set, then the slot matrix element
             # is resized, but its sizer is not. Sending the signal twice
             # resolves the issue.
-            self.data_matrix.pp_mod_recv.emit(data)
+            self.ui.data_matrix.pp_mod_recv.emit(data)
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
             raise ValueError("Pipeline can only be set once")
         self.pipeline = pipeline
 
-        self.data_matrix.set_pipeline(self.pipeline)
-        self.plot_matrix.set_pipeline(self.pipeline)
+        self.ui.data_matrix.set_pipeline(self.pipeline)
+        self.ui.plot_matrix.set_pipeline(self.pipeline)
 
     def add_dataset(self, *args, **kwargs):
-        self.data_matrix.add_dataset(*args, **kwargs)
+        self.ui.data_matrix.add_dataset(*args, **kwargs)
 
     def add_filter(self, *args, **kwargs):
-        self.data_matrix.add_filter(*args, **kwargs)
+        self.ui.data_matrix.add_filter(*args, **kwargs)
 
     def add_plot(self, *args, **kwargs):
-        self.plot_matrix.add_plot(*args, **kwargs)
+        self.ui.plot_matrix.add_plot(*args, **kwargs)
 
     def get_widget(self, slot_id=None, filt_plot_id=None):
         """Convenience function for testing"""
         if slot_id is None and filt_plot_id is not None:
             # get a filter or a plot
-            w = self.data_matrix.filter_widgets + self.plot_matrix.plot_widgets
+            w = self.ui.data_matrix.filter_widgets + self.ui.plot_matrix.plot_widgets
             for wi in w:
                 if wi.identifier == filt_plot_id:
                     break
@@ -116,7 +114,7 @@ class BlockMatrix(QtWidgets.QWidget):
             return wi
         elif slot_id is not None and filt_plot_id is None:
             # get a slot
-            for wi in self.data_matrix.dataset_widgets:
+            for wi in self.ui.data_matrix.dataset_widgets:
                 if wi.identifier == slot_id:
                     break
             else:
@@ -125,8 +123,8 @@ class BlockMatrix(QtWidgets.QWidget):
             return wi
         elif slot_id is not None and filt_plot_id is not None:
             # get a matrix element
-            wd = self.data_matrix.element_widget_dict
-            wp = self.plot_matrix.element_widget_dict
+            wd = self.ui.data_matrix.element_widget_dict
+            wp = self.ui.plot_matrix.element_widget_dict
             fpd = wd[slot_id]
             fpp = wp[slot_id]
             if filt_plot_id in fpp:
@@ -143,16 +141,16 @@ class BlockMatrix(QtWidgets.QWidget):
 
     def invalidate_elements(self, invalid_dm, invalid_pm):
         for slot_id, filt_id in invalid_dm:
-            em = self.data_matrix.get_matrix_element(slot_id, filt_id)
+            em = self.ui.data_matrix.get_matrix_element(slot_id, filt_id)
             em.active = False
             em.invalid = True
             em.update_content()
         for slot_id, plot_id in invalid_pm:
-            em = self.plot_matrix.get_matrix_element(slot_id, plot_id)
+            em = self.ui.plot_matrix.get_matrix_element(slot_id, plot_id)
             em.active = False
             em.invalid = True
             em.update_content()
 
     def update(self, *args, **kwargs):
-        self.scrollArea_block.update()
+        self.ui.scrollArea_block.update()
         super(BlockMatrix, self).update(*args, **kwargs)

@@ -1,40 +1,40 @@
 import pathlib
-import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
+
+from .comp_lme4_results_ui import Ui_Dialog
 
 
 class Rlme4ResultsDialog(QtWidgets.QDialog):
     def __init__(self, parent, rlme4_results, *args, **kwargs):
         super(Rlme4ResultsDialog, self).__init__(parent, *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.compute") / "comp_lme4_results.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         res = rlme4_results
 
         # parameters
-        self.label_model.setText(res["model"])
-        self.label_feature.setText(dclab.dfn.get_feature_label(res["feature"]))
+        self.ui.label_model.setText(res["model"])
+        self.ui.label_feature.setText(dclab.dfn.get_feature_label(res["feature"]))
         if res["is differential"]:
-            self.label_differential.setText("Yes")
+            self.ui.label_differential.setText("Yes")
         else:
-            self.label_differential.setText("No")
+            self.ui.label_differential.setText("No")
 
         # results
         if res["model converged"]:
-            self.label_yes.show()
-            self.label_no.hide()
+            self.ui.label_yes.show()
+            self.ui.label_no.hide()
         else:
-            self.label_yes.hide()
-            self.label_no.show()
-        self.lineEdit_pvalue.setText(format_float(res["anova p-value"]))
-        self.lineEdit_intercept.setText(
+            self.ui.label_yes.hide()
+            self.ui.label_no.show()
+        self.ui.lineEdit_pvalue.setText(format_float(res["anova p-value"]))
+        self.ui.lineEdit_intercept.setText(
             format_float(res["fixed effects intercept"]))
-        self.lineEdit_treatment.setText(
+        self.ui.lineEdit_treatment.setText(
             format_float(res["fixed effects treatment"]))
 
         # summary text
@@ -66,17 +66,17 @@ class Rlme4ResultsDialog(QtWidgets.QDialog):
 
         self.summary = summary
         font = QtGui.QFont("Courier")
-        self.plainTextEdit.setFont(font)
-        self.plainTextEdit.setPlainText("\n".join(summary))
+        self.ui.plainTextEdit.setFont(font)
+        self.ui.plainTextEdit.setPlainText("\n".join(summary))
 
         # button signals
-        btn_close = self.buttonBox.button(
+        btn_close = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this dialog")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_openlme4 = self.buttonBox.button(
+        btn_openlme4 = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_openlme4.clicked.connect(self.on_save)
         btn_openlme4.setToolTip("Save report as text file")

@@ -1,11 +1,11 @@
 import numbers
-import importlib.resources
 
 import dclab
 import numpy as np
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ... import meta_tool
+from .ana_meta_ui import Ui_Form
 
 
 class MetaPanel(QtWidgets.QWidget):
@@ -16,14 +16,13 @@ class MetaPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(MetaPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.analysis") / "ana_meta.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self.pipeline = None
 
-        self.comboBox_slots.currentIndexChanged.connect(self.update_content)
+        self.ui.comboBox_slots.currentIndexChanged.connect(self.update_content)
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
@@ -43,33 +42,33 @@ class MetaPanel(QtWidgets.QWidget):
         if self.pipeline and self.pipeline.slots:
             self.setEnabled(True)
             # update combobox
-            self.comboBox_slots.blockSignals(True)
+            self.ui.comboBox_slots.blockSignals(True)
             if slot_index is None or slot_index < 0:
-                slot_index = max(0, self.comboBox_slots.currentIndex())
+                slot_index = max(0, self.ui.comboBox_slots.currentIndex())
             slot_index = min(slot_index, len(self.pipeline.slot_ids) - 1)
 
-            self.comboBox_slots.clear()
-            self.comboBox_slots.addItems(self.pipeline.deduce_display_names())
-            self.comboBox_slots.setCurrentIndex(slot_index)
-            self.comboBox_slots.blockSignals(False)
+            self.ui.comboBox_slots.clear()
+            self.ui.comboBox_slots.addItems(self.pipeline.deduce_display_names())
+            self.ui.comboBox_slots.setCurrentIndex(slot_index)
+            self.ui.comboBox_slots.blockSignals(False)
             # populate content
             slot_path = self.pipeline.slots[slot_index].path
             cfg = meta_tool.get_rtdc_config(slot_path)
-            self.update_info_box(self.groupBox_experiment, cfg,
+            self.update_info_box(self.ui.groupBox_experiment, cfg,
                                  "experiment")
-            self.update_info_box(self.groupBox_pipeline, cfg,
+            self.update_info_box(self.ui.groupBox_pipeline, cfg,
                                  "pipeline")
-            self.update_info_box(self.groupBox_fluorescence, cfg,
+            self.update_info_box(self.ui.groupBox_fluorescence, cfg,
                                  "fluorescence")
-            self.update_info_box(self.groupBox_imaging, cfg,
+            self.update_info_box(self.ui.groupBox_imaging, cfg,
                                  "imaging")
-            self.update_info_box(self.groupBox_online_contour, cfg,
+            self.update_info_box(self.ui.groupBox_online_contour, cfg,
                                  "online_contour")
-            self.update_info_box(self.groupBox_online_filter, cfg,
+            self.update_info_box(self.ui.groupBox_online_filter, cfg,
                                  "online_filter")
-            self.update_info_box(self.groupBox_setup, cfg,
+            self.update_info_box(self.ui.groupBox_setup, cfg,
                                  "setup")
-            self.update_info_box(self.groupBox_user, cfg,
+            self.update_info_box(self.ui.groupBox_user, cfg,
                                  "user")
         else:
             self.setEnabled(False)

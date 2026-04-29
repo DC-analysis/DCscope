@@ -2,17 +2,17 @@ import os.path as os_path
 import pathlib
 import traceback
 
-import importlib.resources
 import platform
 
 from dclab import cached
 from dclab.rtdc_dataset.fmt_dcor import access_token
 from dclab.lme4 import rsetup
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QStandardPaths
 
-from .widgets import show_wait_cursor
 from ..extensions import ExtensionManager, SUPPORTED_FORMATS
+from .widgets import show_wait_cursor
+from .preferences_ui import Ui_Dialog
 
 
 class ExtensionErrorWrapper:
@@ -41,9 +41,10 @@ class Preferences(QtWidgets.QDialog):
 
     def __init__(self, parent, *args, **kwargs):
         super(Preferences, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files("dcscope.gui") / "preferences.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
+
         self.settings = QtCore.QSettings()
         self.parent = parent
 
@@ -58,21 +59,21 @@ class Preferences(QtWidgets.QDialog):
 
         #: configuration keys, corresponding widgets, and defaults
         self.config_pairs = [
-            ["advanced/developer mode", self.advanced_developer_mode, "0"],
-            ["cache/disk store path", self.lineEdit_cache_path, cpath_act],
-            ["cache/disk store size", self.doubleSpinBox_cache_disk_size, "9"],
-            ["cache/memory num", self.spinBox_cache_mem_num, "200"],
-            ["cache/write interval", self.spinBox_cache_interval, "30"],
-            ["check for updates", self.general_check_for_updates, "1"],
-            ["dcor/api key", self.dcor_api_key, ""],
-            ["dcor/servers", self.dcor_servers, ["dcor.mpl.mpg.de"]],
-            ["dcor/use ssl", self.dcor_use_ssl, "1"],
+            ["advanced/developer mode", self.ui.advanced_developer_mode, "0"],
+            ["cache/disk store path", self.ui.lineEdit_cache_path, cpath_act],
+            ["cache/disk store size", self.ui.doubleSpinBox_cache_disk_size, "9"],
+            ["cache/memory num", self.ui.spinBox_cache_mem_num, "200"],
+            ["cache/write interval", self.ui.spinBox_cache_interval, "30"],
+            ["check for updates", self.ui.general_check_for_updates, "1"],
+            ["dcor/api key", self.ui.dcor_api_key, ""],
+            ["dcor/servers", self.ui.dcor_servers, ["dcor.mpl.mpg.de"]],
+            ["dcor/use ssl", self.ui.dcor_use_ssl, "1"],
             ["gui/block matrix slot widget width",
-             self.spinBox_slot_widget_width, "65"],
-            ["lme4/r path", self.lme4_rpath, rdefault],
-            ["s3/endpoint url", self.lineEdit_s3_endpoint_url, ""],
-            ["s3/access key id", self.lineEdit_s3_access_key_id, ""],
-            ["s3/secret access key", self.lineEdit_s3_secret_access_key, ""],
+             self.ui.spinBox_slot_widget_width, "65"],
+            ["lme4/r path", self.ui.lme4_rpath, rdefault],
+            ["s3/endpoint url", self.ui.lineEdit_s3_endpoint_url, ""],
+            ["s3/access key id", self.ui.lineEdit_s3_access_key_id, ""],
+            ["s3/secret access key", self.ui.lineEdit_s3_secret_access_key, ""],
         ]
 
         #: configuration signals that are emitted directly
@@ -87,37 +88,37 @@ class Preferences(QtWidgets.QDialog):
                 QStandardPaths.StandardLocation.AppDataLocation), "extensions")
         self.extensions = ExtensionManager(store_path)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.ui.tabWidget.setCurrentIndex(0)
         self.reload()
 
         # signals
-        self.btn_apply = self.buttonBox.button(
+        self.btn_apply = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Apply)
         self.btn_apply.clicked.connect(self.on_settings_apply)
-        self.btn_cancel = self.buttonBox.button(
+        self.btn_cancel = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Cancel)
-        self.btn_ok = self.buttonBox.button(
+        self.btn_ok = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.btn_ok.clicked.connect(self.on_settings_apply)
-        self.btn_restore = self.buttonBox.button(
+        self.btn_restore = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.RestoreDefaults)
         self.btn_restore.clicked.connect(self.on_settings_restore)
         # DCOR
-        self.pushButton_enc_token.clicked.connect(self.on_dcor_enc_token)
+        self.ui.pushButton_enc_token.clicked.connect(self.on_dcor_enc_token)
         # extension buttons
-        self.checkBox_ext_enabled.clicked.connect(self.on_ext_enabled)
-        self.pushButton_ext_load.clicked.connect(self.on_ext_load)
-        self.pushButton_ext_remove.clicked.connect(self.on_ext_remove)
-        self.listWidget_ext.currentRowChanged.connect(self.on_ext_selected)
-        self.listWidget_ext.itemChanged.connect(self.on_ext_modified)
+        self.ui.checkBox_ext_enabled.clicked.connect(self.on_ext_enabled)
+        self.ui.pushButton_ext_load.clicked.connect(self.on_ext_load)
+        self.ui.pushButton_ext_remove.clicked.connect(self.on_ext_remove)
+        self.ui.listWidget_ext.currentRowChanged.connect(self.on_ext_selected)
+        self.ui.listWidget_ext.itemChanged.connect(self.on_ext_modified)
         # lme4 buttons
-        self.pushButton_lme4_install.clicked.connect(self.on_lme4_install)
-        self.pushButton_lme4_search.clicked.connect(self.on_lme4_search_r)
+        self.ui.pushButton_lme4_install.clicked.connect(self.on_lme4_install)
+        self.ui.pushButton_lme4_search.clicked.connect(self.on_lme4_search_r)
         # cache
-        self.pushButton_cache_disk_clear.clicked.connect(self.on_cache_clear)
-        self.pushButton_cache_disk_browse.clicked.connect(self.on_cache_browse)
+        self.ui.pushButton_cache_disk_clear.clicked.connect(self.on_cache_clear)
+        self.ui.pushButton_cache_disk_browse.clicked.connect(self.on_cache_browse)
         # tab changed
-        self.tabWidget.currentChanged.connect(self.on_tab_changed)
+        self.ui.tabWidget.currentChanged.connect(self.on_tab_changed)
 
     def reload(self):
         """Read configuration or set default parameters"""
@@ -131,18 +132,18 @@ class Preferences(QtWidgets.QDialog):
                 widget.setValue(int(value))
             elif isinstance(widget, QtWidgets.QDoubleSpinBox):
                 widget.setValue(float(value))
-            elif widget is self.dcor_servers:
-                self.dcor_servers.clear()
-                self.dcor_servers.addItems(value)
-                self.dcor_servers.setCurrentIndex(0)
+            elif widget is self.ui.dcor_servers:
+                self.ui.dcor_servers.clear()
+                self.ui.dcor_servers.addItems(value)
+                self.ui.dcor_servers.setCurrentIndex(0)
             else:
                 raise NotImplementedError("No rule for '{}'".format(key))
 
         # peculiarities of developer mode
         devmode = bool(int(self.settings.value("advanced/developer mode", 0)))
-        self.dcor_use_ssl.setVisible(devmode)  # show "use ssl" in dev mode
+        self.ui.dcor_use_ssl.setVisible(devmode)  # show "use ssl" in dev mode
 
-        if self.tabWidget.currentWidget() is self.tab_r:
+        if self.ui.tabWidget.currentWidget() is self.ui.tab_r:
             self.reload_lme4()
 
         self.reload_ext()
@@ -150,15 +151,15 @@ class Preferences(QtWidgets.QDialog):
     def reload_ext(self):
         """Reload the list of extensions"""
         # extensions
-        row = self.listWidget_ext.currentRow()
-        self.listWidget_ext.blockSignals(True)
-        self.listWidget_ext.clear()
+        row = self.ui.listWidget_ext.currentRow()
+        self.ui.listWidget_ext.blockSignals(True)
+        self.ui.listWidget_ext.clear()
         have_extensions = bool(self.extensions)
-        self.widget_ext_controls.setVisible(have_extensions)
+        self.ui.widget_ext_controls.setVisible(have_extensions)
         if have_extensions:
             for ii, ext in enumerate(self.extensions):
                 lwitem = QtWidgets.QListWidgetItem(ext.title,
-                                                   self.listWidget_ext)
+                                                   self.ui.listWidget_ext)
                 lwitem.setFlags(QtCore.Qt.ItemFlag.ItemIsEditable
                                 | QtCore.Qt.ItemFlag.ItemIsSelectable
                                 | QtCore.Qt.ItemFlag.ItemIsEnabled
@@ -167,11 +168,11 @@ class Preferences(QtWidgets.QDialog):
                                      if ext.enabled
                                      else QtCore.Qt.CheckState.UnChecked)
                 lwitem.setData(100, ext.hash)
-            self.listWidget_ext.setCurrentRow(0)
-            if row + 1 > self.listWidget_ext.count() or row < 0:
+            self.ui.listWidget_ext.setCurrentRow(0)
+            if row + 1 > self.ui.listWidget_ext.count() or row < 0:
                 row = 0
-            self.listWidget_ext.setCurrentRow(row)
-        self.listWidget_ext.blockSignals(False)
+            self.ui.listWidget_ext.setCurrentRow(row)
+        self.ui.listWidget_ext.blockSignals(False)
         self.on_ext_selected()
 
     @show_wait_cursor
@@ -192,12 +193,12 @@ class Preferences(QtWidgets.QDialog):
         rsetup.set_r_lib_path(r_libs_user)
 
         # set the binary
-        binary = self.lme4_rpath.text()
+        binary = self.ui.lme4_rpath.text()
         if pathlib.Path(binary).is_file():
             rsetup.set_r_path(binary)
 
         # enable/disable lme4-install button
-        self.pushButton_lme4_install.setEnabled(rsetup.has_r())
+        self.ui.pushButton_lme4_install.setEnabled(rsetup.has_r())
 
         # check lme4 package status
         if not rsetup.has_r():
@@ -218,9 +219,9 @@ class Preferences(QtWidgets.QDialog):
             self.reload_lme4(install=False)
         else:
             # update user interface
-            self.pushButton_lme4_install.setVisible(lme4_st == "not installed")
-            self.label_r_version.setText(r_version)
-            self.label_lme4_installed.setText(lme4_st)
+            self.ui.pushButton_lme4_install.setVisible(lme4_st == "not installed")
+            self.ui.label_r_version.setText(r_version)
+            self.ui.label_lme4_installed.setText(lme4_st)
 
     @QtCore.pyqtSlot()
     def on_cache_clear(self):
@@ -234,7 +235,7 @@ class Preferences(QtWidgets.QDialog):
         """Choose a new caching location"""
         out = QtWidgets.QFileDialog.getExistingDirectory(self, 'Disk cache')
         if out:
-            self.lineEdit_cache_path.setText(out)
+            self.ui.lineEdit_cache_path.setText(out)
 
     @QtCore.pyqtSlot()
     def on_dcor_enc_token(self):
@@ -282,7 +283,7 @@ class Preferences(QtWidgets.QDialog):
     @QtCore.pyqtSlot(bool)
     def on_ext_enabled(self, enabled):
         """Enable or disable an extension (signal from checkbox widget)"""
-        item = self.listWidget_ext.currentItem()
+        item = self.ui.listWidget_ext.currentItem()
         ehash = item.data(100)
         with ExtensionErrorWrapper(ehash):
             self.extensions.extension_set_enabled(ehash, enabled)
@@ -309,7 +310,7 @@ class Preferences(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_ext_remove(self):
         """Remove an extension"""
-        ehash = self.listWidget_ext.currentItem().data(100)
+        ehash = self.ui.listWidget_ext.currentItem().data(100)
         self.extensions.extension_remove(ehash)
         self.reload_ext()
         self.pp_mod_send.emit({"pipeline": {"extension_removed": str(ehash)}})
@@ -321,26 +322,26 @@ class Preferences(QtWidgets.QDialog):
         enabled = bool(item.checkState())
         with ExtensionErrorWrapper(ehash):
             self.extensions.extension_set_enabled(ehash, enabled)
-        self.listWidget_ext.setCurrentItem(item)
+        self.ui.listWidget_ext.setCurrentItem(item)
         self.reload_ext()
         self.pp_mod_send.emit({"pipeline": {"extension_modified": str(ehash)}})
 
     @QtCore.pyqtSlot()
     def on_ext_selected(self):
         """Display details for an extension (signal from listWidget)"""
-        item = self.listWidget_ext.currentItem()
+        item = self.ui.listWidget_ext.currentItem()
         if item is not None:
             ehash = item.data(100)
             ext = self.extensions[ehash]
-            self.checkBox_ext_enabled.blockSignals(True)
-            self.checkBox_ext_enabled.setChecked(ext.enabled)
-            self.checkBox_ext_enabled.blockSignals(False)
+            self.ui.checkBox_ext_enabled.blockSignals(True)
+            self.ui.checkBox_ext_enabled.setChecked(ext.enabled)
+            self.ui.checkBox_ext_enabled.blockSignals(False)
             with ExtensionErrorWrapper(ehash):
                 if ext.enabled:  # only load the extension if enabled
                     ext.load()
-            self.label_ext_name.setText(ext.title)
+            self.ui.label_ext_name.setText(ext.title)
             item.setText(ext.title)
-            self.label_ext_description.setText(ext.description)
+            self.ui.label_ext_description.setText(ext.description)
 
     @QtCore.pyqtSlot()
     def on_lme4_install(self):
@@ -355,7 +356,7 @@ class Preferences(QtWidgets.QDialog):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Executable", ".", filters)
         if path:
-            self.lme4_rpath.setText(path)
+            self.ui.lme4_rpath.setText(path)
 
     @QtCore.pyqtSlot()
     def on_settings_apply(self):
@@ -370,8 +371,8 @@ class Preferences(QtWidgets.QDialog):
                 value = str(widget.value())
             elif isinstance(widget, QtWidgets.QDoubleSpinBox):
                 value = str(widget.value())
-            elif widget is self.dcor_servers:
-                curtext = self.dcor_servers.currentText()
+            elif widget is self.ui.dcor_servers:
+                curtext = self.ui.dcor_servers.currentText()
                 items = self.settings.value(key, default)
                 if curtext in items:
                     # We do it again below to be on the safe side
@@ -420,13 +421,13 @@ class Preferences(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot()
     def on_tab_changed(self):
-        if self.tabWidget.currentWidget() is self.tab_extensions:
+        if self.ui.tabWidget.currentWidget() is self.ui.tab_extensions:
             # Managing extensions has nothing to do with other settings.
             enabled = False
         else:
             enabled = True
 
-        if self.tabWidget.currentWidget() is self.tab_r:
+        if self.ui.tabWidget.currentWidget() is self.ui.tab_r:
             self.reload_lme4()
 
         self.btn_apply.setEnabled(enabled)

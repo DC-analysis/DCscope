@@ -50,27 +50,27 @@ def test_lme4_with_dcor_session(qtbot, mw):
 
     # set the variables
     # treatment rep 1
-    dlg.datasets[0].comboBox_group.setCurrentIndex(1)
+    dlg.datasets[0].ui.comboBox_group.setCurrentIndex(1)
     # treatment rep 2
-    dlg.datasets[1].comboBox_group.setCurrentIndex(1)
-    dlg.datasets[1].spinBox_repeat.setValue(2)
+    dlg.datasets[1].ui.comboBox_group.setCurrentIndex(1)
+    dlg.datasets[1].ui.spinBox_repeat.setValue(2)
     # control rep 1
     pass
     # control rep 2
-    dlg.datasets[3].spinBox_repeat.setValue(2)
+    dlg.datasets[3].ui.spinBox_repeat.setValue(2)
     # control rep 3
-    dlg.datasets[4].spinBox_repeat.setValue(3)
+    dlg.datasets[4].ui.spinBox_repeat.setValue(3)
 
     # set the feature
-    feat_id = dlg.comboBox_feat.findData("deform")
-    dlg.comboBox_feat.setCurrentIndex(feat_id)
+    feat_id = dlg.ui.comboBox_feat.findData("deform")
+    dlg.ui.comboBox_feat.setCurrentIndex(feat_id)
 
     dlgr = dlg.on_lme4(ret_dlg=True)
 
-    assert dlgr.label_model.text() == "lmer"
-    assert dlgr.label_feature.text() == "Deformation"
-    assert dlgr.label_differential.text() == "No"
-    assert dlgr.lineEdit_pvalue.text() == "0.012558"
+    assert dlgr.ui.label_model.text() == "lmer"
+    assert dlgr.ui.label_feature.text() == "Deformation"
+    assert dlgr.ui.label_differential.text() == "No"
+    assert dlgr.ui.lineEdit_pvalue.text() == "0.012558"
 
 
 @pytest.mark.skipif(not NET_AVAILABLE, reason="No network connection!")
@@ -88,37 +88,37 @@ def test_lme4_with_dcor_session_differential(qtbot, mw):
 
     # set the variables
     # treatment rep 1
-    dlg.datasets[0].comboBox_group.setCurrentIndex(1)
+    dlg.datasets[0].ui.comboBox_group.setCurrentIndex(1)
     # treatment rep 2
-    dlg.datasets[1].comboBox_group.setCurrentIndex(1)
-    dlg.datasets[1].spinBox_repeat.setValue(2)
+    dlg.datasets[1].ui.comboBox_group.setCurrentIndex(1)
+    dlg.datasets[1].ui.spinBox_repeat.setValue(2)
     # res treatment rep 1
-    dlg.datasets[2].comboBox_group.setCurrentIndex(1)
+    dlg.datasets[2].ui.comboBox_group.setCurrentIndex(1)
     # res treatment rep 2
-    dlg.datasets[3].comboBox_group.setCurrentIndex(1)
-    dlg.datasets[3].spinBox_repeat.setValue(2)
+    dlg.datasets[3].ui.comboBox_group.setCurrentIndex(1)
+    dlg.datasets[3].ui.spinBox_repeat.setValue(2)
     # control rep 1
     pass
     # control rep 2
-    dlg.datasets[5].spinBox_repeat.setValue(2)
+    dlg.datasets[5].ui.spinBox_repeat.setValue(2)
     # control rep 3
-    dlg.datasets[6].spinBox_repeat.setValue(3)
+    dlg.datasets[6].ui.spinBox_repeat.setValue(3)
     # res control rep 1
     pass
     # res control rep 2
-    dlg.datasets[8].spinBox_repeat.setValue(2)
+    dlg.datasets[8].ui.spinBox_repeat.setValue(2)
     # res control rep 3
-    dlg.datasets[9].spinBox_repeat.setValue(3)
+    dlg.datasets[9].ui.spinBox_repeat.setValue(3)
 
     # set the feature
-    feat_id = dlg.comboBox_feat.findData("deform")
-    dlg.comboBox_feat.setCurrentIndex(feat_id)
+    feat_id = dlg.ui.comboBox_feat.findData("deform")
+    dlg.ui.comboBox_feat.setCurrentIndex(feat_id)
 
     dlgr = dlg.on_lme4(ret_dlg=True)
 
-    assert dlgr.label_model.text() == "lmer"
-    assert dlgr.label_feature.text() == "Deformation"
-    assert dlgr.label_differential.text() == "Yes"
-    assert dlgr.lineEdit_pvalue.text() == "0.0000035055"
-    assert dlgr.lineEdit_intercept.text() == "0.020509"
-    assert dlgr.lineEdit_treatment.text() == "-0.0052991"
+    assert dlgr.ui.label_model.text() == "lmer"
+    assert dlgr.ui.label_feature.text() == "Deformation"
+    assert dlgr.ui.label_differential.text() == "Yes"
+    assert dlgr.ui.lineEdit_pvalue.text() == "0.0000035055"
+    assert dlgr.ui.lineEdit_intercept.text() == "0.020509"
+    assert dlgr.ui.lineEdit_treatment.text() == "-0.0052991"

@@ -42,8 +42,8 @@ def test_filter_min_max_inf(qtbot, mw):
     dlg = DlgSlotReorder(mw.pipeline, mw)
     dlg.pp_mod_send.connect(mw.pp_mod_send)
     # reorder plots
-    dlg.listWidget.setCurrentRow(0)
-    dlg.toolButton_down.clicked.emit()
+    dlg.ui.listWidget.setCurrentRow(0)
+    dlg.ui.toolButton_down.clicked.emit()
     dlg.on_ok()
 
     # now check that reordering happened

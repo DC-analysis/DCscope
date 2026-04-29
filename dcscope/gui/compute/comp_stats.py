@@ -1,15 +1,16 @@
 import codecs
 import numbers
 import pathlib
-import importlib.resources
 import time
 
 import dclab
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
+from ..._version import version
 from ..widgets import show_wait_cursor
 from ..widgets.feature_combobox import HIDDEN_FEATURES
-from ..._version import version
+from .comp_stats_ui import Ui_Dialog
+
 
 STAT_METHODS = sorted(dclab.statistics.Statistics.available_methods.keys())
 STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
@@ -18,36 +19,35 @@ STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
 class ComputeStatistics(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeStatistics, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.compute") / "comp_stats.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         # for external statistics
         self.path = None
         # set pipeline
         self.pipeline = pipeline
         # Signals
-        self.pushButton_path.clicked.connect(self.on_browse)
-        self.comboBox.currentIndexChanged.connect(self.on_combobox)
+        self.ui.pushButton_path.clicked.connect(self.on_browse)
+        self.ui.comboBox.currentIndexChanged.connect(self.on_combobox)
         # Populate statistics methods
-        self.bulklist_stats.set_title("Statistical methods")
-        self.bulklist_stats.set_items(STAT_METHODS)
-        self.bulklist_stats.on_select_all()
+        self.ui.bulklist_stats.set_title("Statistical methods")
+        self.ui.bulklist_stats.set_items(STAT_METHODS)
+        self.ui.bulklist_stats.on_select_all()
         # Populate filter ray comboBox
-        self.comboBox_filter_ray.clear()
-        self.comboBox_filter_ray.addItem("No filtering", None)
+        self.ui.comboBox_filter_ray.clear()
+        self.ui.comboBox_filter_ray.addItem("No filtering", None)
         for ii, slot in enumerate(pipeline.slots):
             if slot.slot_used:
                 raytext = "Ray {} ({})".format(ii, slot.name)
-                self.comboBox_filter_ray.addItem(raytext, slot.identifier)
+                self.ui.comboBox_filter_ray.addItem(raytext, slot.identifier)
         # initialize feature list
-        self.bulklist_features.set_title("Features")
+        self.ui.bulklist_features.set_title("Features")
         # initialize rest
         if len(self.pipeline.slots) == 0:
-            self.comboBox.setCurrentIndex(1)
+            self.ui.comboBox.setCurrentIndex(1)
         else:
-            self.comboBox.setCurrentIndex(0)
+            self.ui.comboBox.setCurrentIndex(0)
         self.on_combobox()  # computes self.features
         # Only select innate features
         self.on_select_features_innate()
@@ -75,9 +75,9 @@ class ComputeStatistics(QtWidgets.QDialog):
         opath = pathlib.Path(opath)
 
         # get features
-        features = self.bulklist_features.get_selection()
+        features = self.ui.bulklist_features.get_selection()
         # get methods
-        methods = self.bulklist_stats.get_selection()
+        methods = self.ui.bulklist_stats.get_selection()
         prog = QtWidgets.QProgressDialog("Computing statistics...", "Abort", 1,
                                          1, self)
         prog.setMinimumDuration(0)
@@ -85,7 +85,7 @@ class ComputeStatistics(QtWidgets.QDialog):
         prog.setValue(0)
         # compute statistics
         values = []
-        if self.comboBox.currentIndex() == 0:
+        if self.ui.comboBox.currentIndex() == 0:
             # from pipeline
             prog.setMaximum(len(self.pipeline.slots))
             for slot_index in range(len(self.pipeline.slots)):
@@ -111,7 +111,7 @@ class ComputeStatistics(QtWidgets.QDialog):
             for ii, pp in enumerate(files):
                 ds = dclab.new_dataset(pp)
                 title = ds.title
-                slot_id = self.comboBox_filter_ray.currentData()
+                slot_id = self.ui.comboBox_filter_ray.currentData()
                 if slot_id is not None:
                     ds = self.pipeline.apply_filter_ray(rtdc_ds=ds,
                                                         slot_id=slot_id)
@@ -160,17 +160,17 @@ class ComputeStatistics(QtWidgets.QDialog):
                                                          'Export directory')
         if out:
             self.path = out
-            self.lineEdit_path.setText(self.path)
-            self.comboBox.setCurrentIndex(1)
+            self.ui.lineEdit_path.setText(self.path)
+            self.ui.comboBox.setCurrentIndex(1)
         else:
             self.path = None
-            self.comboBox.setCurrentIndex(0)
+            self.ui.comboBox.setCurrentIndex(0)
 
     @QtCore.pyqtSlot()
     def on_combobox(self):
-        if self.comboBox.currentIndex() == 1:
+        if self.ui.comboBox.currentIndex() == 1:
             # Datasets from a folder
-            self.widget_other.show()
+            self.ui.widget_other.show()
             if self.path is None:
                 self.on_browse()
             if self.path:
@@ -178,7 +178,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                 # else, on_combobox is triggered again
         else:
             # Datasets from current session
-            self.widget_other.hide()
+            self.ui.widget_other.hide()
             self.update_feature_list(use_pipeline=True)
 
     @QtCore.pyqtSlot()
@@ -188,7 +188,7 @@ class ComputeStatistics(QtWidgets.QDialog):
         if self.pipeline.num_slots:
             ds = self.pipeline.get_dataset(0)
             features_innate = ds.features_innate
-            lw = self.bulklist_features.listWidget
+            lw = self.ui.bulklist_features.ui.listWidget
             for ii in range(lw.count()):
                 wid = lw.item(ii)
                 for feat in features_innate:
@@ -220,4 +220,4 @@ class ComputeStatistics(QtWidgets.QDialog):
                 self.features.remove(feat)
 
         labels = [dclab.dfn.get_feature_label(feat) for feat in self.features]
-        self.bulklist_features.set_items(self.features, labels)
+        self.ui.bulklist_features.set_items(self.features, labels)

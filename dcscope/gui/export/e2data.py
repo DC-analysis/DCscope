@@ -1,18 +1,16 @@
-import importlib.resources
 import logging
 import pathlib
 import traceback
 
-from PyQt6 import uic, QtCore, QtTest, QtWidgets
+from PyQt6 import QtCore, QtTest, QtWidgets
 
 import dclab
 
-from ..widgets import get_directory, show_wait_cursor
-from ..widgets.feature_combobox import HIDDEN_FEATURES
-
 from ...util import get_valid_filename
 from ..._version import version
-
+from ..widgets import get_directory, show_wait_cursor
+from ..widgets.feature_combobox import HIDDEN_FEATURES
+from .e2data_ui import Ui_Dialog
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +18,9 @@ logger = logging.getLogger(__name__)
 class ExportData(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ExportData, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files("dcscope.gui.export") / "e2data.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         self.features = []
 
@@ -33,69 +31,69 @@ class ExportData(QtWidgets.QDialog):
         # set pipeline
         self.pipeline = pipeline
         # update list widget
-        self.bulklist_features.set_title("Features")
+        self.ui.bulklist_features.set_title("Features")
         self.on_radio()
         self.on_select_features_innate()
         # Set storage strategy options
-        self.comboBox_storage.clear()
-        self.comboBox_storage.addItem(
+        self.ui.comboBox_storage.clear()
+        self.ui.comboBox_storage.addItem(
             "No basins: Store only selected features (legacy behavior)",
             "no-basins"
         )
-        self.comboBox_storage.addItem(
+        self.ui.comboBox_storage.addItem(
             "With basins: Store features, link to original data (recommended)",
             "with-basins"
         )
-        self.comboBox_storage.addItem(
+        self.ui.comboBox_storage.addItem(
             "Only basins: Do not store features, link to original data (fast)",
             "only-basins"
         )
-        self.comboBox_storage.setCurrentIndex(
-            self.comboBox_storage.findData("with-basins"))
+        self.ui.comboBox_storage.setCurrentIndex(
+            self.ui.comboBox_storage.findData("with-basins"))
         # Signals
-        self.pushButton_path.clicked.connect(self.on_browse)
+        self.ui.pushButton_path.clicked.connect(self.on_browse)
         # file type selection
-        self.radioButton_fcs.clicked.connect(self.on_radio)
-        self.radioButton_rtdc.clicked.connect(self.on_radio)
-        self.radioButton_tsv.clicked.connect(self.on_radio)
-        self.radioButton_avi.clicked.connect(self.on_radio)
+        self.ui.radioButton_fcs.clicked.connect(self.on_radio)
+        self.ui.radioButton_rtdc.clicked.connect(self.on_radio)
+        self.ui.radioButton_tsv.clicked.connect(self.on_radio)
+        self.ui.radioButton_avi.clicked.connect(self.on_radio)
         # storage strategy selection
-        self.comboBox_storage.currentIndexChanged.connect(
+        self.ui.comboBox_storage.currentIndexChanged.connect(
             self.on_storage_strategy)
 
-        self.comboBox_format.clear()
-        self.comboBox_format.addItem("MKV", "mkv")
-        self.comboBox_format.addItem("AVI", "avi")
-        self.comboBox_format.addItem("MOV", "mov")
+        self.ui.comboBox_format.clear()
+        self.ui.comboBox_format.addItem("MKV", "mkv")
+        self.ui.comboBox_format.addItem("AVI", "avi")
+        self.ui.comboBox_format.addItem("MOV", "mov")
 
-        self.comboBox_codec.clear()
-        self.comboBox_codec.addItem("H264 (high quality, fast export)",
+        self.ui.comboBox_codec.clear()
+        self.ui.comboBox_codec.addItem("H264 (high quality, fast export)",
                                     {"pixel_format": "yuv420p",
                                      "codec": "libx264",
                                      "codec_options": {'preset': 'ultrafast',
                                                        'crf': '0'}})
-        self.comboBox_codec.addItem("H264 (high quality, small file size)",
+        self.ui.comboBox_codec.addItem("H264 (high quality, small file size)",
                                     {"pixel_format": "yuv420p",
                                      "codec": "libx264",
                                      "codec_options": {'preset': 'slow',
                                                        'crf': '0'}})
-        self.comboBox_codec.addItem("H264 (lossy compression)",
+        self.ui.comboBox_codec.addItem("H264 (lossy compression)",
                                     {"pixel_format": "yuv420p",
                                      "codec": "libx264",
                                      "codec_options": {'preset': 'slow',
                                                        'crf': '7'}})
-        self.comboBox_codec.addItem("RAW (huge files)",
+        self.ui.comboBox_codec.addItem("RAW (huge files)",
                                     {"pixel_format": "yuv420p",
                                      "codec": "rawvideo"})
 
     @property
     def file_format(self):
-        if self.radioButton_fcs.isChecked():
+        if self.ui.radioButton_fcs.isChecked():
             return "fcs"
-        elif self.radioButton_rtdc.isChecked():
+        elif self.ui.radioButton_rtdc.isChecked():
             return "rtdc"
-        elif self.radioButton_avi.isChecked():
-            return self.comboBox_format.currentData()
+        elif self.ui.radioButton_avi.isChecked():
+            return self.ui.comboBox_format.currentData()
         else:
             return "tsv"
 
@@ -107,12 +105,12 @@ class ExportData(QtWidgets.QDialog):
     def path(self, value):
         if value and pathlib.Path(value).exists():
             self._path = value
-            self.lineEdit_path.setText(value)
+            self.ui.lineEdit_path.setText(value)
 
     @property
     def storage_strategy(self):
         if self.file_format == "rtdc":
-            storage_strategy = self.comboBox_storage.currentData()
+            storage_strategy = self.ui.comboBox_storage.currentData()
         else:
             storage_strategy = "no-basins"
         return storage_strategy
@@ -130,11 +128,11 @@ class ExportData(QtWidgets.QDialog):
         if self.storage_strategy == "only-basins":
             # This case will also only happen for the .rtdc format
             features = []
-        elif self.radioButton_avi.isChecked():
+        elif self.ui.radioButton_avi.isChecked():
             # We are only exporting images
             features = []
         else:
-            features = self.bulklist_features.get_selection()
+            features = self.ui.bulklist_features.get_selection()
 
         # create dummy progress dialog
         prog = QtWidgets.QProgressDialog("Exporting...", "Abort", 1,
@@ -198,11 +196,11 @@ class ExportData(QtWidgets.QDialog):
                          meta_data={"DCscope version": version},
                          override=False)
                 ))
-            elif self.radioButton_avi.isChecked():
+            elif self.ui.radioButton_avi.isChecked():
                 tasks.append((
                     ds.export.avi,
                     dict(path=path,
-                         **self.comboBox_codec.currentData())
+                         **self.ui.comboBox_codec.currentData())
                 ))
 
         logger.info(f"Exporting {len(tasks)} objects")
@@ -290,17 +288,17 @@ class ExportData(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot()
     def on_radio(self):
-        self.widget_storage_strategy.setEnabled(self.file_format == "rtdc")
+        self.ui.widget_storage_strategy.setEnabled(self.file_format == "rtdc")
         # set storage strategy based on file format
         strategy = "with-basins" if self.file_format == "rtdc" else "no-basins"
-        self.comboBox_storage.setCurrentIndex(
-            self.comboBox_storage.findData(strategy))
+        self.ui.comboBox_storage.setCurrentIndex(
+            self.ui.comboBox_storage.findData(strategy))
 
-        if self.radioButton_avi.isChecked():
-            self.stackedWidget.setCurrentWidget(self.page_video)
+        if self.ui.radioButton_avi.isChecked():
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_video)
         else:
             self.update_feature_list()
-            self.stackedWidget.setCurrentWidget(self.page_features)
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_features)
 
     @QtCore.pyqtSlot()
     def on_select_features_innate(self):
@@ -308,7 +306,7 @@ class ExportData(QtWidgets.QDialog):
         if self.pipeline.num_slots:
             ds = self.pipeline.get_dataset(0)
             features_loaded = ds.features_loaded
-            lw = self.bulklist_features.listWidget
+            lw = self.ui.bulklist_features.ui.listWidget
             for ii in range(lw.count()):
                 wid = lw.item(ii)
                 for feat in features_loaded:
@@ -320,7 +318,7 @@ class ExportData(QtWidgets.QDialog):
 
     @QtCore.pyqtSlot()
     def on_storage_strategy(self):
-        self.bulklist_features.setEnabled(
+        self.ui.bulklist_features.setEnabled(
             self.storage_strategy != "only-basins")
 
     def update_feature_list(self, scalar=False):
@@ -344,7 +342,7 @@ class ExportData(QtWidgets.QDialog):
                 self.features.remove(feat)
 
         labels = [dclab.dfn.get_feature_label(feat) for feat in self.features]
-        self.bulklist_features.set_items(self.features, labels)
+        self.ui.bulklist_features.set_items(self.features, labels)
         self.on_select_features_innate()
 
 

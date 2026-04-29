@@ -61,44 +61,44 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot, mw):
     mw.add_dataslot(paths=[path])
 
     # edit the initial filter in the Analysis View
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # box filtering
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
-    wf = mw.widget_ana_view.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
     # enable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_ratio"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
     # now add second filter
     mw.add_filter()
 
     # edit the second filter in the Analysis View
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[1])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[1])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # make sure that "area_ratio" is not preselected
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
 
     # enable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_ratio"]
-    assert not rc.checkBox.isChecked()
+    assert not rc.ui.checkBox.isChecked()
     # and a sanity check
     rc2 = wf._box_range_controls["deform"]
-    assert not rc2.checkBox.isChecked()
+    assert not rc2.ui.checkBox.isChecked()
 
     # cleanup: disable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
 
 def test_filter_min_max_delete(qtbot, mw):
@@ -119,28 +119,28 @@ def test_filter_min_max_delete(qtbot, mw):
     assert np.max(ds20["area_um"]) > 20
 
     # open the filter edit in the Analysis View
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # box filtering
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
 
     # enable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_um"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
     # set the range control for area from 20 to 30 µm
-    rc.doubleSpinBox_min.setValue(20)
-    rc.doubleSpinBox_max.setValue(30)
+    rc.ui.doubleSpinBox_min.setValue(20)
+    rc.ui.doubleSpinBox_max.setValue(30)
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # make sure this worked
     assert rc.read_pipeline_state()["end"] == 30
@@ -149,11 +149,11 @@ def test_filter_min_max_delete(qtbot, mw):
     assert box_filters["area_um"]["active"] is True
 
     # activate the filter for both datasets
-    me1 = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+    me1 = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
                                      slot_id=mw.pipeline.slot_ids[0]
                                      )
     qtbot.mouseClick(me1, QtCore.Qt.MouseButton.LeftButton)
-    me2 = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+    me2 = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
                                      slot_id=mw.pipeline.slot_ids[1]
                                      )
     qtbot.mouseClick(me2, QtCore.Qt.MouseButton.LeftButton)
@@ -173,15 +173,15 @@ def test_filter_min_max_delete(qtbot, mw):
     assert np.max(ds2a["area_um"]) < 30
 
     # Now, remove the box filter!
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_um"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
@@ -210,21 +210,21 @@ def test_filter_min_max_inf(qtbot, mw):
     assert len(mw.pipeline.filter_ids) == 1, "automatically added"
 
     # open the filter edit in the Analysis View
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # box filtering
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
 
     # enable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_ratio"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
 
     # check that the range control does not have all-zero values
     rcstate = rc.read_pipeline_state()
@@ -257,7 +257,7 @@ def test_polygon_filter_basic(qtbot, mw):
     # enable the filter
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
-    em = mw.block_matrix.get_widget(slot_id, filt_id)
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
@@ -266,13 +266,13 @@ def test_polygon_filter_basic(qtbot, mw):
     assert len(mw.pipeline.filter_ids) == 1, "automatically added"
 
     # open the filter edit in the Analysis View
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # enable the polygon filter
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
 
     filter_ids = list(wf._polygon_checkboxes.keys())
     # sanity check
@@ -284,7 +284,7 @@ def test_polygon_filter_basic(qtbot, mw):
         == QtCore.Qt.CheckState.Checked
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # check the filter
     assert pf1.unique_id in mw.pipeline.filters[0].polylist
@@ -320,7 +320,7 @@ def test_polygon_filter_delete(qtbot, mw):
     # enable the filter
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
-    em = mw.block_matrix.get_widget(slot_id, filt_id)
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
@@ -329,13 +329,13 @@ def test_polygon_filter_delete(qtbot, mw):
     assert len(mw.pipeline.filter_ids) == 1, "automatically added"
 
     # open the filter edit in the Analysis View
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # enable the polygon filter
-    wf = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
 
     filter_ids = list(wf._polygon_checkboxes.keys())
     # sanity check
@@ -347,26 +347,26 @@ def test_polygon_filter_delete(qtbot, mw):
         == QtCore.Qt.CheckState.Checked
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # check the filter
     assert pf1.unique_id in mw.pipeline.filters[0].polylist
 
     # now remove the filter
-    em1 = mw.block_matrix.get_widget(slot_id, filt_id)
+    em1 = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
                      QtCore.Qt.KeyboardModifier.ShiftModifier)
     qv = mw.widget_quick_view
-    qtbot.mouseClick(qv.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
-    qv.comboBox_poly.setCurrentIndex(1)
+    qtbot.mouseClick(qv.ui.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
+    qv.ui.comboBox_poly.setCurrentIndex(1)
     QtWidgets.QApplication.processEvents(
         QEventLoop.ProcessEventsFlag.AllEvents, 300)
-    assert qv.pushButton_poly_save.isVisible()
-    assert qv.pushButton_poly_cancel.isVisible()
-    assert qv.pushButton_poly_delete.isVisible()
-    qtbot.mouseClick(qv.pushButton_poly_delete,
+    assert qv.ui.pushButton_poly_save.isVisible()
+    assert qv.ui.pushButton_poly_cancel.isVisible()
+    assert qv.ui.pushButton_poly_delete.isVisible()
+    qtbot.mouseClick(qv.ui.pushButton_poly_delete,
                      QtCore.Qt.MouseButton.LeftButton)
-    assert not qv.pushButton_poly_delete.isVisible()
+    assert not qv.ui.pushButton_poly_delete.isVisible()
 
     # did that work?
     assert len(mw.pipeline.filters[0].polylist) == 0

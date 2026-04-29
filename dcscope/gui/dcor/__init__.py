@@ -1,13 +1,13 @@
-import importlib.resources
 import traceback as tb
 import urllib.parse
 import webbrowser
 
 import dclab
-from PyQt6 import uic, QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 import requests
 
 from ..widgets import show_wait_cursor, run_async
+from .dcor_ui import Ui_Dialog
 
 
 class DCORLoader(QtWidgets.QDialog):
@@ -17,9 +17,9 @@ class DCORLoader(QtWidgets.QDialog):
     def __init__(self, parent, *args, **kwargs):
         """Search and load DCOR data"""
         super(DCORLoader, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files("dcscope.gui.dcor") / "dcor.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
 
         self.main_ui = parent
         self.search_results = []
@@ -29,33 +29,33 @@ class DCORLoader(QtWidgets.QDialog):
         self.settings = QtCore.QSettings()
 
         # tool button
-        self.pushButton_search.clicked.connect(self.on_search)
+        self.ui.pushButton_search.clicked.connect(self.on_search)
         searchicon = QtGui.QIcon.fromTheme("search")
-        self.pushButton_search.setIcon(searchicon)
-        self.pushButton_search.setDefault(True)
-        self.buttonBox.buttons()[1].setDefault(False)
-        self.buttonBox.buttons()[0].setDefault(False)
-        self.lineEdit_search.setFocus()
+        self.ui.pushButton_search.setIcon(searchicon)
+        self.ui.pushButton_search.setDefault(True)
+        self.ui.buttonBox.buttons()[1].setDefault(False)
+        self.ui.buttonBox.buttons()[0].setDefault(False)
+        self.ui.lineEdit_search.setFocus()
 
         # search signals
         self.search_finished.connect(self.on_search_finished)
         self.search_item_retrieved.connect(self.on_search_add_result)
 
         # button signals
-        btn_close = self.buttonBox.button(
+        btn_close = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Close)
         btn_close.clicked.connect(self.on_close)
         btn_close.setToolTip("Close this window")
         closeicon = QtGui.QIcon.fromTheme("dialog-close")
         btn_close.setIcon(closeicon)
-        btn_open = self.buttonBox.button(
+        btn_open = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Apply)
         btn_open.clicked.connect(self.on_open)
         btn_open.setToolTip("Add selected resources to current session")
         btn_open.setText("Add to session")
         plusicon = QtGui.QIcon.fromTheme("list-add")
         btn_open.setIcon(plusicon)
-        btn_help = self.buttonBox.button(
+        btn_help = self.ui.buttonBox.button(
             QtWidgets.QDialogButtonBox.StandardButton.Help)
         btn_help.clicked.connect(self.on_help)
         btn_help.setToolTip("View DCOR Quick Guide online")
@@ -93,8 +93,8 @@ class DCORLoader(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_open(self):
         """Add selected resources to the current session"""
-        for ii in range(self.listWidget.count()):
-            item = self.listWidget.item(ii)
+        for ii in range(self.ui.listWidget.count()):
+            item = self.ui.listWidget.item(ii)
             if item.isSelected():
                 self.main_ui.add_dataslot(
                     paths=[self.search_results[ii]], is_dcor=True)
@@ -133,11 +133,11 @@ class DCORLoader(QtWidgets.QDialog):
         api_headers = self.get_api_headers()
 
         # search string
-        if self.comboBox_search.currentIndex() == 1:
+        if self.ui.comboBox_search.currentIndex() == 1:
             stype = "dataset"
         else:
             stype = "free"
-        search_string = urllib.parse.quote(self.lineEdit_search.text())
+        search_string = urllib.parse.quote(self.ui.lineEdit_search.text())
 
         # perform search
         try:
@@ -164,7 +164,7 @@ class DCORLoader(QtWidgets.QDialog):
         """Add new item to ``self.listWidget`` and ``self.search_results``"""
         if search_id == self.num_searches:
             if result_index == 0:
-                self.listWidget.clear()
+                self.ui.listWidget.clear()
                 self.search_results.clear()
             name = "{}: {} <{}@{}>".format(
                 dataset["title"],
@@ -172,7 +172,7 @@ class DCORLoader(QtWidgets.QDialog):
                 dataset["name"],
                 dataset["organization"]["name"],
             )
-            self.listWidget.addItem(name)
+            self.ui.listWidget.addItem(name)
             ru = api_base_url + "/action/dcserv?id={}".format(resource["id"])
             self.search_results.append(ru)
 
@@ -191,7 +191,7 @@ class DCORLoader(QtWidgets.QDialog):
             return
         elif not results:
             # no results for this search
-            self.listWidget.clear()
+            self.ui.listWidget.clear()
 
         if failed:
             msg = QtWidgets.QMessageBox()

@@ -1,8 +1,7 @@
-import importlib.resources
-
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 from ..helpers import connect_pp_mod_signals
+from .ana_view_ui import Ui_Form
 
 
 class AnalysisView(QtWidgets.QWidget):
@@ -13,29 +12,28 @@ class AnalysisView(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(AnalysisView, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.analysis") / "ana_view.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         self._quickview_slot_index = 0
         self._quickview_filt_index = 0
 
         self.page_widgets = [
-            self.widget_basins,
-            self.widget_meta,
-            self.widget_filter,
-            self.widget_log,
-            self.widget_plot,
-            self.widget_slot,
-            self.widget_tables
+            self.ui.widget_basins,
+            self.ui.widget_meta,
+            self.ui.widget_filter,
+            self.ui.widget_log,
+            self.ui.widget_plot,
+            self.ui.widget_slot,
+            self.ui.widget_tables
         ]
 
         self.setWindowTitle("Analysis View")
         self.setMinimumSize(self.sizeHint())
         # Signals
-        self.tabWidget.setCurrentIndex(0)
-        self.tabWidget.currentChanged.connect(self.update_content)
+        self.ui.tabWidget.setCurrentIndex(0)
+        self.ui.tabWidget.currentChanged.connect(self.update_content)
 
         for pw in self.page_widgets:
             connect_pp_mod_signals(self, pw)
@@ -58,7 +56,7 @@ class AnalysisView(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def update_content(self):
-        cur_page = self.tabWidget.currentWidget()
+        cur_page = self.ui.tabWidget.currentWidget()
         for widget in self.page_widgets:
             if widget.parent() is cur_page:
                 widget.update_content(

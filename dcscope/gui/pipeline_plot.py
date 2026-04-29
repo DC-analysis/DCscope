@@ -14,6 +14,8 @@ from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
 from .. import util
 from .widgets import DCscopeColorBarItem, SimplePlotItem
+from .pipeline_plot_ui import Ui_Form
+
 
 # Register custom colormaps
 Gradients["grayblue"] = {'ticks': [(0.0, (100, 100, 100, 255)),
@@ -48,9 +50,9 @@ class PipelinePlot(QtWidgets.QWidget):
 
     def __init__(self, parent, pipeline, plot_id, *args, **kwargs):
         super(PipelinePlot, self).__init__(parent=parent, *args, **kwargs)
-        ref = importlib.resources.files("dcscope.gui") / "pipeline_plot.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
         # used to avoid unnecessary plotting
         self._plot_data_hash = "unset"
@@ -159,7 +161,7 @@ class PipelinePlot(QtWidgets.QWidget):
                 self._window_decoration_size = (
                     psize.width() - csize.width(),
                     psize.height() - csize.height())
-        self.plot_layout.updateGeometry()
+        self.ui.plot_layout.updateGeometry()
         self.update()
 
     def update_content_plot(self, plot_state, slot_states, dslist):
@@ -194,10 +196,10 @@ class PipelinePlot(QtWidgets.QWidget):
         self.setWindowTitle(lay["name"])
 
         # clear widget
-        self.plot_layout.clear()
+        self.ui.plot_layout.clear()
 
         # set background to white
-        self.plot_layout.setBackground("w")
+        self.ui.plot_layout.setBackground("w")
 
         if not slot_states:
             return
@@ -206,13 +208,13 @@ class PipelinePlot(QtWidgets.QWidget):
 
         # font size for plot title (default size + 2)
         size = "{}pt".format(QtGui.QFont().pointSize() + 2)
-        self.plot_layout.addLabel(html.escape(lay["name"]),
+        self.ui.plot_layout.addLabel(html.escape(lay["name"]),
                                   colspan=3,
                                   size=size)
-        self.plot_layout.nextRow()
+        self.ui.plot_layout.nextRow()
 
-        self.plot_layout.addLabel(labely, angle=-90)
-        linner = self.plot_layout.addLayout()
+        self.ui.plot_layout.addLabel(labely, angle=-90)
+        linner = self.ui.plot_layout.addLayout()
         linner.setContentsMargins(0, 0, 0, 0)  # reallocate some space
 
         self.plot_items.clear()
@@ -321,11 +323,11 @@ class PipelinePlot(QtWidgets.QWidget):
                 width=15,
                 **colorbar_kwds
             )
-            self.plot_layout.addItem(colorbar)
+            self.ui.plot_layout.addItem(colorbar)
 
         # x-axis label
-        self.plot_layout.nextRow()
-        self.plot_layout.addLabel(labelx, col=1)
+        self.ui.plot_layout.nextRow()
+        self.ui.plot_layout.addLabel(labelx, col=1)
 
 
 class PipelinePlotItem(SimplePlotItem):

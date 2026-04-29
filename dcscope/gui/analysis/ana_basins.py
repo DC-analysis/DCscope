@@ -1,8 +1,9 @@
-import importlib.resources
 import json
 
 from pygments import highlight, lexers, formatters
-from PyQt6 import uic, QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
+
+from .ana_basins_ui import Ui_Form
 
 
 class BasinsPanel(QtWidgets.QWidget):
@@ -17,18 +18,18 @@ class BasinsPanel(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         super(BasinsPanel, self).__init__(*args, **kwargs)
-        ref = importlib.resources.files(
-            "dcscope.gui.analysis") / "ana_basins.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
         # current DCscope pipeline
         self.pipeline = None
         self.data_role = QtCore.Qt.ItemDataRole.UserRole + 2
-        self.treeWidget_basin_name.setColumnCount(1)
+        self.ui.treeWidget_basin_name.setColumnCount(1)
 
-        self.listWidget_dataset.currentRowChanged.connect(
+        self.ui.listWidget_dataset.currentRowChanged.connect(
             self.on_select_dataset)
-        self.treeWidget_basin_name.currentItemChanged.connect(
+        self.ui.treeWidget_basin_name.currentItemChanged.connect(
             self.on_select_basin)
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
@@ -50,16 +51,16 @@ class BasinsPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
         """Show the tables of the dataset in the right-hand list widget"""
-        self.treeWidget_basin_name.clear()
+        self.ui.treeWidget_basin_name.clear()
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
-            self.add_basin_nodes(parent_widget=self.treeWidget_basin_name,
+            self.add_basin_nodes(parent_widget=self.ui.treeWidget_basin_name,
                                  ds=ds)
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def on_select_basin(self, current, previous=None):
         """Show the tables of the dataset in the right-hand list widget"""
-        ds_idx = self.listWidget_dataset.currentRow()
+        ds_idx = self.ui.listWidget_dataset.currentRow()
         if current is not None and ds_idx >= 0:
             # Get the correct basin
             ds, bd = current.data(0, self.data_role)
@@ -76,9 +77,9 @@ class BasinsPanel(QtWidgets.QWidget):
                 bn = None
 
             # Display the basin information
-            self.label_status.setText(f"{loaded=}, {available=}")
-            self.label_id.setText(f"{bd.get('name')} ({bd['key']})")
-            self.textEdit_def.setText(
+            self.ui.label_status.setText(f"{loaded=}, {available=}")
+            self.ui.label_id.setText(f"{bd.get('name')} ({bd['key']})")
+            self.ui.textEdit_def.setText(
                 highlight(json.dumps(bd, sort_keys=True, indent=2),
                           lexers.JsonLexer(),
                           formatters.HtmlFormatter(full=True,
@@ -92,9 +93,9 @@ class BasinsPanel(QtWidgets.QWidget):
                                      ds=bn.ds)
                 current.setExpanded(True)
         else:
-            self.textEdit_def.clear()
-            self.label_status.setText("")
-            self.label_id.setText("")
+            self.ui.textEdit_def.clear()
+            self.ui.label_status.setText("")
+            self.ui.label_id.setText("")
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
@@ -105,16 +106,16 @@ class BasinsPanel(QtWidgets.QWidget):
         if self.pipeline and self.pipeline.slots:
             self.setEnabled(True)
             self.setUpdatesEnabled(False)
-            self.listWidget_dataset.clear()
-            self.treeWidget_basin_name.clear()
+            self.ui.listWidget_dataset.clear()
+            self.ui.treeWidget_basin_name.clear()
             for name in self.pipeline.deduce_display_names():
-                self.listWidget_dataset.addItem(name)
+                self.ui.listWidget_dataset.addItem(name)
             self.setUpdatesEnabled(True)
             if slot_index is None or slot_index < 0:
-                slot_index = max(0, self.listWidget_dataset.currentRow())
+                slot_index = max(0, self.ui.listWidget_dataset.currentRow())
             slot_index = min(slot_index, self.pipeline.num_slots - 1)
-            self.listWidget_dataset.setCurrentRow(slot_index)
+            self.ui.listWidget_dataset.setCurrentRow(slot_index)
         else:
             self.setEnabled(False)
-            self.listWidget_dataset.clear()
-            self.treeWidget_basin_name.clear()
+            self.ui.listWidget_dataset.clear()
+            self.ui.treeWidget_basin_name.clear()

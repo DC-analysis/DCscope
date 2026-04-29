@@ -41,17 +41,17 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot, mw):
     plot_id = mw.add_plot()
 
     # activate analysis view
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
-    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
 
     # Change to "each" and apply
-    idx = pv.comboBox_division.findData("each")
-    pv.comboBox_division.setCurrentIndex(idx)
+    idx = pv.ui.comboBox_division.findData("each")
+    pv.ui.comboBox_division.setCurrentIndex(idx)
     # Lead to zero-division error in "get_plot_col_row_count"
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
 
 def test_feature_bright_avg_not_present_issue_62(qtbot, mw):
@@ -70,7 +70,7 @@ def test_feature_bright_avg_not_present_issue_62(qtbot, mw):
     # add plot
     plot_id = mw.add_plot()
     # and activate it
-    pw = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
+    pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
     # this raised "ValueError: 'bright_avg' is not in list" (issue #62)
     qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
 
@@ -91,11 +91,11 @@ def test_handle_axis_selection_empty_plot(qtbot, mw):
     assert len(mw.pipeline.plot_ids) == 1, "we added that"
 
     # activate analysis view
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
-    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
 
     # This lead to:
     #    Traceback (most recent call last):
@@ -111,7 +111,7 @@ def test_handle_axis_selection_empty_plot(qtbot, mw):
     #    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
     # ValueError: zero-size array to reduction operation minimum which
     # has no identity
-    pv.comboBox_axis_y.setCurrentIndex(pv.comboBox_axis_y.findData("emodulus"))
+    pv.ui.comboBox_axis_y.setCurrentIndex(pv.ui.comboBox_axis_y.findData("emodulus"))
 
 
 def test_handle_empty_plots_issue_27(qtbot, mw):
@@ -133,28 +133,28 @@ def test_handle_empty_plots_issue_27(qtbot, mw):
     # activate a dataslot
     slot_id = mw.pipeline.slot_ids[0]
     filt_id = mw.pipeline.filter_ids[0]
-    em = mw.block_matrix.get_widget(slot_id, filt_id)
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)  # activate
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
 
     # filter away all events
-    fe = mw.block_matrix.get_widget(filt_plot_id=filt_id)
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
-    fv = mw.widget_ana_view.widget_filter
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=filt_id)
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    fv = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
 
-    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(fv.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     rc = fv._box_range_controls["area_um"]
-    qtbot.mouseClick(rc.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
-    assert rc.checkBox.isChecked()
-    qtbot.mouseClick(fv.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    assert rc.ui.checkBox.isChecked()
+    qtbot.mouseClick(fv.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
     # set range
-    rc.doubleSpinBox_min.setValue(0)
-    rc.doubleSpinBox_max.setValue(1)
-    qtbot.mouseClick(fv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    rc.ui.doubleSpinBox_min.setValue(0)
+    rc.ui.doubleSpinBox_max.setValue(1)
+    qtbot.mouseClick(fv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -162,7 +162,7 @@ def test_handle_empty_plots_issue_27(qtbot, mw):
 
     # now create a plot window
     plot_id = mw.add_plot()
-    pe = mw.block_matrix.get_widget(slot_id, plot_id)
+    pe = mw.ui.block_matrix.get_widget(slot_id, plot_id)
     with pytest.warns(pipeline.core.EmptyDatasetWarning):
         # this now only throws a warning
         # activate (raises #27)
@@ -199,7 +199,7 @@ def test_handle_empty_plots_issue_223(qtbot, mw):
 
     # now create a plot window
     plot_id = mw.add_plot()
-    pe = mw.block_matrix.get_widget(mw.pipeline.slot_ids[0], plot_id)
+    pe = mw.ui.block_matrix.get_widget(mw.pipeline.slot_ids[0], plot_id)
 
     with pytest.warns(pipeline.core.EmptyDatasetWarning):
         qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
@@ -238,7 +238,7 @@ def test_hue_feature_not_computed_if_not_selected(qtbot, mw):
     # add plot
     plot_id = mw.add_plot()
     # and activate it
-    pw = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
+    pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
     qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
     # get the dataset
     ds = mw.pipeline.get_dataset(slot_index=0)
@@ -266,7 +266,7 @@ def test_plot_ml_score(qtbot, mw):
     # add plot
     plot_id = mw.add_plot()
     # and activate it
-    pw = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
+    pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
     qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
     # get the dataset
     ds = mw.pipeline.get_dataset(slot_index=0)
@@ -274,13 +274,13 @@ def test_plot_ml_score(qtbot, mw):
     assert "ml_class" in ds
 
     # Now set the x axis to Voyager
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
-    idvoy = pv.comboBox_axis_x.findData("ml_score_voy")
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
+    idvoy = pv.ui.comboBox_axis_x.findData("ml_score_voy")
     assert idvoy >= 0
-    pv.comboBox_axis_x.setCurrentIndex(idvoy)
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    pv.ui.comboBox_axis_x.setCurrentIndex(idvoy)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     try:
         pathlib.Path(tmp).unlink()
@@ -314,7 +314,7 @@ def test_remove_plots_issue_36(qtbot, mw):
     mw.add_plot()
 
     # remove a plot
-    pw = mw.block_matrix.get_widget(filt_plot_id=plot_id)
+    pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     pw.action_remove()
 
 
@@ -327,25 +327,25 @@ def test_reselect_filter(qtbot, mw):
     plot_id = mw.add_plot()
 
     # Activate slot-plot pair
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
 
     # Activate the filter
-    em = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+    em = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
                                     slot_id=slot_id[0])
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
 
     # Edit the filter
-    fe = mw.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
-    qtbot.mouseClick(fe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_filter)
-    wf = mw.widget_ana_view.widget_filter
-    wf.checkBox_limit.setChecked(True)
-    wf.spinBox_limit.setValue(4)
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
+    wf = mw.widget_ana_view.ui.widget_filter
+    wf.ui.checkBox_limit.setChecked(True)
+    wf.ui.spinBox_limit.setValue(4)
 
     # click apply
-    qtbot.mouseClick(wf.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # Make sure there are only four points in the plot
     QtWidgets.QApplication.processEvents(
@@ -394,26 +394,26 @@ def test_changing_lut_identifier_in_analysis_view_plots(qtbot, mw):
     plot_id = mw.add_plot()
 
     # activate analysis view
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
-    mw.widget_ana_view.tabWidget.setCurrentWidget(
-        mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
 
     # Change to "HE-2D-FEM-22" and apply
-    idx = pv.comboBox_lut.findData("HE-2D-FEM-22")
-    pv.comboBox_lut.setCurrentIndex(idx)
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    idx = pv.ui.comboBox_lut.findData("HE-2D-FEM-22")
+    pv.ui.comboBox_lut.setCurrentIndex(idx)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
-    assert pv.comboBox_lut.currentData() == "HE-2D-FEM-22"
+    assert pv.ui.comboBox_lut.currentData() == "HE-2D-FEM-22"
 
     # Change to "HE-3D-FEM-22" and apply
-    idx = pv.comboBox_lut.findData("HE-3D-FEM-22")
-    pv.comboBox_lut.setCurrentIndex(idx)
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    idx = pv.ui.comboBox_lut.findData("HE-3D-FEM-22")
+    pv.ui.comboBox_lut.setCurrentIndex(idx)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
-    assert pv.comboBox_lut.currentData() == "HE-3D-FEM-22"
+    assert pv.ui.comboBox_lut.currentData() == "HE-3D-FEM-22"
 
 
 def test_zoomin_contours(qtbot, mw):
@@ -425,7 +425,7 @@ def test_zoomin_contours(qtbot, mw):
     plot_id = mw.add_plot()
 
     # Activate slot-plot pair
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
 
     # Get range before zoom-in
@@ -436,12 +436,12 @@ def test_zoomin_contours(qtbot, mw):
     y_range_before = view_range_before[1]
 
     # Switch to plot tab
-    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
 
     # Enable contour zoom-in and apply
-    pv.checkBox_zoomin.setChecked(True)
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    pv.ui.checkBox_zoomin.setChecked(True)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # Get range after zoom-in
     plot_widget = mw.subwindows_plots[plot_id].widget()
@@ -466,12 +466,12 @@ def test_only_contours_division(qtbot, mw):
     plot_id = mw.add_plot()
 
     # Activate analysis view
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # Switch to plot tab
-    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
 
     # Get the initial plot state
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
@@ -483,17 +483,17 @@ def test_only_contours_division(qtbot, mw):
     assert plot_state["layout"]["division"] == "multiscatter+contour"
 
     # Set division to "onlycontours"
-    idx = pv.comboBox_division.findData("onlycontours")
-    pv.comboBox_division.setCurrentIndex(idx)
+    idx = pv.ui.comboBox_division.findData("onlycontours")
+    pv.ui.comboBox_division.setCurrentIndex(idx)
 
     # Apply changes
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # Get the plot widget
-    pw = mw.block_matrix.get_widget(filt_plot_id=plot_id)
+    pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
 
     # Activate plots for contour view
-    qtbot.mouseClick(pw.toolButton_toggle, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(pw.ui.toolButton_toggle, QtCore.Qt.MouseButton.LeftButton)
 
     # Get the plot state
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
@@ -514,27 +514,27 @@ def test_contour_plot_with_invalid_percentiles(qtbot, mw):
     plot_id = mw.add_plot()
 
     # Activate the slot-plot pair to show data
-    pe = mw.block_matrix.get_widget(slot_id, plot_id)
+    pe = mw.ui.block_matrix.get_widget(slot_id, plot_id)
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
 
     # Activate analysis view
-    pe = mw.block_matrix.get_widget(filt_plot_id=plot_id)
-    qtbot.mouseClick(pe.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # Switch to plot tab
-    mw.widget_ana_view.tabWidget.setCurrentWidget(mw.widget_ana_view.tab_plot)
-    pv = mw.widget_ana_view.widget_plot
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
 
     # Enable contours
-    pv.groupBox_contour.setChecked(True)
+    pv.ui.groupBox_contour.setChecked(True)
 
     # Set contour percentiles to extreme values (edge cases)
     # 100% percentile is at the maximum KDE value
-    pv.doubleSpinBox_perc_1.setValue(100.0)  # Maximum percentile
-    pv.doubleSpinBox_perc_2.setValue(100.0)   # Near maximum
+    pv.ui.doubleSpinBox_perc_1.setValue(100.0)  # Maximum percentile
+    pv.ui.doubleSpinBox_perc_2.setValue(100.0)   # Near maximum
 
     # Apply changes
-    qtbot.mouseClick(pv.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
     # Verify the plot state was updated with the new percentiles
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()

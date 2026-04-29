@@ -27,31 +27,31 @@ dlg = compute.ComputeSignificance(mw, pipeline=mw.pipeline)
 # set the variables
 # set the variables
 # treatment rep 1
-dlg.datasets[0].comboBox_group.setCurrentIndex(1)
+dlg.datasets[0].ui.comboBox_group.setCurrentIndex(1)
 # treatment rep 2
-dlg.datasets[1].comboBox_group.setCurrentIndex(1)
-dlg.datasets[1].spinBox_repeat.setValue(2)
+dlg.datasets[1].ui.comboBox_group.setCurrentIndex(1)
+dlg.datasets[1].ui.spinBox_repeat.setValue(2)
 # res treatment rep 1
-dlg.datasets[2].comboBox_group.setCurrentIndex(1)
+dlg.datasets[2].ui.comboBox_group.setCurrentIndex(1)
 # res treatment rep 2
-dlg.datasets[3].comboBox_group.setCurrentIndex(1)
-dlg.datasets[3].spinBox_repeat.setValue(2)
+dlg.datasets[3].ui.comboBox_group.setCurrentIndex(1)
+dlg.datasets[3].ui.spinBox_repeat.setValue(2)
 # control rep 1
 pass
 # control rep 2
-dlg.datasets[5].spinBox_repeat.setValue(2)
+dlg.datasets[5].ui.spinBox_repeat.setValue(2)
 # control rep 3
-dlg.datasets[6].spinBox_repeat.setValue(3)
+dlg.datasets[6].ui.spinBox_repeat.setValue(3)
 # res control rep 1
 pass
 # res control rep 2
-dlg.datasets[8].spinBox_repeat.setValue(2)
+dlg.datasets[8].ui.spinBox_repeat.setValue(2)
 # res control rep 3
-dlg.datasets[9].spinBox_repeat.setValue(3)
+dlg.datasets[9].ui.spinBox_repeat.setValue(3)
 
 # set the feature
-feat_id = dlg.comboBox_feat.findData("deform")
-dlg.comboBox_feat.setCurrentIndex(feat_id)
+feat_id = dlg.ui.comboBox_feat.findData("deform")
+dlg.ui.comboBox_feat.setCurrentIndex(feat_id)
 
 dlg.show()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)

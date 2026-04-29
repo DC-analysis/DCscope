@@ -36,6 +36,7 @@ from . import (
     widgets,
 )
 from .helpers import connect_pp_mod_signals, disconnect_pp_mod_signals
+from .main_ui import Ui_MainWindow
 
 # global plotting configuration parameters
 pg.setConfigOption("background", None)
@@ -70,9 +71,9 @@ class DCscope(QtWidgets.QMainWindow):
         and exit.
         """
         super(DCscope, self).__init__()
-        ref = importlib.resources.files("dcscope.gui") / "main.ui"
-        with importlib.resources.as_file(ref) as path_ui:
-            uic.loadUi(path_ui, self)
+
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
         logging.basicConfig(format='%(levelname)s:%(message)s',
                             level=logging.INFO)
@@ -154,45 +155,45 @@ class DCscope(QtWidgets.QMainWindow):
         # GUI
         self.setWindowTitle(f"DCscope {version}")
         # Disable native menu bar (e.g. on Mac)
-        self.menubar.setNativeMenuBar(False)
+        self.ui.menubar.setNativeMenuBar(False)
         # File menu
-        self.actionLoadDataset.triggered.connect(self.add_dataslot)
-        self.actionLoadDCOR.triggered.connect(self.on_action_dcor)
-        self.actionClearDatasets.triggered.connect(
+        self.ui.actionLoadDataset.triggered.connect(self.add_dataslot)
+        self.ui.actionLoadDCOR.triggered.connect(self.on_action_dcor)
+        self.ui.actionClearDatasets.triggered.connect(
             self.on_action_clear_datasets)
-        self.actionClearSession.triggered.connect(self.on_action_clear)
-        self.actionOpenSession.triggered.connect(self.on_action_open)
-        self.actionSaveSession.triggered.connect(self.on_action_save)
+        self.ui.actionClearSession.triggered.connect(self.on_action_clear)
+        self.ui.actionOpenSession.triggered.connect(self.on_action_open)
+        self.ui.actionSaveSession.triggered.connect(self.on_action_save)
         # Edit menu
-        self.actionChangeDatasetOrder.triggered.connect(
+        self.ui.actionChangeDatasetOrder.triggered.connect(
             self.on_action_change_dataset_order)
-        self.actionPreferences.triggered.connect(self.on_action_preferences)
+        self.ui.actionPreferences.triggered.connect(self.on_action_preferences)
         # Bulk action menu
-        self.actionComputeEmodulus.triggered.connect(
+        self.ui.actionComputeEmodulus.triggered.connect(
             self.on_action_compute_emodulus)
         # Compute menu
-        self.actionComputeStatistics.triggered.connect(
+        self.ui.actionComputeStatistics.triggered.connect(
             self.on_action_compute_statistics)
-        self.actionComputeSignificance.triggered.connect(
+        self.ui.actionComputeSignificance.triggered.connect(
             self.on_action_compute_significance)
         # Export menu
         # data
-        self.actionExportData.triggered.connect(self.on_action_export_data)
+        self.ui.actionExportData.triggered.connect(self.on_action_export_data)
         # filters
-        self.action_export_filter_polygon.triggered.connect(
+        self.ui.action_export_filter_polygon.triggered.connect(
             self.on_action_export_filter_polygon)
-        self.action_export_filter_pipeline.triggered.connect(
+        self.ui.action_export_filter_pipeline.triggered.connect(
             self.on_action_export_filter_pipeline)
-        self.action_export_filter_ray_dataset.triggered.connect(
+        self.ui.action_export_filter_ray_dataset.triggered.connect(
             self.on_action_export_filter_ray_dataset)
         # plot
-        self.actionExportPlot.triggered.connect(self.on_action_export_plot)
+        self.ui.actionExportPlot.triggered.connect(self.on_action_export_plot)
         # Import menu
-        self.actionImportFilter.triggered.connect(self.on_action_import_filter)
+        self.ui.actionImportFilter.triggered.connect(self.on_action_import_filter)
         # Help menu
-        self.actionDocumentation.triggered.connect(self.on_action_docs)
-        self.actionSoftware.triggered.connect(self.on_action_software)
-        self.actionAbout.triggered.connect(self.on_action_about)
+        self.ui.actionDocumentation.triggered.connect(self.on_action_docs)
+        self.ui.actionSoftware.triggered.connect(self.on_action_software)
+        self.ui.actionAbout.triggered.connect(self.on_action_about)
         # Subwindows
         self.subwindows = {}
         # Subwindows for plots
@@ -200,30 +201,30 @@ class DCscope(QtWidgets.QMainWindow):
         # Initialize a few things
         self.init_quick_view()
         self.init_analysis_view()
-        self.mdiArea.cascadeSubWindows()
+        self.ui.mdiArea.cascadeSubWindows()
 
-        self.toolButton_quick_view.toggled.connect(self.on_quick_view_toggled)
+        self.ui.toolButton_quick_view.toggled.connect(self.on_quick_view_toggled)
 
         # BLOCK MATRIX (wraps DataMatrix and PlotMatrix)
         # BlockMatrix appearance
-        self.toolButton_dm.clicked.connect(self.on_block_matrix)
-        self.splitter.splitterMoved.connect(self.on_splitter)
+        self.ui.toolButton_dm.clicked.connect(self.on_block_matrix)
+        self.ui.splitter.splitterMoved.connect(self.on_splitter)
         # BlockMatrix Actions
-        self.actionNewFilter.triggered.connect(self.add_filter)
-        self.actionNewPlot.triggered.connect(self.add_plot)
-        self.block_matrix.toolButton_load_dataset.clicked.connect(
+        self.ui.actionNewFilter.triggered.connect(self.add_filter)
+        self.ui.actionNewPlot.triggered.connect(self.add_plot)
+        self.ui.block_matrix.ui.toolButton_load_dataset.clicked.connect(
             self.add_dataslot)
-        self.block_matrix.toolButton_new_filter.clicked.connect(
+        self.ui.block_matrix.ui.toolButton_new_filter.clicked.connect(
             self.add_filter)
-        self.block_matrix.toolButton_new_plot.clicked.connect(
+        self.ui.block_matrix.ui.toolButton_new_plot.clicked.connect(
             self.add_plot)
         # BlockMatrix default state
-        self.toolButton_new_plot.setEnabled(False)
-        self.block_matrix.toolButton_new_plot.setEnabled(False)
+        self.ui.toolButton_new_plot.setEnabled(False)
+        self.ui.block_matrix.ui.toolButton_new_plot.setEnabled(False)
         # BlockMatrix other signals
-        self.block_matrix.slot_modify_clicked.connect(self.on_modify_slot)
-        self.block_matrix.filter_modify_clicked.connect(self.on_modify_filter)
-        self.block_matrix.plot_modify_clicked.connect(self.on_modify_plot)
+        self.ui.block_matrix.slot_modify_clicked.connect(self.on_modify_slot)
+        self.ui.block_matrix.filter_modify_clicked.connect(self.on_modify_filter)
+        self.ui.block_matrix.plot_modify_clicked.connect(self.on_modify_plot)
 
         # QUICK VIEW
         # polygon filter creation
@@ -232,14 +233,14 @@ class DCscope(QtWidgets.QMainWindow):
 
         # ANALYSIS VIEW
         # polygon filter creation
-        self.widget_ana_view.widget_filter.request_new_polygon_filter.connect(
+        self.widget_ana_view.ui.widget_filter.request_new_polygon_filter.connect(
             self.on_new_polygon_filter)
-        self.widget_ana_view.widget_filter.request_edit_polygon_filter.connect(
+        self.widget_ana_view.ui.widget_filter.request_edit_polygon_filter.connect(
             self.on_edit_polygon_filter)
 
         # Top of the pipeline modification hierarchy
         self.pp_mod_send.connect(self.on_pp_mod_recv)
-        connect_pp_mod_signals(self, self.block_matrix)
+        connect_pp_mod_signals(self, self.ui.block_matrix)
         connect_pp_mod_signals(self, self.widget_quick_view)
         connect_pp_mod_signals(self, self.widget_ana_view)
 
@@ -302,8 +303,8 @@ class DCscope(QtWidgets.QMainWindow):
             fnames = paths
 
         if fnames:
-            self.toolButton_new_plot.setEnabled(True)
-            self.block_matrix.toolButton_new_plot.setEnabled(True)
+            self.ui.toolButton_new_plot.setEnabled(True)
+            self.ui.block_matrix.ui.toolButton_new_plot.setEnabled(True)
 
         failed_paths = []
 
@@ -340,9 +341,9 @@ class DCscope(QtWidgets.QMainWindow):
         self.repaint()
 
         # Update box filter limits
-        self.widget_ana_view.widget_filter.update_box_ranges()
+        self.widget_ana_view.ui.widget_filter.update_box_ranges()
         # Update dataslot in analysis view
-        self.widget_ana_view.widget_slot.update_content()
+        self.widget_ana_view.ui.widget_slot.update_content()
 
         if failed_paths:
             failed_text = ("The following files could not be loaded. You can "
@@ -360,7 +361,7 @@ class DCscope(QtWidgets.QMainWindow):
     def add_filter(self):
         """Add a filter using tool buttons"""
         filt_id = self.pipeline.add_filter()
-        self.widget_ana_view.widget_filter.update_content()
+        self.widget_ana_view.ui.widget_filter.update_content()
         self.pp_mod_send.emit({"pipeline": {"filter_added": filt_id}})
         return filt_id
 
@@ -369,7 +370,7 @@ class DCscope(QtWidgets.QMainWindow):
         plot_id = self.pipeline.add_plot()
         self.add_plot_window(plot_id)
         # update UI contents
-        self.widget_ana_view.widget_plot.update_content()
+        self.widget_ana_view.ui.widget_plot.update_content()
         self.pp_mod_send.emit({"pipeline": {"plot_added": plot_id}})
         return plot_id
 
@@ -387,7 +388,7 @@ class DCscope(QtWidgets.QMainWindow):
             connect_pp_mod_signals(self, pw)
             sub.setWidget(pw)
             pw.update_content()
-            self.mdiArea.addSubWindow(sub)
+            self.ui.mdiArea.addSubWindow(sub)
             self.subwindows_plots[plot_id] = sub
         sub.show()
 
@@ -445,11 +446,11 @@ class DCscope(QtWidgets.QMainWindow):
         sub.setWidget(self.widget_ana_view)
         self.subwindows["analysis_view"] = sub
         # signals
-        self.toolButton_ana_view.toggled.connect(sub.setVisible)
-        self.toolButton_ana_view.toggled.connect(
+        self.ui.toolButton_ana_view.toggled.connect(sub.setVisible)
+        self.ui.toolButton_ana_view.toggled.connect(
             self.widget_ana_view.on_visible)
         sub.hide()
-        self.mdiArea.addSubWindow(sub)
+        self.ui.mdiArea.addSubWindow(sub)
 
     def init_quick_view(self):
         sub = widgets.MDISubWindowWOButtons(self)
@@ -457,7 +458,7 @@ class DCscope(QtWidgets.QMainWindow):
         sub.setWidget(self.widget_quick_view)
         self.subwindows["quick_view"] = sub
         sub.hide()
-        self.mdiArea.addSubWindow(sub)
+        self.ui.mdiArea.addSubWindow(sub)
 
     @QtCore.pyqtSlot()
     def on_action_about(self):
@@ -804,13 +805,13 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_block_matrix(self):
         """Show/hide data matrix (User clicked Data Matrix button)"""
-        if self.toolButton_dm.isChecked():
-            self.splitter.setSizes([200, 1000])
+        if self.ui.toolButton_dm.isChecked():
+            self.ui.splitter.setSizes([200, 1000])
         else:
-            self.splitter.setSizes([0, 1])
+            self.ui.splitter.setSizes([0, 1])
         # redraw
-        self.splitter.update()
-        self.mdiArea.update()
+        self.ui.splitter.update()
+        self.ui.mdiArea.update()
 
     @QtCore.pyqtSlot()
     def on_new_polygon_filter(self):
@@ -822,8 +823,8 @@ class DCscope(QtWidgets.QMainWindow):
             msg.setWindowTitle("No dataset loaded")
             msg.exec()
         else:
-            self.toolButton_quick_view.setChecked(True)
-            self.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
+            self.ui.toolButton_quick_view.setChecked(True)
+            self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
             if not self.widget_quick_view.current_pipeline_element:
                 # select the first item in the pipeline
                 self.pp_mod_send.emit({"quickview": {
@@ -848,8 +849,8 @@ class DCscope(QtWidgets.QMainWindow):
             msg.setWindowTitle("No dataset loaded")
             msg.exec()
         else:
-            self.toolButton_quick_view.setChecked(True)
-            self.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
+            self.ui.toolButton_quick_view.setChecked(True)
+            self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
             if not self.widget_quick_view.current_pipeline_element:
                 # select the first item in the pipeline
                 self.pp_mod_send.emit({"quickview": {
@@ -867,43 +868,43 @@ class DCscope(QtWidgets.QMainWindow):
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)
     def on_modify_filter(self, filt_id):
-        self.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
-        self.widget_ana_view.tabWidget.setCurrentWidget(
-            self.widget_ana_view.tab_filter)
-        self.widget_ana_view.widget_filter.show_filter(filt_id)
+        self.ui.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
+        self.widget_ana_view.ui.tabWidget.setCurrentWidget(
+            self.widget_ana_view.ui.tab_filter)
+        self.widget_ana_view.ui.widget_filter.show_filter(filt_id)
         # finally, check the button
-        self.toolButton_ana_view.setChecked(True)
+        self.ui.toolButton_ana_view.setChecked(True)
         self.subwindows["analysis_view"].setVisible(True)
         # redraw
-        self.mdiArea.update()
+        self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)
     def on_modify_plot(self, plot_id):
-        self.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
-        self.widget_ana_view.tabWidget.setCurrentWidget(
-            self.widget_ana_view.tab_plot)
-        self.widget_ana_view.widget_plot.show_plot(plot_id)
+        self.ui.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
+        self.widget_ana_view.ui.tabWidget.setCurrentWidget(
+            self.widget_ana_view.ui.tab_plot)
+        self.widget_ana_view.ui.widget_plot.show_plot(plot_id)
         # finally, check the button
-        self.toolButton_ana_view.setChecked(True)
+        self.ui.toolButton_ana_view.setChecked(True)
         self.subwindows["analysis_view"].setVisible(True)
         # redraw
-        self.mdiArea.update()
+        self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
 
     @widgets.show_wait_cursor
     @QtCore.pyqtSlot(str)
     def on_modify_slot(self, slot_id):
-        self.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
-        self.widget_ana_view.tabWidget.setCurrentWidget(
-            self.widget_ana_view.tab_slot)
-        self.widget_ana_view.widget_slot.show_slot(slot_id)
+        self.ui.mdiArea.setActiveSubWindow(self.subwindows["analysis_view"])
+        self.widget_ana_view.ui.tabWidget.setCurrentWidget(
+            self.widget_ana_view.ui.tab_slot)
+        self.widget_ana_view.ui.widget_slot.show_slot(slot_id)
         # finally, check the button
-        self.toolButton_ana_view.setChecked(True)
+        self.ui.toolButton_ana_view.setChecked(True)
         self.subwindows["analysis_view"].setVisible(True)
         # redraw
-        self.mdiArea.update()
+        self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
 
     @QtCore.pyqtSlot(dict)
@@ -932,17 +933,17 @@ class DCscope(QtWidgets.QMainWindow):
 
             # Dis/enable plot button
             if self.pipeline.slots:
-                self.toolButton_new_plot.setEnabled(True)
+                self.ui.toolButton_new_plot.setEnabled(True)
             else:
-                self.toolButton_new_plot.setEnabled(False)
+                self.ui.toolButton_new_plot.setEnabled(False)
 
         # Enable QuickView if relevant
         qv_dict = data.get("quickview")
         if qv_dict and qv_dict.get("enabled"):
             if not self.subwindows["quick_view"].isVisible():
-                self.toolButton_quick_view.setChecked(True)
+                self.ui.toolButton_quick_view.setChecked(True)
                 self.subwindows["quick_view"].setVisible(True)
-            self.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
+            self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
 
         # Send new signal to all receivers
         self.pp_mod_recv.emit(data)
@@ -951,7 +952,7 @@ class DCscope(QtWidgets.QMainWindow):
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         # redraw
-        self.mdiArea.update()
+        self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
 
     @QtCore.pyqtSlot(bool)
@@ -968,17 +969,17 @@ class DCscope(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_splitter(self):
-        if self.splitter.sizes()[0] == 0:
-            self.toolButton_dm.setChecked(False)
+        if self.ui.splitter.sizes()[0] == 0:
+            self.ui.toolButton_dm.setChecked(False)
         else:
-            self.toolButton_dm.setChecked(True)
+            self.ui.toolButton_dm.setChecked(True)
 
     def set_pipeline(self):
         if self.pipeline is not None:
             raise ValueError("Pipeline can only be set once")
         self.pipeline = pipeline.Pipeline()
 
-        self.block_matrix.set_pipeline(self.pipeline)
+        self.ui.block_matrix.set_pipeline(self.pipeline)
         self.widget_quick_view.set_pipeline(self.pipeline)
         self.widget_ana_view.set_pipeline(self.pipeline)
 
