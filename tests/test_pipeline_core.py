@@ -64,7 +64,7 @@ def test_session_dcor():
         'MG63 pure 16uls rep1',
         'MG63 pure 16uls rep2',
         'MG63 pure 16uls rep3',
-        ]
+    ]
     # Add the last slot again
     dcor_id = pipeline.slots[-1].path
     pipeline.add_slot(path=dcor_id)
@@ -75,7 +75,7 @@ def test_session_dcor():
         'MG63 pure 16uls rep2',
         'MG63 pure 16uls rep3',
         'MG63 pure 16uls rep3',
-        ]
+    ]
 
 
 def test_get_min_max_inf(tmp_path):

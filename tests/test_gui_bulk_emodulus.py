@@ -67,7 +67,8 @@ def test_manual_basic(qtbot, mw):
     ivdm = dlg.ui.comboBox_visc_model.findData("buyukurganci-2022")
     assert dlg.ui.comboBox_visc_model.currentIndex() == ivdm
 
-    dlg.ui.comboBox_temp.setCurrentIndex(dlg.ui.comboBox_temp.findData("manual"))
+    dlg.ui.comboBox_temp.setCurrentIndex(
+        dlg.ui.comboBox_temp.findData("manual"))
     dlg.ui.doubleSpinBox_temp.setValue(29.5)
     dlg.on_ok()
 
@@ -94,10 +95,12 @@ def test_manual_wrong_medium(qtbot, mw):
 
     # create bulk action dialog manually
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
-    dlg.ui.comboBox_temp.setCurrentIndex(dlg.ui.comboBox_temp.findData("manual"))
+    dlg.ui.comboBox_temp.setCurrentIndex(
+        dlg.ui.comboBox_temp.findData("manual"))
     dlg.ui.doubleSpinBox_temp.setValue(29.5)
     # Set medium to "water". This should not change the emodulus medium.
-    dlg.ui.comboBox_medium.setCurrentIndex(dlg.ui.comboBox_medium.findData("water"))
+    dlg.ui.comboBox_medium.setCurrentIndex(
+        dlg.ui.comboBox_medium.findData("water"))
 
     dlg.on_ok()
 
@@ -123,7 +126,8 @@ def test_temperature_feature(qtbot, mw):
 
     # create bulk action dialog manually
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
-    dlg.ui.comboBox_temp.setCurrentIndex(dlg.ui.comboBox_temp.findData("feature"))
+    dlg.ui.comboBox_temp.setCurrentIndex(
+        dlg.ui.comboBox_temp.findData("feature"))
     dlg.on_ok()
 
     for slot in mw.pipeline.slots:
@@ -148,7 +152,8 @@ def test_viscosity(qtbot, mw):
 
     # create bulk action dialog manually
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
-    dlg.ui.comboBox_medium.setCurrentIndex(dlg.ui.comboBox_medium.findData("other"))
+    dlg.ui.comboBox_medium.setCurrentIndex(
+        dlg.ui.comboBox_medium.findData("other"))
     dlg.ui.doubleSpinBox_visc.setValue(1.0)
     dlg.on_ok()
 
@@ -175,7 +180,8 @@ def test_viscosity_compute(qtbot, mw):
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
     dlg.ui.comboBox_medium.setCurrentIndex(
         dlg.ui.comboBox_medium.findData("0.59% MC-PBS"))
-    dlg.ui.comboBox_temp.setCurrentIndex(dlg.ui.comboBox_temp.findData("manual"))
+    dlg.ui.comboBox_temp.setCurrentIndex(
+        dlg.ui.comboBox_temp.findData("manual"))
     assert dlg.ui.doubleSpinBox_temp.value() == 23
     assert dlg.ui.doubleSpinBox_visc.value() == 3.57
 
@@ -206,7 +212,8 @@ def test_wrong_medium_viscosity(qtbot, mw):
 
     # create bulk action dialog manually
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
-    dlg.ui.comboBox_medium.setCurrentIndex(dlg.ui.comboBox_medium.findData("other"))
+    dlg.ui.comboBox_medium.setCurrentIndex(
+        dlg.ui.comboBox_medium.findData("other"))
     dlg.ui.doubleSpinBox_visc.setValue(1.0)  # random number
 
     dlg.on_ok()
@@ -233,9 +240,11 @@ def test_lut_selection(qtbot, mw):
 
     # create bulk action dialog manually
     dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
-    dlg.ui.comboBox_medium.setCurrentIndex(dlg.ui.comboBox_medium.findData("other"))
+    dlg.ui.comboBox_medium.setCurrentIndex(
+        dlg.ui.comboBox_medium.findData("other"))
     dlg.ui.doubleSpinBox_visc.setValue(1.0)  # random number
-    dlg.ui.comboBox_lut.setCurrentIndex(dlg.ui.comboBox_lut.findData("HE-2D-FEM-22"))
+    dlg.ui.comboBox_lut.setCurrentIndex(
+        dlg.ui.comboBox_lut.findData("HE-2D-FEM-22"))
 
     dlg.on_ok()
 

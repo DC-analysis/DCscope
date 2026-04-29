@@ -38,8 +38,9 @@ class PlotPanel(QtWidgets.QWidget):
         self.ui.comboBox_division.clear()
         self.ui.comboBox_division.addItem("Merge all plots", "merge")
         self.ui.comboBox_division.addItem("One plot per dataset", "each")
-        self.ui.comboBox_division.addItem("Scatter plots and joint contour plot",
-                                       "multiscatter+contour")
+        self.ui.comboBox_division.addItem(
+            "Scatter plots and joint contour plot",
+            "multiscatter+contour")
         self.ui.comboBox_division.addItem("Only contour plots", "onlycontours")
         self.ui.comboBox_division.setCurrentIndex(2)
 
@@ -53,10 +54,14 @@ class PlotPanel(QtWidgets.QWidget):
             self.on_hue_selected)
         self.ui.comboBox_marker_feature.currentIndexChanged.connect(
             self.on_hue_selected)
-        self.ui.comboBox_axis_x.currentIndexChanged.connect(self.on_axis_changed)
-        self.ui.comboBox_axis_y.currentIndexChanged.connect(self.on_axis_changed)
-        self.ui.comboBox_scale_x.currentIndexChanged.connect(self.on_axis_changed)
-        self.ui.comboBox_scale_y.currentIndexChanged.connect(self.on_axis_changed)
+        self.ui.comboBox_axis_x.currentIndexChanged.connect(
+            self.on_axis_changed)
+        self.ui.comboBox_axis_y.currentIndexChanged.connect(
+            self.on_axis_changed)
+        self.ui.comboBox_scale_x.currentIndexChanged.connect(
+            self.on_axis_changed)
+        self.ui.comboBox_scale_y.currentIndexChanged.connect(
+            self.on_axis_changed)
         self.ui.spinBox_column_count.valueChanged.connect(
             self.on_column_num_changed)
         self.ui.widget_range_x.range_changed.connect(self.on_range_changed)
@@ -166,7 +171,8 @@ class PlotPanel(QtWidgets.QWidget):
         self.ui.comboBox_axis_y.setCurrentIndex(
             self.ui.comboBox_axis_y.findData(gen["axis y"]))
         self.ui.checkBox_isoelastics.setChecked(gen["isoelastics"])
-        lut_index = self.ui.comboBox_lut.findData(gen.get("lut", "LE-2D-FEM-19"))
+        lut_index = self.ui.comboBox_lut.findData(
+            gen.get("lut", "LE-2D-FEM-19"))
         self.ui.comboBox_lut.setCurrentIndex(lut_index)
         kde_index = self.ui.comboBox_kde.findData(gen["kde"])
         self.ui.comboBox_kde.setCurrentIndex(kde_index)
@@ -188,7 +194,8 @@ class PlotPanel(QtWidgets.QWidget):
         hue_index = self.ui.comboBox_marker_hue.findData(sca["marker hue"])
         self.ui.comboBox_marker_hue.setCurrentIndex(hue_index)
         self.ui.doubleSpinBox_marker_size.setValue(sca["marker size"])
-        feat_index = self.ui.comboBox_marker_feature.findData(sca["hue feature"])
+        feat_index = self.ui.comboBox_marker_feature.findData(
+            sca["hue feature"])
         feat_index = feat_index or 0
         self.ui.comboBox_marker_feature.setCurrentIndex(feat_index)
         color_index = COLORMAPS.index(sca["colormap"])
@@ -301,10 +308,11 @@ class PlotPanel(QtWidgets.QWidget):
 
         plot_id = self.current_plot.identifier
 
-        for axis, rang, rc in zip([axis_x, axis_y],
-                                  [range_x, range_y],
-                                  [self.ui.widget_range_x, self.ui.widget_range_y],
-                                  ):
+        for axis, rang, rc in zip(
+            [axis_x, axis_y],
+            [range_x, range_y],
+            [self.ui.widget_range_x, self.ui.widget_range_y],
+        ):
             if axis is not None:
                 lim = self.pipeline.get_min_max_coarse(
                     feat=axis,
@@ -535,7 +543,7 @@ class PlotPanel(QtWidgets.QWidget):
                         "active": True,
                         "start": state["general"][nm][0],
                         "end": state["general"][nm][1],
-                        })
+                    })
                     rc.blockSignals(False)
 
     @QtCore.pyqtSlot()

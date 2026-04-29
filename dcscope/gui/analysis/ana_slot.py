@@ -146,7 +146,8 @@ class SlotPanel(QtWidgets.QWidget):
 
         self.ui.comboBox_visc_model.setCurrentIndex(idx_vm)
         # Set current state of the emodulus lut
-        idx_lut = self.ui.comboBox_lut.findData(emodulus.get("emodulus lut", ""))
+        idx_lut = self.ui.comboBox_lut.findData(
+            emodulus.get("emodulus lut", ""))
         self.ui.comboBox_lut.setCurrentIndex(idx_lut)
         # This has to be done after setting the scenario
         # (otherwise it might be overridden in the frontend)

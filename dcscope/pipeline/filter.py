@@ -8,6 +8,7 @@ from ..util import hashobj
 
 class Filter:
     """Handles filters in a pipeline"""
+
     def __init__(self, identifier=None):
         #: unique identifier of the filter
         self.identifier = (identifier

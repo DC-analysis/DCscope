@@ -59,7 +59,8 @@ class FilterPanel(QtWidgets.QWidget):
         self.ui.listWidget_polygon.itemSelectionChanged.connect(
             self.on_polygon_selection)
 
-        self.ui.comboBox_filters.currentIndexChanged.connect(self.update_content)
+        self.ui.comboBox_filters.currentIndexChanged.connect(
+            self.update_content)
         self.ui.toolButton_moreless.clicked.connect(self.on_moreless)
         self.ui.label_box_edit.setVisible(False)
         self._box_edit_view = False
@@ -141,7 +142,8 @@ class FilterPanel(QtWidgets.QWidget):
         """
         feats, labs = self.get_features_labels()
 
-        self.ui.verticalLayout_box.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.ui.verticalLayout_box.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignTop)
 
         for lab, feat in sorted(zip(labs, feats)):
             integer = True if feat in idiom.INTEGER_FEATURES else False

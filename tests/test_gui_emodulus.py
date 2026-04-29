@@ -150,14 +150,16 @@ def test_simple(qtbot, mw):
                        equal_nan=True)
 
     # scenario C (switch to config)
-    wsl.ui.comboBox_temp.setCurrentIndex(wsl.ui.comboBox_temp.findData("config"))
+    wsl.ui.comboBox_temp.setCurrentIndex(
+        wsl.ui.comboBox_temp.findData("config"))
     qtbot.mouseClick(wsl.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     ds2 = mw.pipeline.slots[0].get_dataset()
     assert np.allclose(ds2["emodulus"], emodC, atol=0, rtol=1e-12,
                        equal_nan=True)
 
     # scenario C (switch to manual)
-    wsl.ui.comboBox_temp.setCurrentIndex(wsl.ui.comboBox_temp.findData("manual"))
+    wsl.ui.comboBox_temp.setCurrentIndex(
+        wsl.ui.comboBox_temp.findData("manual"))
     wsl.ui.doubleSpinBox_temp.setValue(22.5)
     qtbot.mouseClick(wsl.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
     ds3 = mw.pipeline.slots[0].get_dataset()
@@ -187,7 +189,8 @@ def test_switch_and_update_chip_region(qtbot, mw):
     # select the first slot
     em1 = mw.ui.block_matrix.get_widget(slot_id=slot_id1)
     em2 = mw.ui.block_matrix.get_widget(slot_id=slot_id2)
-    qtbot.mouseClick(em1.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em1.ui.toolButton_modify,
+                     QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
     assert wsl.ui.comboBox_slots.currentIndex() == 0
@@ -205,11 +208,13 @@ def test_switch_and_update_chip_region(qtbot, mw):
     ).config["calculation"]["emodulus temperature"] == 20
 
     # switch to the second (reservoir) measurement
-    qtbot.mouseClick(em2.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em2.ui.toolButton_modify,
+                     QtCore.Qt.MouseButton.LeftButton)
     assert wsl.ui.comboBox_slots.currentIndex() == 1
     assert not wsl.ui.groupBox_emod.isVisible()
     # now switch back
-    qtbot.mouseClick(em1.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em1.ui.toolButton_modify,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # This is the actual test
     assert wsl.ui.doubleSpinBox_temp.value() == 20
@@ -236,7 +241,8 @@ def test_switch_and_update_medium(qtbot, mw):
     # select the first slot
     em1 = mw.ui.block_matrix.get_widget(slot_id=slot_id1)
     em2 = mw.ui.block_matrix.get_widget(slot_id=slot_id2)
-    qtbot.mouseClick(em1.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em1.ui.toolButton_modify,
+                     QtCore.Qt.MouseButton.LeftButton)
     # set temperature manually
     idm = wsl.ui.comboBox_temp.findData("manual")
     wsl.ui.comboBox_temp.setCurrentIndex(idm)
@@ -251,13 +257,15 @@ def test_switch_and_update_medium(qtbot, mw):
     ).config["calculation"]["emodulus temperature"] == 20
 
     # switch to the second (user-defined medium) measurement
-    qtbot.mouseClick(em2.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em2.ui.toolButton_modify,
+                     QtCore.Qt.MouseButton.LeftButton)
     assert wsl.ui.comboBox_medium.currentData() == "UserDefined"
     assert not wsl.ui.doubleSpinBox_visc.isReadOnly(), "Should be editable"
     assert wsl.ui.doubleSpinBox_visc.isEnabled(), "Should be editable"
     assert not wsl.ui.doubleSpinBox_temp.isEnabled(), "Should not be editable"
     # now switch back
-    qtbot.mouseClick(em1.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em1.ui.toolButton_modify,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # This is the actual test
     assert wsl.ui.doubleSpinBox_temp.value() == 20

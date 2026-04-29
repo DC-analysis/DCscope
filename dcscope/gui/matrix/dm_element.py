@@ -39,7 +39,7 @@ class DataMatrixElement(QtWidgets.QWidget):
                     "slot_id": self.pipeline.slot_ids[self.slot_index],
                     "filt_index": self.filt_index,
                     "filt_id": self.pipeline.filter_ids[self.filt_index],
-                    }
+                }
                 self.pp_mod_send.emit({"quickview": qv_dict})
             else:
                 # Activate or deactivate this filter

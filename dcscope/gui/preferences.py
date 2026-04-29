@@ -61,7 +61,7 @@ class Preferences(QtWidgets.QDialog):
         self.config_pairs = [
             ["advanced/developer mode", self.ui.advanced_developer_mode, "0"],
             ["cache/disk store path", self.ui.lineEdit_cache_path, cpath_act],
-            ["cache/disk store size", self.ui.doubleSpinBox_cache_disk_size, "9"],
+            ["cache/disk store size", self.ui.doubleSpinBox_cache_disk_size, "9"],  # noqa: E501
             ["cache/memory num", self.ui.spinBox_cache_mem_num, "200"],
             ["cache/write interval", self.ui.spinBox_cache_interval, "30"],
             ["check for updates", self.ui.general_check_for_updates, "1"],
@@ -73,7 +73,7 @@ class Preferences(QtWidgets.QDialog):
             ["lme4/r path", self.ui.lme4_rpath, rdefault],
             ["s3/endpoint url", self.ui.lineEdit_s3_endpoint_url, ""],
             ["s3/access key id", self.ui.lineEdit_s3_access_key_id, ""],
-            ["s3/secret access key", self.ui.lineEdit_s3_secret_access_key, ""],
+            ["s3/secret access key", self.ui.lineEdit_s3_secret_access_key, ""],  # noqa: E501
         ]
 
         #: configuration signals that are emitted directly
@@ -115,8 +115,10 @@ class Preferences(QtWidgets.QDialog):
         self.ui.pushButton_lme4_install.clicked.connect(self.on_lme4_install)
         self.ui.pushButton_lme4_search.clicked.connect(self.on_lme4_search_r)
         # cache
-        self.ui.pushButton_cache_disk_clear.clicked.connect(self.on_cache_clear)
-        self.ui.pushButton_cache_disk_browse.clicked.connect(self.on_cache_browse)
+        self.ui.pushButton_cache_disk_clear.clicked.connect(
+            self.on_cache_clear)
+        self.ui.pushButton_cache_disk_browse.clicked.connect(
+            self.on_cache_browse)
         # tab changed
         self.ui.tabWidget.currentChanged.connect(self.on_tab_changed)
 
@@ -219,7 +221,8 @@ class Preferences(QtWidgets.QDialog):
             self.reload_lme4(install=False)
         else:
             # update user interface
-            self.ui.pushButton_lme4_install.setVisible(lme4_st == "not installed")
+            self.ui.pushButton_lme4_install.setVisible(
+                lme4_st == "not installed")
             self.ui.label_r_version.setText(r_version)
             self.ui.label_lme4_installed.setText(lme4_st)
 

@@ -104,7 +104,7 @@ def prepare_event_image_image(
         draw_contour: bool = False,
         auto_contrast: bool = False,
         subtract_background: bool = False,
-        ) -> tuple[np.ndarray, float, float]:
+) -> tuple[np.ndarray, float, float]:
     """Prepare to draw a regular image event"""
     cell_img = data["image"]
 
@@ -149,7 +149,7 @@ def prepare_event_image_qpi_amp(
         zoom: bool = False,
         draw_contour: bool = False,
         auto_contrast: bool = False,
-        ) -> tuple[np.ndarray, float, float]:
+) -> tuple[np.ndarray, float, float]:
     """Prepare to draw a QPI amplitude event image"""
     cell_img = data["qpi_amp"]
 
@@ -183,7 +183,7 @@ def prepare_event_image_qpi_pha(
         zoom: bool = False,
         draw_contour: bool = False,
         auto_contrast: bool = False,
-        ) -> tuple[np.ndarray, float, float, pg.ColorMap]:
+) -> tuple[np.ndarray, float, float, pg.ColorMap]:
     """Prepare to draw a QPI phase event image"""
     cell_img = np.copy(data["qpi_pha"])
 

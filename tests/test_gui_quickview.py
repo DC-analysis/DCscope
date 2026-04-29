@@ -96,7 +96,8 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
               [30, 0.014],
               ]
     qv.ui.widget_scatter.set_poly_points(points)
-    qtbot.mouseClick(qv.ui.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.ui.pushButton_poly_save,
+                     QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert len(dclab.PolygonFilter.instances) == 1
     pf = dclab.PolygonFilter.instances[0]
@@ -216,12 +217,14 @@ def test_no_events_issue_37(qtbot, mw):
     fv = mw.widget_ana_view.ui.widget_filter
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
         mw.widget_ana_view.ui.tab_filter)
-    qtbot.mouseClick(fv.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(fv.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     rc = fv._box_range_controls["area_um"]
     qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert rc.ui.checkBox.isChecked()
-    qtbot.mouseClick(fv.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(fv.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # set range
     rc.ui.doubleSpinBox_min.setValue(0)
     rc.ui.doubleSpinBox_max.setValue(1)
@@ -295,7 +298,7 @@ def test_no_events_issue_223_nan(qtbot, mw):
     assert sv.ui.comboBox_lut.currentData() == "HE-3D-FEM-22"
 
     assert mw.pipeline.slots[0].config["emodulus"]["emodulus lut"] \
-           == "HE-3D-FEM-22"
+        == "HE-3D-FEM-22"
 
     # sanity checks
     assert len(qv.ui.widget_scatter.data_y) == 15
@@ -399,7 +402,8 @@ def test_translate_polygon_filter_issue_115(qtbot, mw):
               [30, 0.014],
               ]
     qv.ui.widget_scatter.set_poly_points(points)
-    qtbot.mouseClick(qv.ui.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.ui.pushButton_poly_save,
+                     QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert len(dclab.PolygonFilter.instances) == 1
     pf = dclab.PolygonFilter.instances[0]
@@ -433,7 +437,8 @@ def test_translate_polygon_filter_issue_115(qtbot, mw):
     qv.ui.comboBox_poly.setCurrentIndex(1)
     # do this without mouse interaction in this test
     qv.ui.widget_scatter.poly_line_roi.translate(1, -.002, snap=False)
-    qtbot.mouseClick(qv.ui.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.ui.pushButton_poly_save,
+                     QtCore.Qt.MouseButton.LeftButton)
     assert len(dclab.PolygonFilter.instances) == 1
     pf2 = dclab.PolygonFilter.instances[0]
     QtWidgets.QApplication.processEvents(
@@ -492,7 +497,8 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
               [30, 0.014],
               ]
     qv.ui.widget_scatter.set_poly_points(points)
-    qtbot.mouseClick(qv.ui.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.ui.pushButton_poly_save,
+                     QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert len(dclab.PolygonFilter.instances) == 1
     pf = dclab.PolygonFilter.instances[0]
@@ -530,7 +536,8 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
                [30, 0.012],
                ]
     qv.ui.widget_scatter.set_poly_points(points2)
-    qtbot.mouseClick(qv.ui.pushButton_poly_save, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(qv.ui.pushButton_poly_save,
+                     QtCore.Qt.MouseButton.LeftButton)
     assert len(dclab.PolygonFilter.instances) == 1
     pf2 = dclab.PolygonFilter.instances[0]
     assert np.allclose(pf2.points, points2)
@@ -586,7 +593,8 @@ def test_subtract_background(qtbot, mw):
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_background.isVisible(), "Checkbox is not visible"
+    assert qv.ui.checkBox_image_background.isVisible(), (
+        "Checkbox is not visible")
     assert qv.ui.checkBox_image_background.isChecked(), (
         "Checkbox is not checked by default")
 
@@ -1052,10 +1060,12 @@ def test_isoelasticity_lines_with_lut_selection(qtbot, mw):
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_isoelastics.isChecked(), "Checked by default"
     # Test if default look-up table is selected
-    assert qv.ui.comboBox_lut.currentData() == "LE-2D-FEM-19", "Check default LUT"
+    assert qv.ui.comboBox_lut.currentData() \
+        == "LE-2D-FEM-19", "Check default LUT"
 
     # Try changing look-up table
-    qv.ui.comboBox_lut.setCurrentIndex(qv.ui.comboBox_lut.findData("HE-2D-FEM-22"))
+    qv.ui.comboBox_lut.setCurrentIndex(
+        qv.ui.comboBox_lut.findData("HE-2D-FEM-22"))
     # Apply changes by clicking on 'Apply'
     qtbot.mouseClick(qv.ui.toolButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
@@ -1105,8 +1115,10 @@ def test_select_x_y_axis_based_on_availiable_feature_name_issue_206(qtbot, mw):
     qv.ui.comboBox_y.setCurrentIndex(qv.ui.comboBox_y.findData("frame"))
 
     # Check if X-axis and Y-axis features are set correctly
-    assert qv.ui.comboBox_x.currentData() == "area_um", "Check manual selection"
-    assert qv.ui.comboBox_y.currentData() == "frame", "Check manual selection"
+    assert qv.ui.comboBox_x.currentData() \
+        == "area_um", "Check manual selection"
+    assert qv.ui.comboBox_y.currentData() \
+        == "frame", "Check manual selection"
 
     # Get the slot_id the second data slot
     slot_id2 = mw.pipeline.slot_ids[1]
@@ -1119,8 +1131,10 @@ def test_select_x_y_axis_based_on_availiable_feature_name_issue_206(qtbot, mw):
     qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
 
     # Check if X-axis and Y-axis features are still set correctly
-    assert qv.ui.comboBox_x.currentData() == "area_um", "Check manual selection"
-    assert qv.ui.comboBox_y.currentData() == "frame", "Check manual selection"
+    assert qv.ui.comboBox_x.currentData() \
+        == "area_um", "Check manual selection"
+    assert qv.ui.comboBox_y.currentData() \
+        == "frame", "Check manual selection"
 
 
 def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot,
@@ -1167,8 +1181,10 @@ def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot,
     qv.ui.comboBox_y.setCurrentIndex(qv.ui.comboBox_y.findData("fl3_width"))
 
     # Check if X-axis and Y-axis features are set correctly
-    assert qv.ui.comboBox_x.currentData() == "area_um", "Check manual selection"
-    assert qv.ui.comboBox_y.currentData() == "fl3_width", "Check manual selection"
+    assert qv.ui.comboBox_x.currentData() == "area_um", (
+        "Check manual selection")
+    assert qv.ui.comboBox_y.currentData() == "fl3_width", (
+        "Check manual selection")
 
     # Get the slot_id the second data slot
     slot_id2 = mw.pipeline.slot_ids[1]
@@ -1181,7 +1197,8 @@ def test_select_x_y_axis_based_on_unavailable_feature_name_issue_206(qtbot,
     qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
 
     # Check if X-axis and Y-axis features are still set correctly
-    assert qv.ui.comboBox_x.currentData() == "area_um", "Check manual selection"
+    assert qv.ui.comboBox_x.currentData() == "area_um", (
+        "Check manual selection")
     # Since the feature is not available in dataset-2, it should be set
     # to "deform" (first option in default choice)
     assert qv.ui.comboBox_y.currentData() == "deform", "Check manual selection"

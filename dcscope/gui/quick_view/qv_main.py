@@ -106,8 +106,10 @@ class QuickView(QtWidgets.QWidget):
         self.ui.pushButton_poly_delete.setVisible(False)
         self.ui.pushButton_poly_create.clicked.connect(self.on_poly_create)
         self.ui.pushButton_poly_save.clicked.connect(self.on_poly_done_save)
-        self.ui.pushButton_poly_cancel.clicked.connect(self.on_poly_done_cancel)
-        self.ui.pushButton_poly_delete.clicked.connect(self.on_poly_done_delete)
+        self.ui.pushButton_poly_cancel.clicked.connect(
+            self.on_poly_done_cancel)
+        self.ui.pushButton_poly_delete.clicked.connect(
+            self.on_poly_done_delete)
         self.ui.comboBox_poly.currentIndexChanged.connect(self.on_poly_modify)
         self.update_polygon_panel()
 
@@ -717,10 +719,10 @@ class QuickView(QtWidgets.QWidget):
             pass
         else:
             # keep everything as-is but update the sizes
-            show_event = self.ui.stackedWidget.currentWidget() is self.ui.page_event
-            show_settings = (
-                self.ui.stackedWidget.currentWidget() is self.ui.page_settings)
-            show_poly = self.ui.stackedWidget.currentWidget() is self.ui.page_poly
+            cur_widget = self.ui.stackedWidget.currentWidget()
+            show_event = cur_widget is self.ui.page_event
+            show_settings = cur_widget is self.ui.page_settings
+            show_poly = cur_widget is self.ui.page_poly
 
         # toolbutton checked
         self.ui.toolButton_event.setChecked(show_event)
@@ -735,7 +737,8 @@ class QuickView(QtWidgets.QWidget):
         elif show_poly:
             self.ui.stackedWidget.setCurrentWidget(self.ui.page_poly)
 
-        self.ui.widget_scatter.select.setVisible(show_event)  # point in scatter
+        self.ui.widget_scatter.select.setVisible(
+            show_event)  # point in scatter
 
         if show_event:
             # update event plot (maybe axes changed)
@@ -767,16 +770,16 @@ class QuickView(QtWidgets.QWidget):
                 hue_type = "none"
 
             self.ui.widget_scatter.plot_data(rtdc_ds=self.rtdc_ds,
-                                          slot=self.slot,
-                                          downsample=downsample,
-                                          xax=plot["axis x"],
-                                          yax=plot["axis y"],
-                                          xscale=plot["scale x"],
-                                          yscale=plot["scale y"],
-                                          hue_type=hue_type,
-                                          hue_kwargs=hue_kwargs,
-                                          isoelastics=plot["isoelastics"],
-                                          lut_identifier=plot["lut"])
+                                             slot=self.slot,
+                                             downsample=downsample,
+                                             xax=plot["axis x"],
+                                             yax=plot["axis y"],
+                                             xscale=plot["scale x"],
+                                             yscale=plot["scale y"],
+                                             hue_type=hue_type,
+                                             hue_kwargs=hue_kwargs,
+                                             isoelastics=plot["isoelastics"],
+                                             lut_identifier=plot["lut"])
             # make sure the correct plot items are visible
             # (e.g. scatter select)
             self.on_tool()
@@ -797,7 +800,7 @@ class QuickView(QtWidgets.QWidget):
             for cb, sen in [
                 (self.ui.checkBox_downsample, [self.ui.spinBox_downsample]),
                 (self.ui.checkBox_hue, [self.ui.comboBox_hue,
-                                     self.ui.comboBox_z_hue])]:
+                                        self.ui.comboBox_z_hue])]:
                 # Do not replot if the user changes the options for a
                 # disabled settings (e.g. downsampling, hue)
                 if sender in sen:

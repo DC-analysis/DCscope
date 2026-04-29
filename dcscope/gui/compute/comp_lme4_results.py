@@ -18,7 +18,8 @@ class Rlme4ResultsDialog(QtWidgets.QDialog):
 
         # parameters
         self.ui.label_model.setText(res["model"])
-        self.ui.label_feature.setText(dclab.dfn.get_feature_label(res["feature"]))
+        self.ui.label_feature.setText(
+            dclab.dfn.get_feature_label(res["feature"]))
         if res["is differential"]:
             self.ui.label_differential.setText("Yes")
         else:

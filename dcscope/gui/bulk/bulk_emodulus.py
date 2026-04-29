@@ -57,11 +57,12 @@ class BulkActionEmodulus(QtWidgets.QDialog):
 
         self.ui.comboBox_visc_model.clear()
         self.ui.comboBox_visc_model.addItem("buyukurganci-2022",
-                                         "buyukurganci-2022")
+                                            "buyukurganci-2022")
         self.ui.comboBox_visc_model.addItem("herold-2017", "herold-2017")
         self.ui.comboBox_visc_model.setCurrentIndex(
             self.ui.comboBox_visc_model.findData("buyukurganci-2022"))
-        self.ui.comboBox_visc_model.currentIndexChanged.connect(self.on_cb_medium)
+        self.ui.comboBox_visc_model.currentIndexChanged.connect(
+            self.on_cb_medium)
 
         self.ui.comboBox_lut.clear()
         lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
@@ -106,7 +107,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         """User changed temperature"""
         temp = self.ui.comboBox_temp.currentData()
 
-        if not self.ui.comboBox_temp.isEnabled() or temp in ["feature", "config"]:
+        if (not self.ui.comboBox_temp.isEnabled()
+                or temp in ["feature", "config"]):
             self.ui.doubleSpinBox_temp.setEnabled(False)
             self.ui.doubleSpinBox_temp.setValue(np.nan)
         else:
@@ -175,7 +177,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         """Update viscosity shown"""
         temp = self.ui.comboBox_temp.currentData()
 
-        if not self.ui.comboBox_temp.isEnabled() or temp in ["feature", "config"]:
+        if (not self.ui.comboBox_temp.isEnabled()
+                or temp in ["feature", "config"]):
             self.ui.doubleSpinBox_visc.setValue(np.nan)
             self.ui.doubleSpinBox_visc.setToolTip("unique values per dataset")
         else:

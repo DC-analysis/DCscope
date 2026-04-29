@@ -85,7 +85,8 @@ def test_matrix_slots_duplicate_issue_96(qtbot, mw):
 
     # change the name of the dataset
     # go to analysis view
-    qtbot.mouseClick(mw.ui.toolButton_ana_view, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(mw.ui.toolButton_ana_view,
+                     QtCore.Qt.MouseButton.LeftButton)
     # go to the dataset tab
     av = mw.widget_ana_view
     qtbot.mouseClick(av.ui.tab_slot, QtCore.Qt.MouseButton.LeftButton)
@@ -99,7 +100,8 @@ def test_matrix_slots_duplicate_issue_96(qtbot, mw):
     assert len(mw.pipeline.slot_ids) == 1
 
     # Now duplicate the dataset
-    swid = mw.ui.block_matrix.get_widget(slot_id=mw.pipeline.slots[0].identifier)
+    swid = mw.ui.block_matrix.get_widget(
+        slot_id=mw.pipeline.slots[0].identifier)
     swid.action_duplicate()
 
     assert len(mw.pipeline.slot_ids) == 2, "initial + duplicate"

@@ -1,6 +1,6 @@
 import pathlib
 
-from PyQt6 import uic, QtWidgets
+from PyQt6 import QtWidgets
 
 import dclab
 

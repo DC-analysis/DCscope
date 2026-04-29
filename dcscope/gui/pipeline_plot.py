@@ -1,6 +1,5 @@
 import copy
 import html
-import importlib.resources
 import threading
 
 import dclab
@@ -8,7 +7,7 @@ import numpy as np
 import pyqtgraph as pg
 from dclab.kde import KernelDensityEstimator
 from dclab.kde.smooth_contour import compute_contour_opening_angles
-from PyQt6 import QtCore, QtGui, QtWidgets, uic
+from PyQt6 import QtCore, QtGui, QtWidgets
 from pyqtgraph import exporters
 from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
 
@@ -209,8 +208,8 @@ class PipelinePlot(QtWidgets.QWidget):
         # font size for plot title (default size + 2)
         size = "{}pt".format(QtGui.QFont().pointSize() + 2)
         self.ui.plot_layout.addLabel(html.escape(lay["name"]),
-                                  colspan=3,
-                                  size=size)
+                                     colspan=3,
+                                     size=size)
         self.ui.plot_layout.nextRow()
 
         self.ui.plot_layout.addLabel(labely, angle=-90)
@@ -874,7 +873,7 @@ def get_hash_flag(hash_set, rtdc_ds):
     for char_len in range(req_hash_len, len(longest_hash)):
         temp_short_hash_set = set(
             h[:char_len] if h is not None else None for h in hash_set
-            )
+        )
         if len(temp_short_hash_set) != len(hash_set):
             req_hash_len += 1
         else:

@@ -1,4 +1,4 @@
-from PyQt6 import uic, QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 
 from .dm_element_ui import Ui_Form
 

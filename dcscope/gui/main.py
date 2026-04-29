@@ -15,7 +15,7 @@ import pyqtgraph as pg
 import scipy
 from dclab import cached
 from dclab.lme4 import rsetup
-from PyQt6 import QtCore, QtGui, QtWidgets, uic
+from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import QStandardPaths
 from PyQt6.QtWidgets import QMessageBox
 
@@ -189,7 +189,8 @@ class DCscope(QtWidgets.QMainWindow):
         # plot
         self.ui.actionExportPlot.triggered.connect(self.on_action_export_plot)
         # Import menu
-        self.ui.actionImportFilter.triggered.connect(self.on_action_import_filter)
+        self.ui.actionImportFilter.triggered.connect(
+            self.on_action_import_filter)
         # Help menu
         self.ui.actionDocumentation.triggered.connect(self.on_action_docs)
         self.ui.actionSoftware.triggered.connect(self.on_action_software)
@@ -203,7 +204,8 @@ class DCscope(QtWidgets.QMainWindow):
         self.init_analysis_view()
         self.ui.mdiArea.cascadeSubWindows()
 
-        self.ui.toolButton_quick_view.toggled.connect(self.on_quick_view_toggled)
+        self.ui.toolButton_quick_view.toggled.connect(
+            self.on_quick_view_toggled)
 
         # BLOCK MATRIX (wraps DataMatrix and PlotMatrix)
         # BlockMatrix appearance
@@ -223,7 +225,8 @@ class DCscope(QtWidgets.QMainWindow):
         self.ui.block_matrix.ui.toolButton_new_plot.setEnabled(False)
         # BlockMatrix other signals
         self.ui.block_matrix.slot_modify_clicked.connect(self.on_modify_slot)
-        self.ui.block_matrix.filter_modify_clicked.connect(self.on_modify_filter)
+        self.ui.block_matrix.filter_modify_clicked.connect(
+            self.on_modify_filter)
         self.ui.block_matrix.plot_modify_clicked.connect(self.on_modify_plot)
 
         # QUICK VIEW
@@ -233,9 +236,9 @@ class DCscope(QtWidgets.QMainWindow):
 
         # ANALYSIS VIEW
         # polygon filter creation
-        self.widget_ana_view.ui.widget_filter.request_new_polygon_filter.connect(
+        self.widget_ana_view.ui.widget_filter.request_new_polygon_filter.connect(  # noqa: E501
             self.on_new_polygon_filter)
-        self.widget_ana_view.ui.widget_filter.request_edit_polygon_filter.connect(
+        self.widget_ana_view.ui.widget_filter.request_edit_polygon_filter.connect(  # noqa: E501
             self.on_edit_polygon_filter)
 
         # Top of the pipeline modification hierarchy

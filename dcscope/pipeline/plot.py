@@ -110,6 +110,7 @@ STATE_OPTIONS = {
 
 class Plot:
     """Handles plotting information in a pipeline"""
+
     def __init__(self, identifier=None):
         identifier = identifier or f"plot:{uuid.uuid4()}".replace("-", "")
 

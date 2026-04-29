@@ -134,7 +134,8 @@ class TablesPanel(QtWidgets.QWidget):
                 for graph in names:
                     if graph in list(self._selected_graphs):
                         graph_index = names.index(graph)
-                        item = self.ui.listWidget_table_graphs.item(graph_index)
+                        item = self.ui.listWidget_table_graphs.item(
+                            graph_index)
                         if item:
                             item.setSelected(True)
                 self.ui.listWidget_table_graphs.blockSignals(False)

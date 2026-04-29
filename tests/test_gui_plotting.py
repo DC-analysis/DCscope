@@ -44,7 +44,8 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot, mw):
     pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
-    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
 
     # Change to "each" and apply
@@ -94,7 +95,8 @@ def test_handle_axis_selection_empty_plot(qtbot, mw):
     pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
-    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
 
     # This lead to:
@@ -111,7 +113,8 @@ def test_handle_axis_selection_empty_plot(qtbot, mw):
     #    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
     # ValueError: zero-size array to reduction operation minimum which
     # has no identity
-    pv.ui.comboBox_axis_y.setCurrentIndex(pv.ui.comboBox_axis_y.findData("emodulus"))
+    pv.ui.comboBox_axis_y.setCurrentIndex(
+        pv.ui.comboBox_axis_y.findData("emodulus"))
 
 
 def test_handle_empty_plots_issue_27(qtbot, mw):
@@ -145,12 +148,14 @@ def test_handle_empty_plots_issue_27(qtbot, mw):
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
         mw.widget_ana_view.ui.tab_filter)
 
-    qtbot.mouseClick(fv.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(fv.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     rc = fv._box_range_controls["area_um"]
     qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # did that work?
     assert rc.ui.checkBox.isChecked()
-    qtbot.mouseClick(fv.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(fv.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # set range
     rc.ui.doubleSpinBox_min.setValue(0)
     rc.ui.doubleSpinBox_max.setValue(1)
@@ -327,12 +332,13 @@ def test_reselect_filter(qtbot, mw):
     plot_id = mw.add_plot()
 
     # Activate slot-plot pair
-    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    pe = mw.ui.block_matrix.get_widget(
+        filt_plot_id=plot_id, slot_id=slot_id[0])
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
 
     # Activate the filter
     em = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
-                                    slot_id=slot_id[0])
+                                       slot_id=slot_id[0])
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
 
     # Edit the filter
@@ -425,7 +431,8 @@ def test_zoomin_contours(qtbot, mw):
     plot_id = mw.add_plot()
 
     # Activate slot-plot pair
-    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id[0])
+    pe = mw.ui.block_matrix.get_widget(
+        filt_plot_id=plot_id, slot_id=slot_id[0])
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
 
     # Get range before zoom-in
@@ -436,7 +443,8 @@ def test_zoomin_contours(qtbot, mw):
     y_range_before = view_range_before[1]
 
     # Switch to plot tab
-    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
 
     # Enable contour zoom-in and apply
@@ -470,7 +478,8 @@ def test_only_contours_division(qtbot, mw):
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # Switch to plot tab
-    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
 
     # Get the initial plot state
@@ -522,7 +531,8 @@ def test_contour_plot_with_invalid_percentiles(qtbot, mw):
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
     # Switch to plot tab
-    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(mw.widget_ana_view.ui.tab_plot)
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
 
     # Enable contours

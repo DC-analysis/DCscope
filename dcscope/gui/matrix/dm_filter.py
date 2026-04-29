@@ -142,8 +142,8 @@ class MatrixFilter(QtWidgets.QWidget):
         else:
             nstring = string + "..."
             while True:
-                width = self.ui.label.fontMetrics().boundingRect(nstring).width()
-                if width > 60:
+                wth = self.ui.label.fontMetrics().boundingRect(nstring).width()
+                if wth > 60:
                     nstring = nstring[:-4] + "..."
                 else:
                     break

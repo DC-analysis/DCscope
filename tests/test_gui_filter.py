@@ -69,12 +69,14 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot, mw):
         mw.widget_ana_view.ui.tab_filter)
     wf = mw.widget_ana_view.ui.widget_filter
     # enable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_ratio"]
     qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # now add second filter
     mw.add_filter()
@@ -89,7 +91,8 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot, mw):
         mw.widget_ana_view.ui.tab_filter)
 
     # enable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_ratio"]
     assert not rc.ui.checkBox.isChecked()
@@ -98,7 +101,8 @@ def test_box_filter_selection_no_preselection_issue_67(qtbot, mw):
     assert not rc2.ui.checkBox.isChecked()
 
     # cleanup: disable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
 
 
 def test_filter_min_max_delete(qtbot, mw):
@@ -128,12 +132,14 @@ def test_filter_min_max_delete(qtbot, mw):
         mw.widget_ana_view.ui.tab_filter)
 
     # enable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_um"]
     qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # set the range control for area from 20 to 30 µm
     rc.ui.doubleSpinBox_min.setValue(20)
@@ -150,12 +156,12 @@ def test_filter_min_max_delete(qtbot, mw):
 
     # activate the filter for both datasets
     me1 = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
-                                     slot_id=mw.pipeline.slot_ids[0]
-                                     )
+                                        slot_id=mw.pipeline.slot_ids[0]
+                                        )
     qtbot.mouseClick(me1, QtCore.Qt.MouseButton.LeftButton)
     me2 = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
-                                     slot_id=mw.pipeline.slot_ids[1]
-                                     )
+                                        slot_id=mw.pipeline.slot_ids[1]
+                                        )
     qtbot.mouseClick(me2, QtCore.Qt.MouseButton.LeftButton)
 
     QtWidgets.QApplication.processEvents(
@@ -173,12 +179,14 @@ def test_filter_min_max_delete(qtbot, mw):
     assert np.max(ds2a["area_um"]) < 30
 
     # Now, remove the box filter!
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_um"]
     qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # click apply
     qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
@@ -219,12 +227,14 @@ def test_filter_min_max_inf(qtbot, mw):
         mw.widget_ana_view.ui.tab_filter)
 
     # enable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
     # find the porosity item and click the checkbox
     rc = wf._box_range_controls["area_ratio"]
     qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
     # disable selection
-    qtbot.mouseClick(wf.ui.toolButton_moreless, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
 
     # check that the range control does not have all-zero values
     rcstate = rc.read_pipeline_state()

@@ -128,9 +128,9 @@ class QuickViewScatterWidget(SimplePlotWidget):
                 # let dclab estimate the spacing
                 "spacing x": None,
                 "spacing y": None,
-                },
+            },
             "contour": {
-                },
+            },
             "scatter": {
                 "downsample": bool(downsample),
                 "downsampling value": downsample,

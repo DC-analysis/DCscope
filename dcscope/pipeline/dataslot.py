@@ -12,6 +12,7 @@ from ..util import hashobj
 
 class Dataslot:
     """Handles datasets in a pipeline"""
+
     def __init__(self, path, identifier=None):
         #: session-unique identifier of the slot
         self.identifier = identifier or f"slot:{uuid.uuid4()}".replace("-", "")

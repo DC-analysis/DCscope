@@ -104,7 +104,8 @@ class BlockMatrix(QtWidgets.QWidget):
         """Convenience function for testing"""
         if slot_id is None and filt_plot_id is not None:
             # get a filter or a plot
-            w = self.ui.data_matrix.filter_widgets + self.ui.plot_matrix.plot_widgets
+            w = (self.ui.data_matrix.filter_widgets
+                 + self.ui.plot_matrix.plot_widgets)
             for wi in w:
                 if wi.identifier == filt_plot_id:
                     break

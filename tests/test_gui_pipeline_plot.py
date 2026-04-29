@@ -37,7 +37,7 @@ def test_get_hash_flag_datasets_without_hash():
         datapath / "artificial_with_image_bg.rtdc",  # No hash
         datapath / "blood_rbc_leukocytes.rtdc",  # No hash
         datapath / "blood_rbc_qpi_data.rtdc",  # No hash
-        ]
+    ]
 
     assert len(rtdc_paths) == 3
 
@@ -64,7 +64,7 @@ def test_get_hash_flag_dataset_with_hash():
         datapath / "artificial_with_image_bg.rtdc",  # No hash
         datapath / "blood_rbc_leukocytes.rtdc",  # No hash
         datapath / "naiad-capture_blood_pipeline.rtdc",  # with hash
-        ]
+    ]
 
     assert len(rtdc_paths) == 3
     hash_set = set()

@@ -164,13 +164,14 @@ class MatrixDataset(QtWidgets.QWidget):
 
     def set_label_string(self, string):
         max_width = self.width()
-        if self.ui.label.fontMetrics().boundingRect(string).width() < max_width:
+        cur_width = self.ui.label.fontMetrics().boundingRect(string).width()
+        if cur_width < max_width:
             nstring = string
         else:
             nstring = string + "..."
             while True:
-                width = self.ui.label.fontMetrics().boundingRect(nstring).width()
-                if width > max_width:
+                wth = self.ui.label.fontMetrics().boundingRect(nstring).width()
+                if wth > max_width:
                     nstring = nstring[:-4] + "..."
                 else:
                     break

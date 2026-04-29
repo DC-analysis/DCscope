@@ -67,24 +67,28 @@ class ExportData(QtWidgets.QDialog):
         self.ui.comboBox_format.addItem("MOV", "mov")
 
         self.ui.comboBox_codec.clear()
-        self.ui.comboBox_codec.addItem("H264 (high quality, fast export)",
-                                    {"pixel_format": "yuv420p",
-                                     "codec": "libx264",
-                                     "codec_options": {'preset': 'ultrafast',
-                                                       'crf': '0'}})
-        self.ui.comboBox_codec.addItem("H264 (high quality, small file size)",
-                                    {"pixel_format": "yuv420p",
-                                     "codec": "libx264",
-                                     "codec_options": {'preset': 'slow',
-                                                       'crf': '0'}})
-        self.ui.comboBox_codec.addItem("H264 (lossy compression)",
-                                    {"pixel_format": "yuv420p",
-                                     "codec": "libx264",
-                                     "codec_options": {'preset': 'slow',
-                                                       'crf': '7'}})
-        self.ui.comboBox_codec.addItem("RAW (huge files)",
-                                    {"pixel_format": "yuv420p",
-                                     "codec": "rawvideo"})
+        self.ui.comboBox_codec.addItem(
+            "H264 (high quality, fast export)",
+            {"pixel_format": "yuv420p",
+             "codec": "libx264",
+             "codec_options": {'preset': 'ultrafast',
+                               'crf': '0'}})
+        self.ui.comboBox_codec.addItem(
+            "H264 (high quality, small file size)",
+            {"pixel_format": "yuv420p",
+             "codec": "libx264",
+             "codec_options": {'preset': 'slow',
+                               'crf': '0'}})
+        self.ui.comboBox_codec.addItem(
+            "H264 (lossy compression)",
+            {"pixel_format": "yuv420p",
+             "codec": "libx264",
+             "codec_options": {'preset': 'slow',
+                               'crf': '7'}})
+        self.ui.comboBox_codec.addItem(
+            "RAW (huge files)",
+            {"pixel_format": "yuv420p",
+             "codec": "rawvideo"})
 
     @property
     def file_format(self):
