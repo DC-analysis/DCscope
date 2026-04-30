@@ -40,10 +40,14 @@ mw.subwindows_plots[mw.pipeline.plot_ids[2]].widget().grab().save(
     "_ui_plot3.png")
 
 # quick view
-me = mw.ui.block_matrix.get_widget(mw.pipeline.slot_ids[1],
-                                   mw.pipeline.filter_ids[0])
-me.quickview = True
-me.update_content()
+mw.pp_mod_send.emit({"quickview": {
+    "enabled": True,
+    "slot_index": 1,
+    "slot_id": mw.pipeline.slot_ids[1],
+    "filt_index": 0,
+    "filt_id": mw.pipeline.filter_ids[0],
+}})
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.ui.toolButton_settings.toggle()
 idx = mw.widget_quick_view.ui.comboBox_x.findData("fl3_max_ctc")
 mw.widget_quick_view.ui.comboBox_x.setCurrentIndex(idx)
