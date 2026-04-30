@@ -55,7 +55,8 @@ wsl.ui.doubleSpinBox_temp.setValue(38)
 app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 wsl.ui.groupBox_emod.grab().save("_qg_emodulus_badtemp.png")
 
-wsl.ui.comboBox_medium.setCurrentIndex(wsl.ui.comboBox_medium.findData("other"))
+wsl.ui.comboBox_medium.setCurrentIndex(
+    wsl.ui.comboBox_medium.findData("other"))
 wsl.ui.doubleSpinBox_visc.setValue(3.14)
 app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 wsl.ui.groupBox_emod.grab().save("_qg_emodulus_other.png")

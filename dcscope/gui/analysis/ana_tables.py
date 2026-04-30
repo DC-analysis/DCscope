@@ -115,7 +115,7 @@ class TablesPanel(QtWidgets.QWidget):
             if names is not None:
                 # We have a rec-array, a list of graphs in the table
                 self.ui.listWidget_table_graphs.setEnabled(True)
-                self.ui.stackedWidget_plot.setCurrentWidget(self.page_graph)
+                self.ui.stackedWidget_plot.setCurrentWidget(self.ui.page_graph)
                 # Update list of graphs names
                 self.ui.listWidget_table_graphs.blockSignals(True)
                 self.ui.listWidget_table_graphs.clear()
@@ -143,7 +143,7 @@ class TablesPanel(QtWidgets.QWidget):
             else:
                 self.ui.listWidget_table_graphs.setEnabled(False)
                 self.ui.listWidget_table_graphs.clear()
-                self.ui.stackedWidget_plot.setCurrentWidget(self.page_image)
+                self.ui.stackedWidget_plot.setCurrentWidget(self.ui.page_image)
                 self.ui.graphicsView_image.setImage(table[:])
         else:
             self.ui.listWidget_table_graphs.setEnabled(False)

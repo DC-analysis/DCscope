@@ -41,8 +41,8 @@ mw.subwindows_plots[mw.pipeline.plot_ids[2]].widget().grab().save(
 
 # quick view
 me = mw.ui.block_matrix.get_widget(mw.pipeline.slot_ids[1],
-                                mw.pipeline.filter_ids[0])
-mw.quickview = True
+                                   mw.pipeline.filter_ids[0])
+me.quickview = True
 me.update_content()
 mw.widget_quick_view.ui.toolButton_settings.toggle()
 idx = mw.widget_quick_view.ui.comboBox_x.findData("fl3_max_ctc")
@@ -93,9 +93,10 @@ mw.widget_ana_view.grab().save("_ui_ana_meta.png")
 # Basins
 mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
     mw.widget_ana_view.ui.tab_basins)
-mw.widget_ana_view.ui.widget_basins.ui.listWidget_dataset.setCurrentRow(2)
-item = mw.widget_ana_view.ui.widget_basins.treeWidget_basin_name.itemAt(0, 0)
-mw.widget_ana_view.ui.widget_basins.treeWidget_basin_name.setCurrentItem(item)
+widget_basins = mw.widget_ana_view.ui.widget_basins
+widget_basins.ui.listWidget_dataset.setCurrentRow(2)
+item = widget_basins.ui.treeWidget_basin_name.itemAt(0, 0)
+widget_basins.ui.treeWidget_basin_name.setCurrentItem(item)
 mw.widget_ana_view.repaint()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_ana_view.grab().save("_ui_ana_basins.png")
