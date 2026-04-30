@@ -796,9 +796,20 @@ def compute_scatter_data_from_state(plot_state, rtdc_ds):
         yacc=gen["spacing y"],
     )
 
-    if kde.size and kde.min() != kde.max():
-        kde -= kde.min()
-        kde /= kde.max()
+    if kde.size:
+        kde_nan = np.isnan(kde)
+
+        if np.any(~kde_nan):
+            # We have non-nan values that we can normalize.
+            kde_min = np.nanmin(kde)
+            kde_max = np.nanmax(kde)
+            if not np.any(np.isnan([kde_min, kde_max])) and kde_min != kde_max:
+                kde -= kde_min
+                kde /= (kde_max - kde_min)
+
+        if np.any(kde_nan):
+            # Set all nan-values to zero so user can see the dots
+            kde[kde_nan] = 0
 
     return x, y, kde, idx
 
