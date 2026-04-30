@@ -9,8 +9,8 @@ class SimpleImageView(pg.ImageView):
     """Custom class for data visualization in DCscope"""
 
     def __init__(self, *args, **kwargs):
-        self.view = SimpleImageViewBox()
-        super(SimpleImageView, self).__init__(view=self.view,
+        self._view_init_custom = SimpleImageViewBox()
+        super(SimpleImageView, self).__init__(view=self._view_init_custom,
                                               *args, **kwargs)
         self.view.export.connect(self.on_export)
 
