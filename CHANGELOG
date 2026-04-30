@@ -1,4 +1,5 @@
 2.27.0
+ - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
  - setup: bump dclab to 0.71.7 (ValueError when encountering empty pipeline)
  - ci: bump build pipeline to Python 3.13
  - ref: migrate from loading .ui files to pyuic6-pregenerated Python files

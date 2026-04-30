@@ -149,6 +149,7 @@ class PlotPanel(QtWidgets.QWidget):
             self.ui.comboBox_axis_y,
             self.ui.widget_range_x,
             self.ui.widget_range_y,
+            self.ui.comboBox_marker_hue,
         ]
 
         for b in toblock:
