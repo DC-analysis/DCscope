@@ -2,6 +2,7 @@
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
  - fix: set NaN-valued KDE of scatter plot points to zero
  - fix: properly close DCOR search background runner in dialog
+ - enh: give all separate `QThread` object a name
  - ref: migrate from loading .ui files to pyuic6-pregenerated Python files
  - setup: bump dclab to 0.71.7 (ValueError when encountering empty pipeline)
  - ci: bump build pipeline to Python 3.13

@@ -20,6 +20,7 @@ class EventGetterThread(QtCore.QThread):
         self.request = (None, None)
         self.prev_request = (None, None)
         self.logger = logging.getLogger(__name__)
+        self.setObjectName(self.__class__.__name__)
 
     def close(self):
         self.event_abort.set()

@@ -21,20 +21,6 @@ class UpdateWorker(QtCore.QObject):
         self.finished.emit()
 
 
-def check_for_update(version, ghrepo):
-    thread = QtCore.QThread()
-    obj = UpdateWorker()
-    obj.moveToThread(thread)
-    obj.finished.connect(thread.quit)
-    thread.start()
-
-    QtCore.QMetaObject.invokeMethod(obj, 'processUpdate',
-                                    QtCore.Qt.ConnectionType.QueuedConnection,
-                                    QtCore.Q_ARG(str, version),
-                                    QtCore.Q_ARG(str, ghrepo),
-                                    )
-
-
 def check_release(ghrepo="user/repo", version=None, timeout=20):
     """Check GitHub repository for latest release"""
     url = "https://api.github.com/repos/{}/releases/latest".format(ghrepo)

@@ -493,6 +493,7 @@ class DCscope(QtWidgets.QMainWindow):
             self._update_worker.finished.connect(self._update_thread.quit)
             self._update_worker.data_ready.connect(
                 self.on_action_check_update_finished)
+            self._update_thread.setObjectName("UpdateThread")
             self._update_thread.start()
 
             ghrepo = "DC-analysis/DCscope"

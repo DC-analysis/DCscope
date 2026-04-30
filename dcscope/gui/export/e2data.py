@@ -366,6 +366,7 @@ class ExportThread(QtCore.QThread):
         self.current_path = None
         self.tasks_done = []
         self.failed_tasks = []
+        self.setObjectName(self.__class__.__name__)
 
     def progress_callback(self, progress, message):
         cur_pos = int((len(self.tasks_done) + progress) * 100)

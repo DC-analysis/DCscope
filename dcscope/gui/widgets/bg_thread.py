@@ -12,6 +12,7 @@ class Runner(QtCore.QThread):
         self._target = target
         self._args = args
         self._kwargs = kwargs
+        self.setObjectName(self.__class__.__name__ + "_" + target.__name__)
 
     def run(self):
         self._target(*self._args, **self._kwargs)
