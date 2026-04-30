@@ -24,8 +24,7 @@ class EventGetterThread(QtCore.QThread):
 
     def close(self):
         self.event_abort.set()
-        while self.isRunning():
-            time.sleep(0.1)
+        self.wait()
 
     @QtCore.pyqtSlot(RTDCBase, int)
     def request_event_data(self, ds: RTDCBase, event_index: int):

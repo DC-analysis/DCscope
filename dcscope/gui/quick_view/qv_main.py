@@ -250,9 +250,9 @@ class QuickView(QtWidgets.QWidget):
         self.ui.comboBox_y.set_dataset(rtdc_ds)
         self.ui.comboBox_z_hue.set_dataset(rtdc_ds)
 
-    def close(self):
+    def closeEvent(self, a0):
         self.event_getter.close()
-        super(QuickView, self).close()
+        return super(QuickView, self).closeEvent(a0)
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
