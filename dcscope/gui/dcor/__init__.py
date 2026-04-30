@@ -1,3 +1,4 @@
+import threading
 import traceback as tb
 import urllib.parse
 import webbrowser
@@ -6,7 +7,7 @@ import dclab
 from PyQt6 import QtCore, QtGui, QtWidgets
 import requests
 
-from ..widgets import show_wait_cursor, run_async
+from ..widgets import show_wait_cursor, run_async_class
 from .dcor_ui import Ui_Dialog
 
 
@@ -20,6 +21,9 @@ class DCORLoader(QtWidgets.QDialog):
 
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
+
+        self._event_close = threading.Event()
+        self._async_runners = []
 
         self.main_ui = parent
         self.search_results = []
@@ -61,6 +65,12 @@ class DCORLoader(QtWidgets.QDialog):
         btn_help.setToolTip("View DCOR Quick Guide online")
         helpicon = QtGui.QIcon.fromTheme("documentinfo")
         btn_help.setIcon(helpicon)
+
+    def closeEvent(self, event):
+        self._event_close.set()
+        for runner in self._async_runners:
+            if runner.isRunning():
+                runner.wait()
 
     def get_api_base_url(self):
         """Return the API url in the form https://dcor.mpl.mpg.de/api/3"""
@@ -105,7 +115,7 @@ class DCORLoader(QtWidgets.QDialog):
         webbrowser.open(
             "https://dcscope.readthedocs.io/en/stable/sec_qg_dcor.html")
 
-    @run_async  # comment-out for debugging
+    @run_async_class  # comment-out for debugging
     @show_wait_cursor
     @QtCore.pyqtSlot()
     def on_search(self):
@@ -244,6 +254,8 @@ class DCORLoader(QtWidgets.QDialog):
 
         pkg_res = []
         for url in urls:
+            if self._event_close.is_set():
+                break
             req = requests.get(url,
                                headers=api_headers,
                                verify=get_server_cert_path())
@@ -275,6 +287,9 @@ class DCORLoader(QtWidgets.QDialog):
         results = []
         failed = []
         for ii, (pkg, res) in enumerate(pkg_res):
+            if self._event_close.is_set():
+                break
+
             if res["mimetype"] not in ["RT-DC"]:
                 continue  # only use RT-DC data
             if search_id != self.num_searches:

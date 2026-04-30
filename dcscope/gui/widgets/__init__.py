@@ -1,5 +1,5 @@
 # flake8: noqa: F401
-from .bg_thread import run_async
+from .bg_thread import run_async, run_async_class
 from .double_spin_box_nan import DoubleSpinBoxNan
 from .feature_combobox import FeatureComboBox
 from .get_path import get_directory

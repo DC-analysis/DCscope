@@ -27,3 +27,32 @@ def run_async(func):
         runner.start()
 
     return async_func
+
+
+def run_async_class(func):
+    """Decorator for running a function in the background in a class
+
+    The class must implement
+
+        self._async_runners = []
+        self._event_close = Threading.Event()
+
+    and the following method:
+
+        def closeEvent(self, event):
+            self._event_close.set()
+            for runner in self._async_runners:
+                if runner.isRunning():
+                    runner.wait()
+
+    The called method should check `self._event_close.is_set()` and
+    abort when the event is set.
+    """
+    @wraps(func)
+    def async_func(inst, *args, **kwargs):
+        runner = Runner(func, inst, *args, **kwargs)
+        # Keep the runner somewhere or it will be destroyed
+        inst._async_runners.append(runner)
+        runner.start()
+
+    return async_func
