@@ -3,6 +3,8 @@ import tempfile
 import time
 
 from PyQt6 import QtCore
+from pyqtgraph.graphicsItems import ViewBox
+
 import pytest
 
 from dcscope.gui.main import DCscope
@@ -16,6 +18,10 @@ pytest_plugins = ["pytest-qt"]
 
 @pytest.fixture
 def mw():
+    # workaround: clear all viewboy items to avoid
+    # "RuntimeError: wrapped C/C++ object of type ViewBox has been deleted"
+    ViewBox.ViewBox.NamedViews.clear()
+    ViewBox.ViewBox.AllViews.clear()
     mw = DCscope()
     yield mw
     mw.close()
