@@ -456,7 +456,7 @@ class QuickView(QtWidgets.QWidget):
             else:
                 show = True
             flid = name.split("_")[0]
-            if name in tdata and show:
+            if name in tdata and show and self.slot is not None:
                 range_fl[0] = min(range_fl[0], tdata[name].min())
                 range_fl[1] = max(range_fl[1], tdata[name].max())
                 self.trace_plots[name].setData(tdata["time"], tdata[name])
@@ -544,17 +544,18 @@ class QuickView(QtWidgets.QWidget):
             plotted = self.ui.widget_scatter.events_plotted
             spos = self.ui.widget_scatter.scatter.mapFromView(pos)
             point = self.ui.widget_scatter.scatter.pointAt(spos)
-            # get corrected index
-            event = np.where(plotted)[0][point.index()]
+            if plotted is not None:
+                # get corrected index
+                event = np.where(plotted)[0][point.index()].item()
 
-            # Only plot if we have not plotted this event before
-            if (self._hover_ds_id != id(ds)
-                    or self._hover_event_idx != event):
-                # remember where we were
-                self._hover_ds_id = id(ds)
-                self._hover_event_idx = event
+                # Only plot if we have not plotted this event before
+                if (self._hover_ds_id != id(ds)
+                        or self._hover_event_idx != event):
+                    # remember where we were
+                    self._hover_ds_id = id(ds)
+                    self._hover_event_idx = event
 
-                self.event_getter.request_event_data(ds, event)
+                    self.event_getter.request_event_data(ds, event)
 
     @QtCore.pyqtSlot()
     def on_event_scatter_spin(self):
@@ -693,10 +694,12 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def on_tool(self, collapse=False):
         """Show and hide tools when the user selected a tool button"""
-        toblock = [self.ui.toolButton_event,
-                   self.ui.toolButton_poly,
-                   self.ui.toolButton_settings,
-                   ]
+        toblock = [
+            self.ui.toolButton_event,
+            self.ui.toolButton_poly,
+            self.ui.toolButton_settings,
+        ]
+
         for b in toblock:
             b.blockSignals(True)
 
