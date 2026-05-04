@@ -36,10 +36,10 @@ class ExportPlot(QtWidgets.QDialog):
         # Signals
         self.ui.comboBox_fmt.currentIndexChanged.connect(self.on_format)
 
-    def done(self, r):
-        if r:
+    def done(self, a0):
+        if a0:
             self.export_plots()
-        super(ExportPlot, self).done(r)
+        super(ExportPlot, self).done(a0)
 
     @show_wait_cursor
     @QtCore.pyqtSlot()

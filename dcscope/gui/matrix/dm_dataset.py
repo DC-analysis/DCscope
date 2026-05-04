@@ -55,15 +55,15 @@ class MatrixDataset(QtWidgets.QWidget):
         self.setMouseTracking(True)
 
     # Qt method overrides
-    def setMouseTracking(self, flag):
+    def setMouseTracking(self, enable):
         def recursive_set(parent):
             for child in parent.findChildren(QtCore.QObject):
                 try:
-                    child.setMouseTracking(flag)
+                    child.setMouseTracking(enable)
                 except BaseException:
                     pass
                 recursive_set(child)
-        QtWidgets.QWidget.setMouseTracking(self, flag)
+        QtWidgets.QWidget.setMouseTracking(self, enable)
         recursive_set(self)
 
     # Other methods

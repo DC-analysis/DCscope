@@ -28,10 +28,10 @@ class ExportFilter(QtWidgets.QDialog):
         else:
             return "multiple"
 
-    def done(self, r):
-        if r:
+    def done(self, a0):
+        if a0:
             self.export_filters()
-        super(ExportFilter, self).done(r)
+        super(ExportFilter, self).done(a0)
 
     def export_filters(self):
         """Export filters"""

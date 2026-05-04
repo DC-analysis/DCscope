@@ -42,7 +42,7 @@ class MatrixPlot(QtWidgets.QWidget):
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
     # Qt method overrides
-    def setMouseTracking(self, flag):
+    def setMouseTracking(self, enable):
         """Set mouse tracking recursively
 
         This is necessary for `BlockMatrix.mouseMoveEvent` to work
@@ -51,11 +51,11 @@ class MatrixPlot(QtWidgets.QWidget):
         def recursive_set(parent):
             for child in parent.findChildren(QtCore.QObject):
                 try:
-                    child.setMouseTracking(flag)
+                    child.setMouseTracking(enable)
                 except BaseException:
                     pass
                 recursive_set(child)
-        QtWidgets.QWidget.setMouseTracking(self, flag)
+        QtWidgets.QWidget.setMouseTracking(self, enable)
         recursive_set(self)
 
     @QtCore.pyqtSlot()

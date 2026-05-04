@@ -205,7 +205,7 @@ class DCORLoader(QtWidgets.QDialog):
 
         if failed:
             msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Information)
             msg.setText("Search found invalid data: {}".format(failed))
             msg.setWindowTitle("Dataset validation")
             msg.exec()

@@ -119,10 +119,10 @@ class ExportData(QtWidgets.QDialog):
             storage_strategy = "no-basins"
         return storage_strategy
 
-    def done(self, r):
-        if r:
+    def done(self, a0):
+        if a0:
             self.export_data()
-        super(ExportData, self).done(r)
+        super(ExportData, self).done(a0)
 
     @show_wait_cursor
     @QtCore.pyqtSlot()
