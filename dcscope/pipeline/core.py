@@ -326,7 +326,7 @@ class Pipeline(object):
         return display_names
 
     def deduce_reduced_sample_names(self,
-                                    slot_indices: list[int] = None,
+                                    slot_indices: list[int] | None = None,
                                     ) -> list[str]:
         """Return a list of reduced sample names for the given indices
 
@@ -448,7 +448,10 @@ class Pipeline(object):
         new_slot.__setstate__(new_state)
         return new_id
 
-    def get_dataset(self, slot_index, filt_index=-1, apply_filter=True):
+    def get_dataset(self,
+                    slot_index: int,
+                    filt_index: int | None = -1,
+                    apply_filter:bool = True):
         """Return dataset with all filters updated (optionally applied)
 
         Parameters
@@ -531,10 +534,7 @@ class Pipeline(object):
         This function returns an empty list if there are no features
         available.
         """
-        if union:
-            features = set()
-        else:
-            features = None
+        features = None
         for slot_index in range(self.num_slots):
             slot_id = self.slot_ids[slot_index]
             if (plot_id is None
@@ -546,6 +546,8 @@ class Pipeline(object):
                 else:
                     ds_features = set(ds.features)
                 if union:
+                    if features is None:
+                        features = set()
                     features |= ds_features
                 else:
                     if features is None:
