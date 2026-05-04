@@ -690,7 +690,6 @@ class QuickView(QtWidgets.QWidget):
                 tsv += "{}\t{:.7g}\n".format(hi, vi)
             QtWidgets.qApp.clipboard().setText(tsv)
 
-    @show_wait_cursor
     @QtCore.pyqtSlot()
     def on_tool(self, collapse=False):
         """Show and hide tools when the user selected a tool button"""
@@ -817,7 +816,6 @@ class QuickView(QtWidgets.QWidget):
             raise ValueError("Pipeline can only be set once")
         self.pipeline = pipeline
 
-    @show_wait_cursor
     @QtCore.pyqtSlot(int)
     def show_event(self, event_index):
         """Display the event data (image, contour, trace)
