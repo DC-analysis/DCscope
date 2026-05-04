@@ -1,5 +1,6 @@
 2.27.0
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
+ - fix: switching tabs "View/Features" in QuickView did not update event data
  - fix: set NaN-valued KDE of scatter plot points to zero
  - fix: properly close DCOR search background runner in dialog
  - fix: properly stop `EventGetterThread` on exit

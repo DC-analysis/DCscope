@@ -119,6 +119,8 @@ class QuickView(QtWidgets.QWidget):
         self.ui.widget_scatter.update_hover_pos.connect(
             self.on_event_scatter_hover)
         self.ui.spinBox_event.valueChanged.connect(self.on_event_scatter_spin)
+        self.ui.tabWidget_event.currentChanged.connect(
+            self.on_event_scatter_spin)
         self.ui.checkBox_image_contour.stateChanged.connect(
             self.on_event_scatter_update)
         self.ui.checkBox_image_contrast.stateChanged.connect(
@@ -554,9 +556,10 @@ class QuickView(QtWidgets.QWidget):
 
                 self.event_getter.request_event_data(ds, event)
 
-    @QtCore.pyqtSlot(int)
-    def on_event_scatter_spin(self, event):
+    @QtCore.pyqtSlot()
+    def on_event_scatter_spin(self):
         """Sping control for event selection changed"""
+        event = self.ui.spinBox_event.value()
         self.show_event(event - 1)
 
     @QtCore.pyqtSlot()
