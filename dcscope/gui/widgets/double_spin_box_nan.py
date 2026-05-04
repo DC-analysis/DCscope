@@ -10,8 +10,8 @@ class DoubleSpinBoxNan(QtWidgets.QDoubleSpinBox):
         self._suffix = self.suffix()  # remember initial suffix
         self.validator = NanFloatValidator()
 
-    def validate(self, text, position):
-        return self.validator.validate(text, position, self.suffix())
+    def validate(self, input, pos):
+        return self.validator.validate(input, pos, self.suffix())
 
     def value(self):
         value = super(DoubleSpinBoxNan, self).value()
@@ -20,16 +20,16 @@ class DoubleSpinBoxNan(QtWidgets.QDoubleSpinBox):
         return value
 
     def valueFromText(self, text):
-        if text == "nan":
+        if text == "nan" or text is None:
             return np.nan
         else:
             return convert_string_to_nanfloat(text[:-len(self.suffix())])
 
-    def textFromValue(self, value):
-        if value == self.minimum() or value == self.maximum():
+    def textFromValue(self, v):
+        if v == self.minimum() or v == self.maximum():
             return "nan"
         else:
-            return str(value)
+            return str(v)
 
 
 class NanFloatValidator(QtGui.QValidator):

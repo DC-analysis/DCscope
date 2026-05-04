@@ -451,7 +451,7 @@ class Pipeline(object):
     def get_dataset(self,
                     slot_index: int,
                     filt_index: int | None = -1,
-                    apply_filter:bool = True):
+                    apply_filter: bool = True):
         """Return dataset with all filters updated (optionally applied)
 
         Parameters

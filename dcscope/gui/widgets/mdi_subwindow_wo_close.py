@@ -8,5 +8,6 @@ class MDISubWindowWOButtons(QtWidgets.QMdiSubWindow):
         self.setWindowFlags(QtCore.Qt.WindowType.CustomizeWindowHint
                             | QtCore.Qt.WindowType.WindowTitleHint)
 
-    def closeEvent(self, event):
-        event.ignore()
+    def closeEvent(self, closeEvent):
+        if closeEvent is not None:
+            closeEvent.ignore()

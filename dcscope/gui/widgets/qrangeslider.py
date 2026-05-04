@@ -70,8 +70,8 @@ class Element(QtWidgets.QGroupBox):
         super(Element, self).__init__(parent, *args, **kwargs)
         self.main = main
 
-    def setStyleSheet(self, style):
-        self.parent().setStyleSheet(style)
+    def setStyleSheet(self, styleSheet):
+        self.parent().setStyleSheet(styleSheet)
 
     def textColor(self):
         return getattr(self, '__textColor', QtGui.QColor(125, 125, 125))
