@@ -615,7 +615,7 @@ class PlotPanel(QtWidgets.QWidget):
         self._pipeline = pipeline
 
     def update_content(self, plot_index=None, **kwargs):
-        if self.plot_ids:
+        if self._pipeline is not None and self.plot_ids:
             # remember the previous plot index and make sure it is sane
             prev_index = self.ui.comboBox_plots.currentIndex()
             if prev_index is None or prev_index < 0:
