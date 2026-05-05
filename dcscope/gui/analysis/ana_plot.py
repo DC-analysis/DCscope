@@ -7,6 +7,7 @@ import dclab.kde.smooth_contour
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
 
+from ...pipeline import Pipeline
 from ...pipeline.plot import STATE_OPTIONS
 from ..widgets import show_wait_cursor
 from .ana_plot_ui import Ui_Form
@@ -29,8 +30,8 @@ class PlotPanel(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        # current DCscope pipeline
-        self.pipeline = None
+        # Initialize with empty pipeline (`set_pipeline` must be called)
+        self._pipeline = None
         self._init_controls()
         self.update_content()
 
@@ -398,8 +399,16 @@ class PlotPanel(QtWidgets.QWidget):
             plot_index = self.ui.comboBox_plots.currentIndex()
             plot = self.pipeline.plots[plot_index]
         else:
-            plot = None
+            raise ValueError("No plots defined")
         return plot
+
+    @property
+    def pipeline(self) -> Pipeline:
+        """Current pipeline"""
+        if self._pipeline is None:
+            raise ValueError("Pipeline not defined, call `set_pipeline`")
+        else:
+            return self._pipeline
 
     @property
     def plot_ids(self):
@@ -601,9 +610,9 @@ class PlotPanel(QtWidgets.QWidget):
         self.update_content(plot_index=self.plot_ids.index(plot_id))
 
     def set_pipeline(self, pipeline):
-        if self.pipeline is not None:
+        if self._pipeline is not None:
             raise ValueError("Pipeline can only be set once")
-        self.pipeline = pipeline
+        self._pipeline = pipeline
 
     def update_content(self, plot_index=None, **kwargs):
         if self.plot_ids:
