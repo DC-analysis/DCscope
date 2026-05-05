@@ -158,7 +158,8 @@ class Plot:
             else:
                 for key in DEFAULT_STATE[topic]:
                     if key not in state[topic]:
-                        state[topic][key] = copy.deepcopy(DEFAULT_STATE[topic][key])
+                        state[topic][key] = copy.deepcopy(
+                            DEFAULT_STATE[topic][key])
 
         self._state = state
 
