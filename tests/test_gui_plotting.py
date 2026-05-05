@@ -40,6 +40,9 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot, mw):
     # add a plot
     plot_id = mw.add_plot()
 
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     # activate analysis view
     pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
@@ -70,6 +73,10 @@ def test_feature_bright_avg_not_present_issue_62(qtbot, mw):
     slot_id = mw.add_dataslot([tmp])[0]
     # add plot
     plot_id = mw.add_plot()
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     # and activate it
     pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
     # this raised "ValueError: 'bright_avg' is not in list" (issue #62)

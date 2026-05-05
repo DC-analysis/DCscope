@@ -282,6 +282,28 @@ class Pipeline(object):
         ds = ray.get_final_child(rtdc_ds)
         return ds
 
+    def check_auto_range_and_spacing(self, plot_id):
+        """If "auto range" or "auto spacing" is set, modify plot in-place"""
+        plot = self.plots[self.plot_ids.index(plot_id)]
+        plot_state = plot.__getstate__()
+        gen = plot_state["general"]
+        # auto range (overrides stored ranges)
+        if gen["auto range"]:
+            # default range is limits + 5% margin
+            gen["range x"] = self.get_min_max(feat=gen["axis x"],
+                                              plot_id=plot.identifier,
+                                              margin=.05)
+            gen["range y"] = self.get_min_max(feat=gen["axis y"],
+                                              plot_id=plot.identifier,
+                                              margin=0.05)
+            plot.__setstate__(plot_state)
+
+        # auto kde spacing (overrides stored spacing)
+        if gen["auto spacing"]:
+            gen["spacing x"] = abs(np.subtract(*gen["range x"])) / 100
+            gen["spacing y"] = abs(np.subtract(*gen["range y"])) / 100
+            plot.__setstate__(plot_state)
+c
     def check_contour_spacing(self, plot_id):
         """Check the contour spacing for a specific plot against the data
 
@@ -738,6 +760,7 @@ class Pipeline(object):
         if plot_id not in self.plot_ids:
             raise ValueError(f"Plot '{plot_id}' not part of this pipeline!")
         self.check_contour_spacing(plot_id)
+        self.check_auto_range_and_spacing(plot_id)
         return self.plots[self.plot_ids.index(plot_id)]
 
     def get_plot_datasets(self, plot_id, apply_filter=True):

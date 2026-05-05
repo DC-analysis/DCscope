@@ -446,7 +446,7 @@
              <widget class="QDoubleSpinBox" name="doubleSpinBox_spacing_y"/>
             </item>
             <item>
-             <widget class="QToolButton" name="toolButton_spacing_auto">
+             <widget class="QToolButton" name="toolButton_spacing_find_best">
               <property name="text">
                <string>Find best spacing</string>
               </property>
@@ -502,16 +502,6 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_19">
           <item>
-           <widget class="QCheckBox" name="checkBox_auto_range">
-            <property name="text">
-             <string>Auto XY-range</string>
-            </property>
-            <property name="checked">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="horizontalSpacer">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
@@ -523,6 +513,45 @@
              </size>
             </property>
            </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>After clicking apply, set:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButton_auto_xy_range">
+            <property name="toolTip">
+             <string>from minimum to maximum with 5% margin</string>
+            </property>
+            <property name="text">
+             <string>default XY range</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRaise">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="toolButton_auto_kde_spacing">
+            <property name="toolTip">
+             <string>100 bins across the feature axis range</string>
+            </property>
+            <property name="text">
+             <string>default KDE spacing</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="autoRaise">
+             <bool>true</bool>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>

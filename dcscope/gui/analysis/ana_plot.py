@@ -67,8 +67,12 @@ class PlotPanel(QtWidgets.QWidget):
             self.on_column_num_changed)
         self.ui.widget_range_x.range_changed.connect(self.on_range_changed)
         self.ui.widget_range_y.range_changed.connect(self.on_range_changed)
-        # automatically set spacing
-        self.ui.toolButton_spacing_auto.clicked.connect(self.on_spacing_auto)
+        self.ui.doubleSpinBox_spacing_x.valueChanged.connect(
+            self.on_spacing_changed)
+        self.ui.doubleSpinBox_spacing_y.valueChanged.connect(
+            self.on_spacing_changed)        # automatically set spacing
+        self.ui.toolButton_spacing_find_best.clicked.connect(
+            self.on_spacing_find_best)
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
 
@@ -99,7 +103,9 @@ class PlotPanel(QtWidgets.QWidget):
                 "size y": self.ui.spinBox_size_y.value(),
             },
             "general": {
-                "auto range": self.ui.checkBox_auto_range.isChecked(),
+                "auto range": self.ui.toolButton_auto_xy_range.isChecked(),
+                "auto spacing":
+                    self.ui.toolButton_auto_kde_spacing.isChecked(),
                 "axis x": self.ui.comboBox_axis_x.currentData(),
                 "axis y": self.ui.comboBox_axis_y.currentData(),
                 "isoelastics": self.ui.checkBox_isoelastics.isChecked(),
@@ -140,6 +146,7 @@ class PlotPanel(QtWidgets.QWidget):
                                 ],
             }
         }
+
         return state
 
     def write_plot_state(self, state):
@@ -150,6 +157,8 @@ class PlotPanel(QtWidgets.QWidget):
             self.ui.comboBox_axis_y,
             self.ui.widget_range_x,
             self.ui.widget_range_y,
+            self.ui.doubleSpinBox_spacing_x,
+            self.ui.doubleSpinBox_spacing_y,
             self.ui.comboBox_marker_hue,
         ]
 
@@ -167,7 +176,20 @@ class PlotPanel(QtWidgets.QWidget):
         self.ui.spinBox_size_y.setValue(lay["size y"])
         # General
         gen = state["general"]
-        self.ui.checkBox_auto_range.setChecked(gen["auto range"])
+        self.ui.toolButton_auto_xy_range.setChecked(gen["auto range"])
+        self.ui.widget_range_x.write_pipeline_state({
+            "active": True,
+            "start": gen["range x"][0],
+            "end": gen["range x"][1],
+        })
+        self.ui.widget_range_y.write_pipeline_state({
+            "active": True,
+            "start": gen["range y"][0],
+            "end": gen["range y"][1],
+        })
+        self.ui.toolButton_auto_kde_spacing.setChecked(gen["auto spacing"])
+        self._set_kde_spacing(spacing_x=gen["spacing x"],
+                              spacing_y=gen["spacing y"])
         self.ui.comboBox_axis_x.setCurrentIndex(
             self.ui.comboBox_axis_x.findData(gen["axis x"]))
         self.ui.comboBox_axis_y.setCurrentIndex(
@@ -362,7 +384,7 @@ class PlotPanel(QtWidgets.QWidget):
     def _set_kde_spacing_simple(self, axis_x=None, axis_y=None):
         """automatically estimate and set the KDE spacing
 
-        Not to be confused with `on_spacing_auto`!
+        Not to be confused with `on_spacing_find_best`!
         """
         if len(self.pipeline.slots) == 0:
             self.setEnabled(False)
@@ -525,7 +547,7 @@ class PlotPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
-        if self.isVisible():
+        if self.isVisible() and self.plot_ids:
             pp_dict = data.get("pipeline", {})
             if "plot_added" in pp_dict:
                 plot_id = pp_dict.get("plot_added")
@@ -534,6 +556,8 @@ class PlotPanel(QtWidgets.QWidget):
                 else:
                     plot_index = None
                 self.update_content(plot_index)
+            elif pp_dict.get("plot_changed") == self.current_plot.identifier:
+                self.update_content()
 
             pr_dict = data.get("pipeline-rendering", {})
             if "plot_size_changed" in pr_dict:
@@ -558,8 +582,10 @@ class PlotPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     @show_wait_cursor
-    def on_spacing_auto(self):
+    def on_spacing_find_best(self):
         """Iteratively find a good spacing for smooth contours (#110)"""
+        self.ui.toolButton_auto_kde_spacing.setChecked(False)
+
         # https://github.com/DC-analysis/DCscope/issues/110
         plot_id = self.current_plot.identifier
         state = self.read_plot_state()
@@ -603,8 +629,13 @@ class PlotPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_range_changed(self):
-        """User changed x/y range -> disable auto range checkbox"""
-        self.ui.checkBox_auto_range.setChecked(False)
+        """User changed x/y range -> disable auto range button check"""
+        self.ui.toolButton_auto_xy_range.setChecked(False)
+
+    @QtCore.pyqtSlot()
+    def on_spacing_changed(self):
+        """User changed x/y spacing -> disable auto kde spacing button check"""
+        self.ui.toolButton_auto_kde_spacing.setChecked(False)
 
     def show_plot(self, plot_id):
         self.update_content(plot_index=self.plot_ids.index(plot_id))
@@ -658,7 +689,7 @@ class PlotPanel(QtWidgets.QWidget):
                     cb.setCurrentIndex(curidx)
                 cb.blockSignals(False)
             # populate content
-            plot = self.pipeline.plots[plot_index]
+            plot = self.pipeline.get_plot(self.pipeline.plot_ids[plot_index])
             state = plot.__getstate__()
             self.write_plot_state(state)
         else:

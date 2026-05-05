@@ -19,6 +19,7 @@ DEFAULT_STATE = {
     },
     "general": {
         "auto range": True,  # this overrides range x and range y
+        "auto spacing": True,  # this overrides spacing x and spacing y
         "axis x": "area_um",
         "axis y": "deform",
         "isoelastics": True,  # display isoelasticity lines
@@ -68,6 +69,7 @@ STATE_OPTIONS = {
     },
     "general": {
         "auto range": bool,
+        "auto spacing": bool,
         # This is not entirely correct, because `ml_score_???`
         # should also work.
         "axis x": dclab.dfn.scalar_feature_names,
@@ -148,6 +150,15 @@ class Plot:
         for key in ["spacing x", "spacing y"]:
             if key not in state["general"] and key in state["contour"]:
                 state["general"][key] = state["contour"].pop(key)
+
+        # set missing default values
+        for topic in ["general", "scatter", "contour"]:
+            if topic not in state:
+                state[topic] = copy.deepcopy(DEFAULT_STATE[topic])
+            else:
+                for key in DEFAULT_STATE[topic]:
+                    if key not in state[topic]:
+                        state[topic][key] = copy.deepcopy(DEFAULT_STATE[topic][key])
 
         self._state = state
 

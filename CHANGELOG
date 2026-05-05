@@ -4,9 +4,16 @@
  - fix: set NaN-valued KDE of scatter plot points to zero
  - fix: properly close DCOR search background runner in dialog
  - fix: properly stop `EventGetterThread` on exit
+ - fix: due to race condition, sometimes incorrect range was shown in Plot tab
  - enh: give all separate `QThread` object a name
  - enh: remove wait cursor from some methods in QuickView
+ - enh: add "default KDE spacing" checkable button in AnalysisView Plot
+   ("auto spacing" in pipeline `Plot` class)
+ - enh: change "auto range" checkbox to "default XY range" checkable button
+   in AnalysisView Plot
  - ref: migrate from loading .ui files to pyuic6-pregenerated Python files
+ - ref: migrate check for range from `PipelinePlot.update_content`
+   to `Pipeline.check_auto_range_and_spacing`
  - setup: bump dclab to 0.71.7 (ValueError when encountering empty pipeline)
  - ci: bump build pipeline to Python 3.13
 2.26.3

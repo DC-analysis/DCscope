@@ -165,7 +165,6 @@ class PipelinePlot(QtWidgets.QWidget):
 
     def update_content_plot(self, plot_state, slot_states, dslist):
         # abbreviations
-        gen = plot_state["general"]
         lay = plot_state["layout"]
         sca = plot_state["scatter"]
 
@@ -178,18 +177,6 @@ class PipelinePlot(QtWidgets.QWidget):
                 hash_set.add(dcnum_hash)
             else:
                 hash_set.add(None)
-
-        # auto range (overrides stored ranges)
-        if gen["auto range"]:
-            # default range is limits + 5% margin
-            gen["range x"] = self.pipeline.get_min_max(feat=gen["axis x"],
-                                                       plot_id=self.identifier,
-                                                       margin=.05)
-            gen["range y"] = self.pipeline.get_min_max(feat=gen["axis y"],
-                                                       plot_id=self.identifier,
-                                                       margin=0.05)
-            plot = self.pipeline.get_plot(self.identifier)
-            plot.__setstate__(plot_state)
 
         # title
         self.setWindowTitle(lay["name"])
@@ -604,8 +591,8 @@ def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
             yax=plot_state["general"]["axis y"]):
         label = "Contour data unavailable"
     elif num_unreliable_contours or not elements:
-        # Tell the user to refine contour spacing.
-        label = "Please reduce contour spacing"
+        # Tell the user to refine KDE spacing.
+        label = "Please reduce KDE spacing"
     if label:
         add_label(label,
                   anchor_parent=plot_item.axes["bottom"]["item"],
