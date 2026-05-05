@@ -303,7 +303,7 @@ class Pipeline(object):
             gen["spacing x"] = abs(np.subtract(*gen["range x"])) / 100
             gen["spacing y"] = abs(np.subtract(*gen["range y"])) / 100
             plot.__setstate__(plot_state)
-c
+
     def check_contour_spacing(self, plot_id):
         """Check the contour spacing for a specific plot against the data
 
