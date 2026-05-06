@@ -389,11 +389,6 @@ class DCscope(QtWidgets.QMainWindow):
                                             pipeline=self.pipeline,
                                             plot_id=plot_id)
             connect_pp_mod_signals(self, pw)
-            # workaround: these stylesheets make the plot window border nice
-            sub.setStyleSheet("border:0px;")
-            pw.setStyleSheet("border-left:1px solid;"
-                             "border-bottom:1px solid;"
-                             "border-right:1px solid;")
             sub.setWidget(pw)
             pw.update_content()
             self.ui.mdiArea.addSubWindow(sub)
