@@ -48,6 +48,9 @@ class PipelinePlot(QtWidgets.QWidget):
     instances = {}
 
     def __init__(self, parent, pipeline, plot_id, *args, **kwargs):
+        # keeps window from resizing when user updates the plot
+        self._resize_lock = threading.Lock()
+
         super(PipelinePlot, self).__init__(parent=parent, *args, **kwargs)
 
         self.ui = Ui_Form()
@@ -99,7 +102,7 @@ class PipelinePlot(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(QtGui.QResizeEvent)
     def resizeEvent(self, event: QtGui.QResizeEvent):
-        if self.identifier:
+        if self.identifier and not self._resize_lock.locked():
             # Update the plot parameters
             plot_index = self.pipeline.plot_ids.index(self.identifier)
             with self.pipeline.lock:
@@ -146,10 +149,11 @@ class PipelinePlot(QtWidgets.QWidget):
         wsize_x = lay["size x"] + (self._window_decoration_size[0] or 8)
         wsize_y = lay["size y"] + (self._window_decoration_size[1] or 28)
 
-        parent.resize(QtCore.QSize(wsize_x, wsize_y))
+        with self._resize_lock:
+            parent.resize(QtCore.QSize(wsize_x, wsize_y))
 
         if self._window_decoration_size[0] is None:
-            psize = self.parent().sizeHint()
+            psize = parent.sizeHint()
             csize = self.sizeHint()
             if (psize.width() == wsize_x
                 and psize.height() == wsize_y

@@ -572,3 +572,52 @@ def test_contour_plot_with_invalid_percentiles(qtbot, mw):
     assert plot_widget is not None
     if plot_widget.plot_items:
         assert len(plot_widget.plot_items) > 0
+
+
+def test_plot_not_resized_on_apply(qtbot, mw):
+    """
+    When user clicks "Apply", the plot size should remain the same.
+    """
+    qtbot.addWidget(mw)
+
+    # add a dataslot
+    path = datapath / "calibration_beads_47.rtdc"
+    slot_id = mw.add_dataslot(paths=[path])[0]
+
+    # add a plot
+    plot_id = mw.add_plot()
+
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    # Activate the slot-plot pair to show data
+    pe = mw.ui.block_matrix.get_widget(slot_id, plot_id)
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+
+    # activate analysis view
+    pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
+
+    state_a = pv.read_plot_state()
+
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+
+    state_b = pv.read_plot_state()
+
+    qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+
+    state_c = pv.read_plot_state()
+
+    assert state_b["layout"]["size x"] == state_a["layout"]["size x"]
+    assert state_b["layout"]["size y"] == state_a["layout"]["size y"]
+
+    assert state_c["layout"]["size x"] == state_a["layout"]["size x"]
+    assert state_c["layout"]["size y"] == state_a["layout"]["size y"]

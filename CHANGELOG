@@ -1,4 +1,5 @@
 2.27.1
+ - fix: plot resized when applying plot settings in AnalysisView
  - enh: enable rubberband-resize for all subwindows
 2.27.0
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
