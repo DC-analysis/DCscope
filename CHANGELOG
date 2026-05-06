@@ -1,3 +1,5 @@
+2.27.1
+ - enh: enable rubberband-resize for all subwindows
 2.27.0
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
  - fix: switching tabs "View/Features" in QuickView did not update event data
