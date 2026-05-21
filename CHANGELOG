@@ -1,8 +1,9 @@
 2.28.0
  - feat: introduce `TaskManager` and `TaskWorker` for more progress bars
- - enh: migrate data file export to `Taskmanager`
  - fix: plot resized when applying plot settings in AnalysisView
+ - enh: migrate data file export to `Taskmanager`
  - enh: enable rubberband-resize for all subwindows
+ - ref: cleanup main.py with the help of pyright
 2.27.0
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
  - fix: switching tabs "View/Features" in QuickView did not update event data

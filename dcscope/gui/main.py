@@ -79,8 +79,8 @@ class DCscope(QtWidgets.QMainWindow):
                             level=logging.INFO)
 
         # pipeline
-        self.pipeline = None
-        self.widget_quick_view = None
+        self.pipeline: pipeline.Pipeline = None  # type: ignore
+        self.widget_quick_view: quick_view.QuickView = None  # type: ignore
 
         # update check
         self._update_thread = None
@@ -396,7 +396,7 @@ class DCscope(QtWidgets.QMainWindow):
         sub.show()
 
     @QtCore.pyqtSlot(QtCore.QEvent)
-    def closeEvent(self, event):
+    def closeEvent(self, a0: QtCore.QEvent | None):
         """Determine what happens when the user wants to quit"""
         if self.pipeline.slots or self.pipeline.filters:
             closing = self.on_action_clear()
@@ -406,23 +406,31 @@ class DCscope(QtWidgets.QMainWindow):
         if closing:
             if self.widget_quick_view is not None:
                 self.widget_quick_view.close()
-            event.accept()
+            if a0 is not None:
+                a0.accept()
         else:
-            event.ignore()
+            if a0 is not None:
+                a0.ignore()
 
-    @QtCore.pyqtSlot(QtCore.QEvent)
-    def dragEnterEvent(self, e):
+    @QtCore.pyqtSlot(QtGui.QDragEnterEvent)
+    def dragEnterEvent(self, a0: QtGui.QDragEnterEvent | None):
         """Whether files are accepted"""
-        if e.mimeData().hasUrls():
-            e.accept()
-        else:
-            e.ignore()
+        if a0 is not None:
+            mime_data = a0.mimeData()
+            if mime_data is not None and mime_data.hasUrls():
+                a0.accept()
+            else:
+                a0.ignore()
 
-    @QtCore.pyqtSlot(QtCore.QEvent)
+    @QtCore.pyqtSlot(QtGui.QDropEvent)
     @widgets.show_wait_cursor
-    def dropEvent(self, e):
+    def dropEvent(self, a0: QtGui.QDropEvent | None):
         """Add dropped files to view"""
-        urls = e.mimeData().urls()
+        urls = None
+        if a0 is not None:
+            mime_data = a0.mimeData()
+            if mime_data is not None:
+                urls = mime_data.urls()
         if urls:
             pathlist = []
             is_dcor = bool(urls[0].host())
@@ -506,8 +514,9 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(dict)
     def on_action_check_update_finished(self, mdict):
         # cleanup
-        self._update_thread.quit()
-        self._update_thread.wait()
+        if self._update_thread is not None:
+            self._update_thread.quit()
+            self._update_thread.wait()
         self._update_worker = None
         self._update_thread = None
         # display message box
@@ -1019,8 +1028,9 @@ def excepthook(etype, value, trace):
 
 def copy_text_to_clipboard(text):
     cb = QtWidgets.QApplication.clipboard()
-    cb.clear()
-    cb.setText(text)
+    if cb is not None:
+        cb.clear()
+        cb.setText(text)
 
 
 # Make Ctr+C close the app
