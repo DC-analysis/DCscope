@@ -1,6 +1,8 @@
 import logging
 import pathlib
+import threading
 import traceback
+from typing import Callable
 
 from PyQt6 import QtCore, QtTest, QtWidgets
 
@@ -8,6 +10,7 @@ import dclab
 
 from ...util import get_valid_filename
 from ..._version import version
+from ..tasks import TaskManager, TaskAbortError
 from ..widgets import get_directory, show_wait_cursor
 from ..widgets.feature_combobox import HIDDEN_FEATURES
 from .e2data_ui import Ui_Dialog
@@ -138,6 +141,8 @@ class ExportData(QtWidgets.QDialog):
         else:
             features = self.ui.bulklist_features.get_selection()
 
+        tm = TaskManager(self)
+
         # create dummy progress dialog
         prog = QtWidgets.QProgressDialog("Exporting...", "Abort", 1,
                                          10, self)
@@ -156,7 +161,7 @@ class ExportData(QtWidgets.QDialog):
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
-        tasks = []
+        jobs = []
 
         for slot_index, path in slots_n_paths:
             ds = self.pipeline.get_dataset(slot_index)
@@ -174,7 +179,7 @@ class ExportData(QtWidgets.QDialog):
                      + f"They are not exported to .{self.file_format}!")
                 )
             if self.file_format == "rtdc":
-                tasks.append((
+                jobs.append((
                     ds.export.hdf5,
                     dict(path=path,
                          features=[ff for ff in features if ff in ds.features],
@@ -185,7 +190,7 @@ class ExportData(QtWidgets.QDialog):
                          override=False)
                 ))
             elif self.file_format == "fcs":
-                tasks.append((
+                jobs.append((
                     ds.export.fcs,
                     dict(path=path,
                          features=[ff for ff in features if ff in ds.features],
@@ -193,7 +198,7 @@ class ExportData(QtWidgets.QDialog):
                          override=False)
                 ))
             elif self.file_format == "tsv":
-                tasks.append((
+                jobs.append((
                     ds.export.tsv,
                     dict(path=path,
                          features=[ff for ff in features if ff in ds.features],
@@ -201,43 +206,52 @@ class ExportData(QtWidgets.QDialog):
                          override=False)
                 ))
             elif self.ui.radioButton_avi.isChecked():
-                tasks.append((
+                jobs.append((
                     ds.export.avi,
                     dict(path=path,
                          **self.ui.comboBox_codec.currentData())
                 ))
 
-        logger.info(f"Exporting {len(tasks)} objects")
+        logger.info(f"Exporting {len(jobs)} objects")
 
-        exporter = ExportThread(self, tasks)
-        exporter.communicate_progress.connect(prog.setValue)
-        exporter.communicate_message.connect(prog.setLabelText)
-        prog.canceled.connect(exporter.request_abort)
-        exporter.start()
+        task = {"func": perform_export,
+                "args": [],
+                "kwargs": {"jobs": jobs}
+                }
+        tm.add_task(
+            task=task,
+            topic="export",
+            communicate_progress=prog.setValue,
+            communicate_message=prog.setLabelText,
+        )
 
         while True:
-            QtWidgets.QApplication.processEvents(
-                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
             QtTest.QTest.qWait(500)
-            if prog.wasCanceled() or exporter.isFinished():
-                # This will break the loop but possibly keep the exporter
-                # alive. We hope that the exporter will eventually be
-                # terminated.
+            if prog.wasCanceled():
+                tm.abort_task(task)
+                while tm.is_task_running(task):
+                    # force user to wait until the task properly aborted
+                    prog.show()
+                    prog.setLabelText("Aborting, please wait...")
+                    prog.setMaximum(0)
+                    prog.setMinimum(0)
+                    QtTest.QTest.qWait(500)
+                break
+            elif tm.is_task_finished(task):
+                result = tm.get_task_result(task)
+                if result["jobs_failed"]:
+                    info_string = "\n".join(
+                        [f"- {kw['path']}" for _, kw in result["jobs_failed"]])
+                    QtWidgets.QMessageBox.critical(
+                        self,
+                        f"Error exporting {len(result['jobs_failed'])} "
+                        f"datasets",
+                        f"Could not export to the following "
+                        f"paths:\n{info_string}")
                 break
 
-        prog.setValue(pend)
-
-        if prog.wasCanceled():
-            exporter.terminate()
-        else:
-            exporter.wait()
-
-        if exporter.failed_tasks:
-            info_string = "\n".join(
-                [f"- {kw['path']}" for _, kw in exporter.failed_tasks])
-            QtWidgets.QMessageBox.critical(
-                self, f"Error exporting {len(exporter.failed_tasks)} objects",
-                f"Could not export to the following paths:\n{info_string}")
+        prog.deleteLater()
+        tm.close()
 
     def get_export_filenames(self):
         """Compute names for exporting data, avoiding overriding anything
@@ -350,52 +364,62 @@ class ExportData(QtWidgets.QDialog):
         self.on_select_features_innate()
 
 
-class ExportAbortError(BaseException):
-    """Used for aborting data export via progress_callback"""
-    pass
+def perform_export(jobs: list[tuple[Callable, dict]],
+                   communicate_progress: Callable,
+                   communicate_message: Callable,
+                   event_abort: threading.Event
+                   ) -> dict[str, list[tuple[Callable, dict]]]:
+    """Perform data export
 
+    Parameters
+    ----------
+    jobs:
+        list of job dictionaries. Each job consists of a callable and the
+        corresponding keyword arguments.
+    communicate_progress:
+        method for communicating the overall progress
+        (used for progress bar)
+    communicate_message:
+        method for communicating the current progress message
+        (used for progress bar)
+    event_abort:
+        an event that can be set to abort the export
 
-class ExportThread(QtCore.QThread):
-    communicate_progress = QtCore.pyqtSignal(int)
-    communicate_message = QtCore.pyqtSignal(str)
+    Returns
+    -------
+    result:
+        dictionary with "jobs_done" and "jobs_failed" lists
+    """
+    jobs_failed = []
+    jobs_done = []
 
-    def __init__(self, parent, tasks):
-        super(ExportThread, self).__init__(parent)
-        self.abort = False
-        self.tasks = tasks
-        self.current_path = None
-        self.tasks_done = []
-        self.failed_tasks = []
-        self.setObjectName(self.__class__.__name__)
+    def handle_export_progress(idx, progress, message):
+        communicate_progress(int((idx + progress)*100))
+        communicate_message(message)
 
-    def progress_callback(self, progress, message):
-        cur_pos = int((len(self.tasks_done) + progress) * 100)
-        self.communicate_progress.emit(cur_pos)
-        self.communicate_message.emit(f"{self.current_path.name} ({message})")
-        if self.abort:
-            raise ExportAbortError("User aborted")
+    for ii in range(len(jobs)):
+        if event_abort.is_set():
+            break
+        func, kwargs = jobs.pop(0)
+        current_path = pathlib.Path(kwargs["path"])
+        try:
+            func(progress_callback=lambda p, m: (
+                    handle_export_progress(ii, p, m)),
+                 **kwargs)
+        except TaskAbortError:
+            # cleanup: remove current path
+            current_path.unlink(missing_ok=True)
+            raise
+        except BaseException:
+            # remove current path
+            current_path.unlink(missing_ok=True)
+            logger.error(traceback.format_exc())
+            jobs_failed.append((func, kwargs))
+            continue
+        else:
+            jobs_done.append((func, kwargs))
 
-    def run(self):
-        for ii in range(len(self.tasks)):
-            if self.abort:
-                break
-            func, kwargs = self.tasks.pop(0)
-            self.current_path = pathlib.Path(kwargs["path"])
-            try:
-                func(progress_callback=self.progress_callback, **kwargs)
-            except ExportAbortError:
-                # remove current path
-                self.current_path.unlink(missing_ok=True)
-                break
-            except BaseException:
-                # remove current path
-                self.current_path.unlink(missing_ok=True)
-                logger.error(traceback.format_exc())
-                self.failed_tasks.append((func, kwargs))
-                continue
-            finally:
-                self.tasks_done.append((func, kwargs))
-
-    @QtCore.pyqtSlot()
-    def request_abort(self):
-        self.abort = True
+    return {
+        "jobs_done": jobs_done,
+        "jobs_failed": jobs_failed,
+    }

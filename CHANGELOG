@@ -1,5 +1,6 @@
 2.28.0
  - feat: introduce `TaskManager` and `TaskWorker` for more progress bars
+ - enh: migrate data file export to `Taskmanager`
  - fix: plot resized when applying plot settings in AnalysisView
  - enh: enable rubberband-resize for all subwindows
 2.27.0
