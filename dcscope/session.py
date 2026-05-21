@@ -5,6 +5,7 @@ import os
 import pathlib
 import shutil
 import tempfile
+from typing import IO
 import zipfile
 
 import dclab
@@ -36,7 +37,7 @@ class DCscopeSessionJSONEncoder(json.JSONEncoder):
 
 class PathlibJSONDecoder(json.JSONDecoder):
     def __init__(self, *args, **kwargs):
-        super(PathlibJSONDecoder, self).__init__(object_hook=self.object_hook,
+        super(PathlibJSONDecoder, self).__init__(object_hook=self.custom_hook,
                                                  *args, **kwargs)
 
     @staticmethod
@@ -52,10 +53,11 @@ class PathlibJSONDecoder(json.JSONDecoder):
             obj.pop("emodulus model")
             obj["emodulus lut"] = "LE-2D-FEM-19"
 
-    def object_hook(self, obj):
+    @staticmethod
+    def custom_hook(obj):
         if "__type__" in obj and obj["__type__"] == "path":
             return pathlib.Path(obj["__data__"])
-        self.compat_2_5_1(obj)
+        PathlibJSONDecoder.compat_2_5_1(obj)
         return obj
 
 
@@ -89,7 +91,7 @@ def export_filters(path, pipeline, filt_ids=None):
     pathlib.Path(path).write_text(dump)
 
 
-def import_filters(path: pathlib.Path | str,
+def import_filters(path: IO[bytes] | pathlib.Path | str,
                    pipeline: Pipeline,
                    strict: bool = False):
     """Load filters from a JSON file into a pipeline
@@ -110,7 +112,7 @@ def import_filters(path: pathlib.Path | str,
     """
     if isinstance(path, io.IOBase):
         import_filter_set(path, pipeline, strict)
-    else:
+    elif isinstance(path, (str, pathlib.Path)):
         path = pathlib.Path(path)
         if path.suffix == ".poly":
             # add a new polygon filter
@@ -120,6 +122,9 @@ def import_filters(path: pathlib.Path | str,
         else:
             raise ValueError("Unrecognized file extension "
                              + "'{}' for filters.".format(path.suffix))
+    else:
+        raise ValueError(
+            f"Invalid object of type '{type(path)}' provided for 'path'")
 
 
 def import_filter_set(path, pipeline, strict=False):
@@ -287,7 +292,9 @@ def find_file(original_path, search_paths, partial_hash, size_read):
     return path
 
 
-def open_session(path, pipeline=None, search_paths=None):
+def open_session(path: str | pathlib.Path,
+                 pipeline: Pipeline | None = None,
+                 search_paths: list | None = None):
     """Load a session (optionally overriding an existing pipeline)
 
     Parameters
