@@ -76,7 +76,7 @@ def test_task_abort(qtbot):
         QtTest.QTest.qWait(100)
 
     # there should not be any result
-    with pytest.raises(KeyError, match="Could not find result"):
+    with pytest.raises(KeyError, match="is not completed"):
         tm.get_task_result(task)
 
     tm.close()
@@ -109,13 +109,18 @@ def test_task_error(qtbot):
         QtTest.QTest.qWait(100)
 
     # there should not be any result
-    with pytest.raises(KeyError, match="Could not find result"):
+    with pytest.raises(KeyError, match="is not completed"):
         tm.get_task_result(task)
 
     # the error message should be there
     assert error_data["test"][0] == task
     assert error_data["test"][1].__class__ == ValueError
     assert error_data["test"][1].args[0] == "A TEST ERROR"
+
+    error_data_2 = tm.get_task_error(task)
+    assert error_data_2.__class__ == ValueError
+    assert error_data_2.args[0] == "A TEST ERROR"
+
     tm.close()
 
 

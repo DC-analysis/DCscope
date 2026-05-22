@@ -130,20 +130,22 @@ class TaskManager(QtCore.QObject):
             thread.wait()
 
     def get_task_result(self, task):
-        task_id = task["identifier"]
-        for worker in self.workers:
-            if task_id in worker.results:
-                return worker.results.pop(task_id)
+        if task.get("status") == "done":
+            return task["result"]
         else:
-            raise KeyError(f"Could not find result for task '{task_id}'.")
+            raise KeyError(
+                f"Task '{task['identifier']}' is not completed")
+
+    def get_task_error(self, task):
+        if task.get("status") == "error":
+            return task["error"]
+        else:
+            raise KeyError(
+                f"Task '{task['identifier']}' did not raise an error")
 
     def is_task_finished(self, task) -> bool:
         """Check whether the task is finished"""
-        for worker in self.workers:
-            if task["identifier"] in worker.tasks_done:
-                return True
-        else:
-            return False
+        return task.get("status") == "done"
 
     def is_task_running(self, task) -> bool:
         """Check whether the task is finished"""
@@ -152,6 +154,10 @@ class TaskManager(QtCore.QObject):
                 return True
         else:
             return False
+
+    def is_task_failed(self, task) -> bool:
+        """Check whether the task failed"""
+        return task.get("status") == "error"
 
     def _run_next_task_in_thread(self):
         """Run the next task in a thread"""

@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import inspect
 import threading
 import traceback
@@ -30,9 +29,6 @@ class TaskWorker(QtCore.QObject):
         self.state_lock = threading.Lock()
         self._progress_handles = None
         self.current_task_id = None
-        self.tasks_done = []
-        self.results = {}
-
         self.do_task.connect(self.run_task)
 
     def connect_progress_handles(self,
@@ -65,7 +61,7 @@ class TaskWorker(QtCore.QObject):
         with self.state_lock:
             if self.current_task_id == task_id:
                 self.event_abort.set()
-            elif task_id in self.tasks_done:
+            elif task.get("status") == "done":
                 pass
             else:
                 raise KeyError(f"{self} does not run task '{task_id}'")
@@ -117,15 +113,13 @@ class TaskWorker(QtCore.QObject):
         except BaseException as e:
             print(traceback.format_exc())
             self.task_error.emit(task, e)
+            task["status"] = "error"
+            task["error"] = e
         else:
-            self.results[task["identifier"]] = result
-            self.tasks_done.append(task["identifier"])
+            task["status"] = "done"
+            task["result"] = result
             self.task_done.emit(task, result)
-            # keep around 50 items in the tasks_done list
-            if len(self.tasks_done) > 100:
-                for _ in range(50):
-                    tid = self.tasks_done.pop(0)
-                    self.results.pop(tid)
+
         self.current_task_id = None
         with self.state_lock:
             self.event_busy.clear()
