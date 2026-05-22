@@ -385,7 +385,7 @@ def open_session(path: str | pathlib.Path,
         # load slots
         for ii, sstate in enumerate(slot_states):
             communicate_message(f"adding slot {sstate['name']}")
-            communicate_progress(0.1 + 0.4 * (ii + 1) / len(slot_states))
+            communicate_progress(0.1 + 0.8 * (ii + 1) / len(slot_states))
             if event_abort.is_set():
                 pipeline.reset()
                 return pipeline
@@ -399,7 +399,7 @@ def open_session(path: str | pathlib.Path,
         for ii, pn in enumerate(plotnames):
             pstate = json.loads(arc.read(pn))
             communicate_message(f"adding plot {pstate['layout']['name']}")
-            communicate_progress(0.5 + 0.4 * (ii + 1) / len(plotnames))
+            communicate_progress(0.9 + 0.1 * (ii + 1) / len(plotnames))
             if event_abort.is_set():
                 pipeline.reset()
                 return pipeline
