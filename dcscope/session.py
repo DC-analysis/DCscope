@@ -5,7 +5,8 @@ import os
 import pathlib
 import shutil
 import tempfile
-from typing import IO
+import threading
+from typing import Callable, IO
 import zipfile
 
 import dclab
@@ -294,7 +295,11 @@ def find_file(original_path, search_paths, partial_hash, size_read):
 
 def open_session(path: str | pathlib.Path,
                  pipeline: Pipeline | None = None,
-                 search_paths: list | None = None):
+                 search_paths: list | None = None,
+                 communicate_message: Callable | None = None,
+                 communicate_progress: Callable | None = None,
+                 event_abort: threading.Event | None = None,
+                 ) -> Pipeline:
     """Load a session (optionally overriding an existing pipeline)
 
     Parameters
@@ -309,6 +314,10 @@ def open_session(path: str | pathlib.Path,
     """
     if search_paths is None:
         search_paths = []
+    communicate_message = communicate_message or (lambda x: None)
+    communicate_progress = communicate_progress or (lambda x: None)
+    event_abort = event_abort or threading.Event()
+
     path = pathlib.Path(path)
     if pipeline is None:
         pipeline = Pipeline()
@@ -324,7 +333,19 @@ def open_session(path: str | pathlib.Path,
         slot_states = []
         missing_paths = []
         for sn in slotnames:
+            if event_abort.is_set():
+                pipeline.reset()
+                return pipeline
+
             sstate = json.loads(arc.read(sn), cls=PathlibJSONDecoder)
+            if isinstance(sstate['path'], pathlib.Path):
+                # local
+                pname = sstate['path'].name
+            else:
+                # online
+                pname = sstate['path']
+            communicate_message(f"checking {pname}")
+
             slot_id = sstate["identifier"]
             # "formats" was added in 2.1.0 (when dcor format was added)
             ishdf5 = ("formats" not in remarks
@@ -342,6 +363,12 @@ def open_session(path: str | pathlib.Path,
                     missing_paths.append(sstate["path"])
             else:
                 slot_states.append(sstate)
+
+        communicate_progress(0.1)
+        if event_abort.is_set():
+            pipeline.reset()
+            return pipeline
+
         # raise an exception if data files are missing
         if missing_paths:
             # Which files are missing is stored as a property in the exception.
@@ -352,20 +379,37 @@ def open_session(path: str | pathlib.Path,
                 "Some files are missing! You can access them via the "
                 + "`missing_paths` property of this exception.")
         # load filters
+        communicate_message("loading filters")
         import_filters(arc.open("filters.sof"), pipeline, strict=True)
+
         # load slots
-        for sstate in slot_states:
+        for ii, sstate in enumerate(slot_states):
+            communicate_message(f"adding slot {sstate['name']}")
+            communicate_progress(0.1 + 0.4 * (ii + 1) / len(slot_states))
+            if event_abort.is_set():
+                pipeline.reset()
+                return pipeline
+
             pipeline.add_slot(sstate)
+
         # load plots
         plotnames = sorted(
             [n for n in arc.namelist() if n.startswith("plot_")],
             key=lambda x: int(x[5:-5]))  # by index
-        for pn in plotnames:
+        for ii, pn in enumerate(plotnames):
             pstate = json.loads(arc.read(pn))
+            communicate_message(f"adding plot {pstate['layout']['name']}")
+            communicate_progress(0.5 + 0.4 * (ii + 1) / len(plotnames))
+            if event_abort.is_set():
+                pipeline.reset()
+                return pipeline
+
             pipeline.add_plot(pstate)
+
         # load element states
         estates = json.loads(arc.read("matrix.json"))
         pipeline.element_states = estates
+    communicate_progress(1)
     return pipeline
 
 

@@ -2,6 +2,7 @@
  - feat: introduce `TaskManager` and `TaskWorker` for more progress bars
  - fix: plot resized when applying plot settings in AnalysisView
  - enh: migrate data file export to `Taskmanager`
+ - enh: show progress bar when opening a session (uses `Taskmanager`)
  - enh: enable rubberband-resize for all subwindows
  - ref: cleanup main.py, session.py with the help of pyright
 2.27.0

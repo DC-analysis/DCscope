@@ -15,9 +15,9 @@ import pyqtgraph as pg
 import scipy
 from dclab import cached
 from dclab.lme4 import rsetup
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
 from PyQt6.QtCore import QStandardPaths
-from PyQt6.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox, QFileDialog
 
 from .. import pipeline, session
 from .._version import version
@@ -32,6 +32,7 @@ from . import (
     preferences,
     quick_view,
     settings,
+    tasks,
     update,
     widgets,
 )
@@ -146,7 +147,7 @@ class DCscope(QtWidgets.QMainWindow):
         try:
             self.extensions = ExtensionManager(store_path)
         except BaseException:
-            QtWidgets.QMessageBox.warning(
+            QMessageBox.warning(
                 self,
                 "Extensions automatically disabled",
                 "Some extensions could not be loaded and were disabled:\n\n"
@@ -297,7 +298,7 @@ class DCscope(QtWidgets.QMainWindow):
             DCOR URLs. Does not have any effect if `paths` is None.
         """
         if paths is None:
-            fnames, _ = QtWidgets.QFileDialog.getOpenFileNames(
+            fnames, _ = QFileDialog.getOpenFileNames(
                 parent=self,
                 caption="Select an RT-DC measurement",
                 directory=settings.get_dir("add_dataset", self.settings),
@@ -354,9 +355,9 @@ class DCscope(QtWidgets.QMainWindow):
                            "error message during loading.\n")
             for path in failed_paths:
                 failed_text += f"- {path}\n"
-            QtWidgets.QMessageBox.warning(self,
-                                          "Failed to load some datasets",
-                                          failed_text)
+            QMessageBox.warning(self,
+                                "Failed to load some datasets",
+                                failed_text)
 
         return slot_ids
 
@@ -479,7 +480,7 @@ class DCscope(QtWidgets.QMainWindow):
             f"GitHub: <a href='https://github.com/{gh}'>{gh}</a><br>"
             f"Documentation: <a href='https://{rtd}'>{rtd}</a><br>"
         )
-        QtWidgets.QMessageBox.about(self, f"DCscope {version}", about_text)
+        QMessageBox.about(self, f"DCscope {version}", about_text)
 
     @QtCore.pyqtSlot()
     def on_action_change_dataset_order(self):
@@ -523,7 +524,7 @@ class DCscope(QtWidgets.QMainWindow):
         ver = mdict["version"]
         web = mdict["releases url"]
         dlb = mdict["binary url"]
-        msg = QtWidgets.QMessageBox()
+        msg = QMessageBox()
         msg.setWindowTitle("DCscope {} available!".format(ver))
         msg.setTextFormat(QtCore.Qt.TextFormat.RichText)
         text = "You can install DCscope {} ".format(ver)
@@ -548,7 +549,7 @@ class DCscope(QtWidgets.QMainWindow):
             dlg = compute.ComputeSignificance(self, pipeline=self.pipeline)
             dlg.exec()
         else:
-            QtWidgets.QMessageBox.critical(
+            QMessageBox.critical(
                 self, "R not found!",
                 "The R executable was not found. Please add it "
                 + "to the PATH variable or define it manually in the "
@@ -563,11 +564,11 @@ class DCscope(QtWidgets.QMainWindow):
     def on_action_clear(self):
         """Clear the entire session"""
         if bool(int(self.settings.value("advanced/user confirm clear", "1"))):
-            button_reply = QtWidgets.QMessageBox.question(
+            button_reply = QMessageBox.question(
                 self, 'Clear Session', "All progress will be lost. Continue?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QtWidgets.QMessageBox.StandardButton.No)
-            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+                QMessageBox.StandardButton.No)
+            yes = button_reply == QMessageBox.StandardButton.Yes
         else:
             yes = True
         if yes:
@@ -581,12 +582,12 @@ class DCscope(QtWidgets.QMainWindow):
     def on_action_clear_datasets(self):
         """Clear only the datasets"""
         if bool(int(self.settings.value("advanced/user confirm clear", "1"))):
-            button_reply = QtWidgets.QMessageBox.question(
+            button_reply = QMessageBox.question(
                 self, 'Clear Datasets',
                 "Remove all datasets from this session?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QtWidgets.QMessageBox.StandardButton.No)
-            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+                QMessageBox.StandardButton.No)
+            yes = button_reply == QMessageBox.StandardButton.Yes
         else:
             yes = True
         if yes:
@@ -655,14 +656,14 @@ class DCscope(QtWidgets.QMainWindow):
             filters = self.pipeline.get_filters_for_slot(slot.identifier)
             filt_dict[ray_path] = [ff.identifier for ff in filters]
         if dcor_data:
-            QtWidgets.QMessageBox.warning(
+            QMessageBox.warning(
                 self,
                 "Some datasets are DCOR data for which no filter rays ",
                 "will be exported:\n\n"
                 + "\n".join([str(p) for p in list(set(dcor_data))])
             )
         if double_paths:
-            QtWidgets.QMessageBox.warning(
+            QMessageBox.warning(
                 self,
                 "Same datasets loaded in different slots",
                 "The following datasets are loaded twice. Only the first "
@@ -670,13 +671,13 @@ class DCscope(QtWidgets.QMainWindow):
                 + "\n".join([str(p) for p in list(set(double_paths))])
             )
         if existing_paths:
-            button_reply = QtWidgets.QMessageBox.question(
+            button_reply = QMessageBox.question(
                 self,
                 "Override existing files?",
                 "The following files already exist, override?\n\n"
                 + "\n".join([str(p) for p in existing_paths])
             )
-            yes = button_reply == QtWidgets.QMessageBox.StandardButton.Yes
+            yes = button_reply == QMessageBox.StandardButton.Yes
             if yes:
                 # if the user agrees, these files will be overridden
                 existing_paths.clear()
@@ -702,7 +703,7 @@ class DCscope(QtWidgets.QMainWindow):
             path to the filter to impoert
         """
         if path is None:
-            path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            path, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption='Select Filter',
                 directory=settings.get_dir("filters", self.settings),
@@ -721,45 +722,124 @@ class DCscope(QtWidgets.QMainWindow):
             if not self.on_action_clear():
                 return
         if path is None:
-            path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            path, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption='Open session',
                 directory=settings.get_dir("session", self.settings),
                 filter='DCscope session (*.so2)',
                 initialFilter='DCscope session (*.so2)',
-                options=QtWidgets.QFileDialog.Option.DontUseNativeDialog)
+                options=QFileDialog.Option.DontUseNativeDialog)
         if path:
             settings.set_dir("session", path, self.settings)
+            self.show()
             with self.pipeline.lock:
+                tm = tasks.TaskManager(self)
+
+                # create dummy progress dialog
+                prog = QtWidgets.QProgressDialog("Loading session...", "Abort",
+                                                 0, 1000, self)
+                prog.setWindowTitle(
+                    f"Loading session {pathlib.Path(path).name}")
+                prog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+                prog.setMinimumDuration(0)
+                prog.setAutoClose(True)
+                QtWidgets.QApplication.processEvents(
+                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
                 search_paths = []
-                while True:
-                    try:
-                        with widgets.ShowWaitCursor():
-                            session.open_session(path=path,
-                                                 pipeline=self.pipeline,
-                                                 search_paths=search_paths)
-                    except session.DataFileNotFoundError as e:
-                        missds = "\r".join([str(pp) for pp in e.missing_paths])
-                        msg = QtWidgets.QMessageBox()
-                        msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
-                        msg.setText("Some datasets were not found! "
-                                    + "Please specify a search location.")
-                        msg.setWindowTitle(
-                            f"Missing {len(e.missing_paths)} dataset(s)")
-                        msg.setDetailedText("Missing files: \n\n" + missds)
-                        msg.exec()
-                        spath = QtWidgets.QFileDialog.getExistingDirectory(
-                            self, 'Data search path')
-                        if spath:
-                            search_paths.append(spath)
-                        else:
+                while not prog.wasCanceled():
+                    task = {
+                        "func": session.open_session,
+                        "args": [],
+                        "kwargs": {"path": path,
+                                   "pipeline": self.pipeline,
+                                   "search_paths": search_paths,
+                                   }
+                    }
+
+                    tm.add_task(
+                        task=task,
+                        topic="session-load",
+                        communicate_progress=lambda x: (
+                            prog.setValue(int(x*1000))),
+                        communicate_message=prog.setLabelText,
+                    )
+
+                    while True:
+                        while not tm.is_task_running(task):
+                            # wait initially for the task to start
+                            if tm.is_task_finished(task):
+                                # task was too fast, already finished
+                                break
+                            if tm.is_task_failed(task):
+                                break
+                            QtTest.QTest.qWait(100)
+
+                        if prog.wasCanceled():
+                            # user pressed cancel
+                            tm.abort_task(task)
+                            while tm.is_task_running(task):
+                                # force user to wait until the task
+                                # properly aborted
+                                prog.show()
+                                prog.setLabelText("Aborting, please wait...")
+                                prog.setMaximum(0)
+                                prog.setMinimum(0)
+                                QtTest.QTest.qWait(500)
                             break
-                    else:
+                        elif tm.is_task_running(task):
+                            # wait for task to finish
+                            QtTest.QTest.qWait(100)
+                        elif tm.is_task_finished(task):
+                            # good, we are done
+                            break
+                        elif tm.is_task_failed(task):
+                            # processing failed, probably due to session
+                            # files not being found.
+                            e = tm.get_task_error(task)
+                            if e.__class__ == session.DataFileNotFoundError:
+                                missds = "\r".join(
+                                    [str(pp) for pp in e.missing_paths])
+                                msg = QMessageBox()
+                                msg.setIcon(QMessageBox.Icon.Warning)
+                                msg.setText(
+                                    "Some datasets were not found! "
+                                    "Please specify a search location.")
+                                msg.setWindowTitle(
+                                    f"Missing {len(e.missing_paths)} "
+                                    f"dataset(s)")
+                                msg.setDetailedText(
+                                    "Missing files: \n\n" + missds)
+                                msg.exec()
+                                spath = QFileDialog.getExistingDirectory(
+                                    self, 'Data search path')
+                                if spath:
+                                    search_paths.append(spath)
+                                else:
+                                    # user did not select a path -> cancel
+                                    prog.cancel()
+                                break
+                            else:
+                                raise e
+                        else:
+                            raise ValueError("Unexpected run condition")
+
+                    if tm.is_task_finished(task):
+                        # break when the task is finished
                         break
-                self.show()
-            self.pp_mod_send.emit({"pipeline": {"session_opened": str(path)}})
-            self.setWindowTitle(
-                f"{pathlib.Path(path).name} [DCscope {version}]")
+
+            tm.close()
+            if prog.wasCanceled():
+                with self.pipeline.lock:
+                    self.pipeline.reset()
+                title = f"DCscope {version}"
+                self.pp_mod_send.emit({"pipeline": {"cleared": "full"}})
+            else:
+                title = f"{pathlib.Path(path).name} [DCscope {version}]"
+                self.pp_mod_send.emit(
+                    {"pipeline": {"session_opened": str(path)}})
+            prog.deleteLater()
+            self.setWindowTitle(title)
 
     @QtCore.pyqtSlot()
     def on_action_preferences(self):
@@ -771,7 +851,7 @@ class DCscope(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def on_action_save(self):
-        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+        path, _ = QFileDialog.getSaveFileName(
             parent=self,
             caption='Save session',
             directory=settings.get_dir("session", self.settings),
@@ -802,7 +882,7 @@ class DCscope(QtWidgets.QMainWindow):
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
         if hasattr(sys, 'frozen'):
             sw_text += "\nThis executable has been created using PyInstaller."
-        QtWidgets.QMessageBox.information(self, "Software", sw_text)
+        QMessageBox.information(self, "Software", sw_text)
 
     @QtCore.pyqtSlot(int)
     def on_remove_polygon_filter_from_pipeline(self, pf_id):
@@ -827,8 +907,8 @@ class DCscope(QtWidgets.QMainWindow):
     def on_new_polygon_filter(self):
         """Create a new polygon filter"""
         if not self.pipeline.slots:
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Critical)
             msg.setText("A dataset is required for creating a polygon filter!")
             msg.setWindowTitle("No dataset loaded")
             msg.exec()
@@ -853,8 +933,8 @@ class DCscope(QtWidgets.QMainWindow):
     def on_edit_polygon_filter(self, polygon_filter_id):
         """Edit a polygon filter"""
         if not self.pipeline.slots:
-            msg = QtWidgets.QMessageBox()
-            msg.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Icon.Critical)
             msg.setText("A dataset is required for editing a polygon filter!")
             msg.setWindowTitle("No dataset loaded")
             msg.exec()
@@ -1014,13 +1094,13 @@ def excepthook(etype, value, trace):
 
     logger.error(exc_long)
 
-    errorbox = QtWidgets.QMessageBox()
-    errorbox.setIcon(QtWidgets.QMessageBox.Icon.Critical)
+    errorbox = QMessageBox()
+    errorbox.setIcon(QMessageBox.Icon.Critical)
     copy_button = QtWidgets.QPushButton('Copy message to clipboard and close')
     copy_button.clicked.connect(lambda: copy_text_to_clipboard(exc_long))
     errorbox.addButton(QtWidgets.QPushButton('Close'),
-                       QtWidgets.QMessageBox.ButtonRole.YesRole)
-    errorbox.addButton(copy_button, QtWidgets.QMessageBox.ButtonRole.NoRole)
+                       QMessageBox.ButtonRole.YesRole)
+    errorbox.addButton(copy_button, QMessageBox.ButtonRole.NoRole)
     errorbox.setDetailedText(exc_long)
     errorbox.setText(exc_short)
     errorbox.exec()
