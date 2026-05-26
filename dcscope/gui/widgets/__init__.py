@@ -1,4 +1,4 @@
-# flake8: noqa: F401
+# flake8: noqa
 from .bg_thread import run_async, run_async_class
 from .double_spin_box_nan import DoubleSpinBoxNan
 from .feature_combobox import FeatureComboBox
@@ -11,5 +11,5 @@ from .simple_image_view import SimpleImageView
 from .simple_plot_widget import (SimplePlotItem,
                                  SimplePlotWidget,
                                  SimpleViewBox)
-from .so_colorbaritem import DCscopeColorBarItem
+from .colorbaritem import DCscopeColorBarItem, get_colormap
 from .wait_cursor import show_wait_cursor, ShowWaitCursor
