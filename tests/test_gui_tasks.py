@@ -126,6 +126,47 @@ def test_task_abort_without_callback(qtbot):
     tm.close()
 
 
+def test_task_abort_with_event(qtbot):
+    """Aborting via the event_abort kwarg"""
+    mw = QtWidgets.QMainWindow()
+
+    def method(argument, event_abort):
+        # give manager enough time to abort this job
+        for _ in range(100):
+            # call this method to trigger the TaskAbortError exceptin in worker
+            if event_abort.is_set():
+                return
+            time.sleep(0.1)
+        return argument * 2
+
+    tm = TaskManager(mw)
+
+    task = {
+        "func": method,
+        "args": [1],
+        "kwargs": {},
+    }
+
+    tm.add_task(
+        task,
+    )
+    assert "identifier" in task
+
+    while not tm.is_task_running(task):
+        QtTest.QTest.qWait(100)
+
+    tm.abort_task(task)
+
+    while tm.is_task_running(task):
+        QtTest.QTest.qWait(100)
+
+    # there should not be any result
+    with pytest.raises(KeyError, match="is not completed"):
+        tm.get_task_result(task)
+
+    tm.close()
+
+
 def test_task_error(qtbot):
     mw = QtWidgets.QMainWindow()
 

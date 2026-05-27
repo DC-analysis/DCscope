@@ -71,6 +71,7 @@ class TaskWorker(QtCore.QObject):
         with self.state_lock:
             if self.current_task_id == task_id:
                 self.event_abort.set()
+                task["status"] = "aborted"
             elif task.get("status") == "done":
                 pass
             else:
@@ -126,9 +127,10 @@ class TaskWorker(QtCore.QObject):
             task["status"] = "error"
             task["error"] = e
         else:
-            task["status"] = "done"
-            task["result"] = result
-            self.task_done.emit(task, result)
+            if not self.event_abort.is_set():
+                task["status"] = "done"
+                task["result"] = result
+                self.task_done.emit(task, result)
 
         self.current_task_id = None
         with self.state_lock:
