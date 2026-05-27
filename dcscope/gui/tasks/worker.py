@@ -31,15 +31,25 @@ class TaskWorker(QtCore.QObject):
         self.current_task_id = None
         self.do_task.connect(self.run_task)
 
+    @QtCore.pyqtSlot()
+    def _dummy_progress(self):
+        return None
+
     def connect_progress_handles(self,
                                  communicate_progress,
                                  communicate_message):
+        # If the communication methods are not given, then use a dummy method.
+        # If the task "func" supports progress monitoring, then we will be
+        # able to abort it with `TaskAbortError`.
+        if communicate_progress is None:
+            communicate_progress = self._dummy_progress
+        if communicate_message is None:
+            communicate_message = self._dummy_progress
+
+        self.communicate_message.connect(communicate_message)
+        self.communicate_progress.connect(communicate_progress)
         self._progress_handles = (
             communicate_progress, communicate_message)
-        if communicate_progress is not None:
-            self.communicate_progress.connect(communicate_progress)
-        if communicate_message is not None:
-            self.communicate_message.connect(communicate_message)
 
     def disconnect_progress_handles(self):
         if self._progress_handles is not None:
