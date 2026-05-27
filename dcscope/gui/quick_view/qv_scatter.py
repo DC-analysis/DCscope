@@ -1,12 +1,9 @@
 import numpy as np
 import pyqtgraph as pg
 from PyQt6 import QtCore
-from pyqtgraph.graphicsItems.GradientEditorItem import Gradients
-
-from dclab.util import hashobj
 
 from .. import pipeline_plot
-from ..widgets import SimplePlotWidget, SimpleViewBox
+from ..widgets import SimplePlotWidget, SimpleViewBox, get_colormap
 
 
 class QuickViewScatterWidget(SimplePlotWidget):
@@ -24,11 +21,10 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.addItem(self.scatter)
         self.addItem(self.select)
         self.select.hide()
+        self.xax = None
+        self.yax = None
         self.xscale = "linear"
         self.yscale = "linear"
-        self.kde_type = "none",
-        self.hue_type = "none"
-        self.hue_kwargs = {}
         #: Boolean array identifying the plotted events w.r.t. the full
         #: dataset
         self.events_plotted = None
@@ -38,9 +34,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.data_y = None
 
         # polygon editing ROI
-        self.poly_line_roi = None
-
-        self._last_plot_hash = None
+        self.poly_line_roi: pg.PolyLineROI | None = None
 
         # Signals for mouse click
         # let view box update the selected event in the scatter plot
@@ -49,7 +43,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self._view_box.add_poly_vertex.connect(self.add_poly_vertex)
 
     def activate_poly_mode(self, points=None):
-        self.scene().hoverItems.clear()
+        self.clear_hover()
         if points is None:
             points = []
         if self.poly_line_roi is None:
@@ -65,16 +59,26 @@ class QuickViewScatterWidget(SimplePlotWidget):
         return self.poly_line_roi
 
     def activate_scatter_mode(self):
-        self.scene().hoverItems.clear()
+        self.clear_hover()
         if self.poly_line_roi is not None:
             self.removeItem(self.poly_line_roi)
             self.poly_line_roi = None
         self.set_mouse_click_mode("scatter")
 
     def add_poly_vertex(self, pos):
+        if self.poly_line_roi is None:
+            raise ValueError("No polygon selection active!")
         state = self.poly_line_roi.getState()
         state["points"].append([pos.x(), pos.y()])
         self.poly_line_roi.setState(state)
+
+    def clear_hover(self):
+        scene = self.scene()
+        if scene is not None:
+            scene.hoverItems.clear()  # type: ignore
+
+    def get_axes_names(self):
+        return self.xax, self.yax
 
     def get_poly_points(self):
         if self.poly_line_roi is None:
@@ -90,73 +94,34 @@ class QuickViewScatterWidget(SimplePlotWidget):
             points[:, 1] = 10**points[:, 1]
         return points
 
-    def plot_data(self, rtdc_ds, slot, xax="area_um", yax="deform",
-                  xscale="linear", yscale="linear", downsample=False,
-                  hue_type="none", hue_kwargs=None, isoelastics=False,
-                  lut_identifier=None):
+    def plot_data(self, rtdc_ds, slot, plot_state, hue_kwargs, hue_type,
+                  x, y, kde, idx, isoelastics=False, lut_identifier=None):
 
-        self.scene().hoverItems.clear()
+        self.clear_hover()
         self.rtdc_ds = rtdc_ds
         self.slot = slot
-        self.xax = xax
-        self.yax = yax
-        self.xscale = xscale
-        self.yscale = yscale
-        self.hue_type = hue_type
-        self.hue_kwargs = hue_kwargs if hue_kwargs else {}
-        if hue_type != "kde":
-            self.kde_type = "none"
-        else:
-            self.kde_type = hue_kwargs["kde_type"]
-
-        # Determine whether we are plotting the same thing.
-        plot_hash = hashobj([
-            rtdc_ds.identifier, rtdc_ds[xax], rtdc_ds[yax], slot,
-            xax, yax, xscale, yscale, downsample, hue_type, hue_kwargs,
-            isoelastics, lut_identifier])
-        if plot_hash == self._last_plot_hash:
-            # same plot, nothing to do
-            return
-
-        plot_state = {
-            "general": {
-                "axis x": self.xax,
-                "axis y": self.yax,
-                "scale x": self.xscale,
-                "scale y": self.yscale,
-                "kde": self.kde_type,
-                # let dclab estimate the spacing
-                "spacing x": None,
-                "spacing y": None,
-            },
-            "contour": {
-            },
-            "scatter": {
-                "downsample": bool(downsample),
-                "downsampling value": downsample,
-            }
-
-        }
-        x, y, kde, idx = pipeline_plot.compute_scatter_data_from_state(
-            plot_state=plot_state,
-            rtdc_ds=rtdc_ds)
+        self.xax = plot_state["general"]["axis x"]
+        self.yax = plot_state["general"]["axis y"]
+        self.xscale = plot_state["general"]["scale x"]
+        self.yscale = plot_state["general"]["scale y"]
+        hue_kwargs = hue_kwargs if hue_kwargs else {}
 
         self.events_plotted = idx
         #: unfiltered x data
         self.data_x = self.rtdc_ds[self.xax]
         #: unfiltered y data
         self.data_y = self.rtdc_ds[self.yax]
-        if self.hue_type == "none":
+        if hue_type == "none":
             brush = "k"
         else:
             # define colormap
             brush = []
-            cmap = pg.ColorMap(*zip(*Gradients["viridis"]["ticks"]))
-            if self.hue_type == "kde":
+            cmap = get_colormap("viridis")
+            if hue_type == "kde":
                 for k in kde:
                     brush.append(cmap.mapToQColor(k))
-            elif self.hue_type == "feature":
-                fdata = self.rtdc_ds[self.hue_kwargs["feat"]][idx]
+            elif hue_type == "feature":
+                fdata = self.rtdc_ds[hue_kwargs["feat"]][idx]
                 fdata -= fdata.min()
                 fdata = np.array(fdata, dtype=float)  # cast int to float
                 fdata /= fdata.max()
@@ -200,10 +165,8 @@ class QuickViewScatterWidget(SimplePlotWidget):
                 pixel_size=cfg["imaging"]["pixel size"],
                 lut_identifier=lut_identifier)
 
-        self._last_plot_hash = plot_hash
-
     def set_mouse_click_mode(self, mode):
-        self.scene().hoverItems.clear()
+        self.clear_hover()
         allowed = ["scatter", "poly-create", "poly-modify"]
         if mode not in allowed:
             raise ValueError("Invalid mouse mode: {}, ".format(mode)
@@ -215,7 +178,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self._view_box.mode = mode
 
     def set_poly_points(self, points):
-        self.scene().hoverItems.clear()
+        self.clear_hover()
         if self.poly_line_roi is None:
             raise ValueError("No polygon selection active!")
         points = np.array(points, copy=True)
@@ -229,7 +192,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
             self.poly_line_roi.setState(state)
 
     def setData(self, x, y, **kwargs):
-        self.scene().hoverItems.clear()
+        self.clear_hover()
         # convert to log-scale if applicable
         if self.xscale == "log":
             x = np.log10(x)
@@ -239,10 +202,11 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.scatter.setData(x=x, y=y, **kwargs)
 
     def setSelection(self, event_index):
-        self.scene().hoverItems.clear()
-        x = self.data_x[event_index]
-        y = self.data_y[event_index]
-        self.select.setData([x], [y])
+        if self.data_x is not None and self.data_y is not None:
+            self.clear_hover()
+            x = self.data_x[event_index]
+            y = self.data_y[event_index]
+            self.select.setData([x], [y])
 
 
 class QuickViewViewBox(SimpleViewBox):
@@ -299,8 +263,8 @@ class RTDCScatterPlot(pg.ScatterPlotItem):
         ph = self.pixelHeight()
 
         # compute the distances of all points to x and y
-        dists = np.abs((self.data["x"] - x)/pw) \
-            + np.abs((self.data["y"] - y)/ph)
+        dists = (np.abs((self.data["x"] - x)/pw)  # type: ignore
+                 + np.abs((self.data["y"] - y)/ph))  # type: ignore
         ide = np.argmin(dists)
 
         # calling `self.points` populates the data["item"] column.

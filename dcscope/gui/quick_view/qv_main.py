@@ -4,14 +4,16 @@ import logging
 import pathlib
 
 import dclab
+from dclab.util import hashobj
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
 import pyqtgraph as pg
 
-from ... import idiom, util
+from ... import idiom, util, pipeline
 
 from ..compute.comp_stats import STAT_METHODS
-from ..widgets import show_wait_cursor
+from .. import pipeline_plot
+from ..tasks import TaskManager
 
 from .qv_event_getter import EventGetterThread
 from .import qv_image_vis as qvvis
@@ -42,15 +44,20 @@ class QuickView(QtWidgets.QWidget):
     def __init__(self, *args, **kwargs):
         self._hover_ds_id = None
         self._hover_event_idx = None
+
         super(QuickView, self).__init__(*args, **kwargs)
+        self.tm = TaskManager(self)
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.pipeline = None
+        self.pipeline: pipeline.Pipeline = None  # type: ignore
         self.current_pipeline_element = None
         self._last_event_data = None
         self._last_cmap_pha = {}
+
+        # very simple strategy to avoid unnecessary plot updates
+        self._last_plot_hash = None
 
         # set event view as default page
         self.ui.stackedWidget.setCurrentIndex(1)
@@ -215,6 +222,7 @@ class QuickView(QtWidgets.QWidget):
         self._statistics_cache = collections.OrderedDict()
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
+        self.tm.task_done.connect(self.on_task_done)
 
     def _set_initial_ui(self):
         self._hover_ds_id = None
@@ -253,6 +261,7 @@ class QuickView(QtWidgets.QWidget):
         self.ui.comboBox_z_hue.set_dataset(rtdc_ds)
 
     def closeEvent(self, a0):
+        self.tm.close()
         self.event_getter.close()
         return super(QuickView, self).closeEvent(a0)
 
@@ -635,7 +644,7 @@ class QuickView(QtWidgets.QWidget):
         points = self.ui.widget_scatter.get_poly_points()
         name = self.ui.lineEdit_poly.text()
         inverted = self.ui.checkBox_poly.isChecked()
-        axes = self.ui.widget_scatter.xax, self.ui.widget_scatter.yax
+        axes = self.ui.widget_scatter.get_axes_names()
         # determine whether to create a new polygon filter or whether
         # to update an existing one.
         idp = self.ui.comboBox_poly.currentData()
@@ -709,7 +718,7 @@ class QuickView(QtWidgets.QWidget):
         show_settings = False
         sender = self.sender()
 
-        if sender in toblock:
+        if isinstance(sender, QtWidgets.QToolButton) and sender in toblock:
             # prevent a tool buttons from unchecking itself
             sender.setChecked(True)
 
@@ -757,13 +766,14 @@ class QuickView(QtWidgets.QWidget):
 
         self.update()
 
-    @show_wait_cursor
-    @QtCore.pyqtSlot()
-    def plot(self):
-        """Update the plot using the current state of the UI"""
-        if self.rtdc_ds is not None:
-            plot = self.read_pipeline_state()["plot"]
-            downsample = plot["downsampling"] * plot["downsampling value"]
+    @QtCore.pyqtSlot(dict, object)
+    def on_task_done(self, task, result):
+        """When a task in the task manager is done"""
+        if task["func"] is pipeline_plot.compute_scatter_data_from_state:
+            # We have new plot data
+            # Get the colorization from the UI. Since the UI was disabled
+            # during data computation, the values after computation are
+            # the same as before.
             hue_kwargs = {}
             if self.ui.checkBox_hue.isChecked():
                 hue_type = self.ui.comboBox_hue.currentData()
@@ -774,28 +784,113 @@ class QuickView(QtWidgets.QWidget):
             else:
                 hue_type = "none"
 
-            self.ui.widget_scatter.plot_data(rtdc_ds=self.rtdc_ds,
-                                             slot=self.slot,
-                                             downsample=downsample,
-                                             xax=plot["axis x"],
-                                             yax=plot["axis y"],
-                                             xscale=plot["scale x"],
-                                             yscale=plot["scale y"],
-                                             hue_type=hue_type,
-                                             hue_kwargs=hue_kwargs,
-                                             isoelastics=plot["isoelastics"],
-                                             lut_identifier=plot["lut"])
-            # make sure the correct plot items are visible
-            # (e.g. scatter select)
-            self.on_tool()
+            # These are the results from the computation in the task manager.
+            x, y, kde, idx = result
+
+            self.setEnabled(True)
+            plot_state = task["kwargs"]["plot_state"]
+
+            # This still blocks the UI, but plotting must be don in the
+            # main thread.
+            self.ui.widget_scatter.plot_data(
+                rtdc_ds=task["kwargs"]["rtdc_ds"],
+                plot_state=plot_state,
+                slot=self.slot,
+                hue_kwargs=hue_kwargs,
+                hue_type=hue_type,
+                x=x,
+                y=y,
+                kde=kde,
+                idx=idx,
+            )
+            self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
             # update polygon filter axis names
             self.ui.label_poly_x.setText(
-                dclab.dfn.get_feature_label(plot["axis x"]))
+                dclab.dfn.get_feature_label(plot_state["general"]["axis x"]))
             self.ui.label_poly_y.setText(
-                dclab.dfn.get_feature_label(plot["axis y"]))
-            self.show_statistics()
-            # Make sure features are properly colored in the comboboxes
-            self.update_feature_choices()
+                dclab.dfn.get_feature_label(plot_state["general"]["axis y"]))
+        elif "show_event" in task.get("kwargs", {}):
+            # This just triggers showing single event data on the right
+            # hand side and labels the event with a blue dot in the
+            # scatter plot.
+            try:
+                self.show_event(task["kwargs"]["show_event"])
+            except IndexError:
+                pass
+
+        # make sure the correct plot items are visible
+        # (e.g. scatter select)
+        self.on_tool()
+        self.show_statistics()
+        # Make sure features are properly colored in the comboboxes
+        self.update_feature_choices()
+
+    @QtCore.pyqtSlot()
+    def plot(self, show_event: int | None = None):
+        """Update the plot using the current state of the UI"""
+        if self.rtdc_ds is not None:
+            plot = self.read_pipeline_state()["plot"]
+            downsample = plot["downsampling"] * plot["downsampling value"]
+            kde_type = "none"
+            kde_hue = "none"
+            kde_feat = "none"
+            if self.ui.checkBox_hue.isChecked():
+                kde_hue = self.ui.comboBox_hue.currentData()
+                if kde_hue == "kde":
+                    kde_type = "histogram"
+                else:
+                    kde_feat = self.ui.comboBox_z_hue.currentData()
+
+            # Determine whether we are plotting the same thing.
+            xax = plot["axis x"]
+            yax = plot["axis y"]
+            plot_state = {
+                "general": {
+                    "axis x": xax,
+                    "axis y": yax,
+                    "scale x": plot["scale x"],
+                    "scale y": plot["scale y"],
+                    "kde": kde_type,
+                    # let dclab estimate the spacing
+                    "spacing x": None,
+                    "spacing y": None,
+                },
+                "contour": {
+                },
+                "scatter": {
+                    "downsample": bool(downsample),
+                    "downsampling value": downsample,
+                }
+            }
+
+            plot_hash = hashobj([
+                self.rtdc_ds.identifier, self.rtdc_ds[xax], self.rtdc_ds[yax],
+                self.slot, plot_state, plot["isoelastics"], plot["lut"],
+                kde_type, kde_hue, kde_feat,
+            ])
+            if plot_hash != self._last_plot_hash:
+                self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
+                self.setEnabled(False)
+                task = {"func": pipeline_plot.compute_scatter_data_from_state,
+                        "kwargs": {"plot_state": plot_state,
+                                   "rtdc_ds": self.rtdc_ds}
+                        }
+                self.tm.add_task(
+                    task=task,
+                    topic="quickview-scatter",
+                    reset_topic=True,
+                    )
+                self._last_plot_hash = plot_hash
+
+            if show_event is not None:
+                self.tm.add_task(
+                    task={"func": lambda show_event: show_event,
+                          "kwargs": {"show_event": show_event}},
+                    # Use the same topic. If we reset a topic for a consecutive
+                    # job (see above), then the "show_event" task will also be
+                    # removed from the queue.
+                    topic="quickview-scatter",
+                )
 
     @QtCore.pyqtSlot()
     def plot_auto(self):
@@ -867,7 +962,6 @@ class QuickView(QtWidgets.QWidget):
                 vals.append(val)
             self.ui.tableWidget_feats.set_key_vals(keys, vals)
 
-    @show_wait_cursor
     @QtCore.pyqtSlot(object, object)
     def show_rtdc(self, rtdc_ds, slot):
         """Display an RT-DC measurement given by `path` and `filters`"""
@@ -928,11 +1022,7 @@ class QuickView(QtWidgets.QWidget):
         # set quick view state
         self.write_pipeline_state(state)
         # scatter plot
-        self.plot()
-        try:
-            self.show_event(event_index)
-        except IndexError:
-            self.show_event(0)
+        self.plot(show_event=event_index)
 
         # this only updates the size of the tools (because there is no
         # sender)
