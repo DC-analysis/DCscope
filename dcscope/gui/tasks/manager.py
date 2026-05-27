@@ -45,6 +45,12 @@ class TaskManager(QtCore.QObject):
         self.timer.timeout.connect(self._run_next_task_in_thread)
         self.timer.start(500)
 
+        self.timer_ss = QtCore.QTimer(self)
+        self.timer_ss.setSingleShot(True)
+        self.timer_ss.timeout.connect(self._run_next_task_in_thread)
+
+        self.task_done.connect(self.trigger_next)
+
     @property
     def num_tasks_running(self):
         """Number of tasks currently running"""
@@ -123,6 +129,9 @@ class TaskManager(QtCore.QObject):
         q.append((task, communicate_progress, communicate_message))
         self.logger.info(f"Queued task '{task['identifier']}'")
 
+        # trigger immediate processing
+        self.trigger_next()
+
     def close(self):
         self.quit_threads.emit()
         for thread in self.threads:
@@ -158,6 +167,11 @@ class TaskManager(QtCore.QObject):
     def is_task_failed(self, task) -> bool:
         """Check whether the task failed"""
         return task.get("status") == "error"
+
+    @QtCore.pyqtSlot()
+    def trigger_next(self):
+        """Immediately trigger running the next task"""
+        self.timer_ss.singleShot(0, self._run_next_task_in_thread)
 
     def _run_next_task_in_thread(self):
         """Run the next task in a thread"""
