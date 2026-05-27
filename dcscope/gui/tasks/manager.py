@@ -22,9 +22,9 @@ class TaskManager(QtCore.QObject):
 
         # threads in which the workers run
         self.threads = [QtCore.QThread()]
-        for ii, thread in enumerate(self.threads):
+        for thread in self.threads:
             self.quit_threads.connect(thread.quit)
-            thread.setObjectName(f"TaskThread-{ii}")
+            thread.setObjectName(f"TaskThread-{hex(id(thread))}")
             thread.start()
             self.logger.info(f"Started {thread}")
 
@@ -187,7 +187,7 @@ class TaskManager(QtCore.QObject):
                         worker.do_task.emit(task)
                         self.logger.info(
                             f"Running task '{task['identifier']}' "
-                            f"in '{worker.thread()}'")
+                            f"in '{worker.thread().objectName()}'")
                         break
                 else:
                     # put the task back in the queue
