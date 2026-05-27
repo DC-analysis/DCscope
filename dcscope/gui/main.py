@@ -76,6 +76,16 @@ class DCscope(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        # task manager for loading sessions and plotting
+        self.tm = tasks.TaskManager(self)
+
+        # progress bar in lower right corner
+        self.progress_bar = QtWidgets.QProgressBar(self)
+        self.ui.statusbar.addPermanentWidget(self.progress_bar)
+        pb_geom = self.progress_bar.geometry()
+        self.progress_bar.setMaximumWidth(pb_geom.height() * 10)
+        self.progress_bar.setVisible(False)
+
         logging.basicConfig(format='%(levelname)s:%(message)s',
                             level=logging.INFO)
 
@@ -407,6 +417,7 @@ class DCscope(QtWidgets.QMainWindow):
         if closing:
             if self.widget_quick_view is not None:
                 self.widget_quick_view.close()
+            self.tm.close()
             if a0 is not None:
                 a0.accept()
         else:
@@ -574,6 +585,7 @@ class DCscope(QtWidgets.QMainWindow):
         if yes:
             with self.pipeline.lock:
                 session.clear_session(self.pipeline)
+            self.tm.reset()
             self.pp_mod_send.emit({"pipeline": {"cleared": "full"}})
             self.setWindowTitle(f"DCscope {version}")
         return yes
@@ -595,6 +607,7 @@ class DCscope(QtWidgets.QMainWindow):
                 slot_ids = list(self.pipeline.slot_ids)
                 for slot_id in slot_ids:
                     self.pipeline.remove_slot(slot_id)
+            self.tm.reset()
             self.pp_mod_send.emit({"pipeline": {"slots_removed": slot_ids}})
         return yes
 
@@ -733,8 +746,6 @@ class DCscope(QtWidgets.QMainWindow):
             settings.set_dir("session", path, self.settings)
             self.show()
             with self.pipeline.lock:
-                tm = tasks.TaskManager(self)
-
                 # create dummy progress dialog
                 prog = QtWidgets.QProgressDialog("Loading session...", "Abort",
                                                  0, 1000, self)
@@ -757,7 +768,7 @@ class DCscope(QtWidgets.QMainWindow):
                                    }
                     }
 
-                    tm.add_task(
+                    self.tm.add_task(
                         task=task,
                         topic="session-load",
                         communicate_progress=lambda x: (
@@ -766,19 +777,19 @@ class DCscope(QtWidgets.QMainWindow):
                     )
 
                     while True:
-                        while not tm.is_task_running(task):
+                        while not self.tm.is_task_running(task):
                             # wait initially for the task to start
-                            if tm.is_task_finished(task):
+                            if self.tm.is_task_finished(task):
                                 # task was too fast, already finished
                                 break
-                            if tm.is_task_failed(task):
+                            if self.tm.is_task_failed(task):
                                 break
                             QtTest.QTest.qWait(100)
 
                         if prog.wasCanceled():
                             # user pressed cancel
-                            tm.abort_task(task)
-                            while tm.is_task_running(task):
+                            self.tm.abort_task(task)
+                            while self.tm.is_task_running(task):
                                 # force user to wait until the task
                                 # properly aborted
                                 prog.show()
@@ -787,16 +798,16 @@ class DCscope(QtWidgets.QMainWindow):
                                 prog.setMinimum(0)
                                 QtTest.QTest.qWait(500)
                             break
-                        elif tm.is_task_running(task):
+                        elif self.tm.is_task_running(task):
                             # wait for task to finish
                             QtTest.QTest.qWait(100)
-                        elif tm.is_task_finished(task):
+                        elif self.tm.is_task_finished(task):
                             # good, we are done
                             break
-                        elif tm.is_task_failed(task):
+                        elif self.tm.is_task_failed(task):
                             # processing failed, probably due to session
                             # files not being found.
-                            e = tm.get_task_error(task)
+                            e = self.tm.get_task_error(task)
                             if e.__class__ == session.DataFileNotFoundError:
                                 missds = "\r".join(
                                     [str(pp) for pp in e.missing_paths])
@@ -824,11 +835,10 @@ class DCscope(QtWidgets.QMainWindow):
                         else:
                             raise ValueError("Unexpected run condition")
 
-                    if tm.is_task_finished(task):
+                    if self.tm.is_task_finished(task):
                         # break when the task is finished
                         break
 
-            tm.close()
             if prog.wasCanceled():
                 with self.pipeline.lock:
                     self.pipeline.reset()
