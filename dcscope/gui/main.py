@@ -1047,8 +1047,10 @@ class DCscope(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(bool)
     def on_quick_view_toggled(self, toggled):
-        # Hide or show quickview windoe
+        # Hide or show quickview window
         self.subwindows["quick_view"].setVisible(toggled)
+        if toggled:
+            self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
         self.pp_mod_send.emit({"quickview": {
             "enabled": toggled,
             "slot_index": 0,

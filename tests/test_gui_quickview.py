@@ -711,6 +711,8 @@ def test_auto_contrast_qpi(qtbot, mw):
     # Check if QuickView-window is open
     assert mw.ui.toolButton_quick_view.isChecked(), "Quickview not Open"
 
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
     # Get QuickView instance
     qv = mw.widget_quick_view
 
@@ -718,7 +720,7 @@ def test_auto_contrast_qpi(qtbot, mw):
     event_tool = qv.ui.toolButton_event
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
-        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
