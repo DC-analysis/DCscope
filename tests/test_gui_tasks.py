@@ -241,3 +241,44 @@ def test_task_tracking(qtbot):
     assert tm.get_task_result(task) == 2
     assert data["test_progress"] == 0.3
     tm.close()
+
+
+def test_task_reset(qtbot):
+    mw = QtWidgets.QMainWindow()
+
+    def method(argument, event_abort):
+        print("START")
+        for _ in range(10):
+            if event_abort.is_set():
+                print("aborting")
+                break
+            else:
+                print("waiting")
+                QtTest.QTest.qWait(100)
+
+    tm = TaskManager(mw)
+
+    task = {
+        "func": method,
+        "args": [1],
+        "kwargs": {},
+    }
+
+    tm.add_task(task)
+    assert "identifier" in task
+
+    while not tm.is_task_running(task):
+        print(task.get("status"))
+        QtTest.QTest.qWait(100)
+
+    tm.reset()
+
+    while tm.is_task_running(task):
+        print(task.get("status"))
+        QtTest.QTest.qWait(100)
+
+    assert not tm.workers[0].event_abort.is_set()
+    assert len(tm.task_queues) == 0
+    assert task["status"] == "aborted"
+
+    tm.close()

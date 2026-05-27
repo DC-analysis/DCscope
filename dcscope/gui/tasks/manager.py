@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 import uuid
 
 from PyQt6 import QtCore
@@ -167,6 +168,21 @@ class TaskManager(QtCore.QObject):
     def is_task_failed(self, task) -> bool:
         """Check whether the task failed"""
         return task.get("status") == "error"
+
+    def reset(self):
+        """Reset everything"""
+        with self.lock_run_next:
+            for q in self.task_queues.values():
+                q.clear()
+            self.task_queues.clear()
+
+            for worker in self.workers:
+                worker.event_abort.set()
+
+            for worker in self.workers:
+                if worker.event_busy.is_set():
+                    self.logger.info(f"Waiting for worker {worker}")
+                    time.sleep(0.5)
 
     @QtCore.pyqtSlot()
     def trigger_next(self):

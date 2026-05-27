@@ -127,7 +127,9 @@ class TaskWorker(QtCore.QObject):
             task["status"] = "error"
             task["error"] = e
         else:
-            if not self.event_abort.is_set():
+            if self.event_abort.is_set():
+                task["status"] = "aborted"
+            else:
                 task["status"] = "done"
                 task["result"] = result
                 self.task_done.emit(task, result)
