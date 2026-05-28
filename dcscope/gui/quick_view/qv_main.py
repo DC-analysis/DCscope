@@ -12,7 +12,7 @@ import pyqtgraph as pg
 from ... import idiom, util, pipeline
 
 from ..compute.comp_stats import STAT_METHODS
-from .. import pipeline_plot
+from .. import pipeline_plot_item
 from ..tasks import TaskManager
 
 from .qv_event_getter import EventGetterThread
@@ -769,38 +769,24 @@ class QuickView(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict, object)
     def on_task_done(self, task, result):
         """When a task in the task manager is done"""
-        if task["func"] is pipeline_plot.compute_scatter_data_from_state:
+        if task["func"] is pipeline_plot_item.compute_scatter_data_from_state:
             # We have new plot data
-            # Get the colorization from the UI. Since the UI was disabled
-            # during data computation, the values after computation are
-            # the same as before.
-            hue_kwargs = {}
-            if self.ui.checkBox_hue.isChecked():
-                hue_type = self.ui.comboBox_hue.currentData()
-                if hue_type == "kde":
-                    hue_kwargs = {"kde_type": "histogram"}
-                if hue_type == "feature":
-                    hue_kwargs = {"feat": self.ui.comboBox_z_hue.currentData()}
-            else:
-                hue_type = "none"
 
             # These are the results from the computation in the task manager.
-            x, y, kde, idx = result
+            x, y, _, idx, brush = result
 
             self.setEnabled(True)
             plot_state = task["kwargs"]["plot_state"]
 
-            # This still blocks the UI, but plotting must be don in the
+            # This still blocks the UI, but plotting must be done in the
             # main thread.
             self.ui.widget_scatter.plot_data(
                 rtdc_ds=task["kwargs"]["rtdc_ds"],
                 plot_state=plot_state,
                 slot=self.slot,
-                hue_kwargs=hue_kwargs,
-                hue_type=hue_type,
+                brush=brush,
                 x=x,
                 y=y,
-                kde=kde,
                 idx=idx,
             )
             self.setCursor(QtCore.Qt.CursorShape.ArrowCursor)
@@ -858,23 +844,28 @@ class QuickView(QtWidgets.QWidget):
                 "contour": {
                 },
                 "scatter": {
+                    "colormap": "viridis",
                     "downsample": bool(downsample),
                     "downsampling value": downsample,
+                    "marker alpha": 0.9,
+                    "marker hue": kde_hue,
+                    "hue feature": kde_feat,
+
                 }
             }
 
             plot_hash = hashobj([
                 self.rtdc_ds.identifier, self.rtdc_ds[xax], self.rtdc_ds[yax],
                 self.slot, plot_state, plot["isoelastics"], plot["lut"],
-                kde_type, kde_hue, kde_feat,
             ])
             if plot_hash != self._last_plot_hash:
                 self.setCursor(QtCore.Qt.CursorShape.WaitCursor)
                 self.setEnabled(False)
-                task = {"func": pipeline_plot.compute_scatter_data_from_state,
-                        "kwargs": {"plot_state": plot_state,
-                                   "rtdc_ds": self.rtdc_ds}
-                        }
+                task = {
+                    "func": pipeline_plot_item.compute_scatter_data_from_state,
+                    "kwargs": {"plot_state": plot_state,
+                               "rtdc_ds": self.rtdc_ds}
+                    }
                 self.tm.add_task(
                     task=task,
                     topic="quickview-scatter",

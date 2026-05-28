@@ -7,6 +7,9 @@ background, keeping the UI responsive.
 from dclab.kde import KernelDensityEstimator
 from dclab.kde.smooth_contour import compute_contour_opening_angles
 import numpy as np
+import pyqtgraph as pg
+
+from .widgets import get_colormap
 
 
 def compute_contours_from_state(plot_state, rtdc_ds):
@@ -52,9 +55,14 @@ def compute_contour_reliable(plot_state, contour, thresh_ang=np.deg2rad(23)):
     return reliable
 
 
-def compute_scatter_data_from_state(plot_state, rtdc_ds):
+def compute_scatter_data_from_state(
+        plot_state,
+        rtdc_ds,
+        slot_state: dict | None = None,
+        ):
     gen = plot_state["general"]
     sca = plot_state["scatter"]
+    slot_state = slot_state or {}
     rtdc_ds.apply_filter()
 
     # get downsampled list of points for scatter plot
@@ -97,4 +105,39 @@ def compute_scatter_data_from_state(plot_state, rtdc_ds):
             # Set all nan-values to zero so user can see the dots
             kde[kde_nan] = 0
 
-    return x, y, kde, idx
+    # brush
+    cmap = get_colormap(sca["colormap"])
+    if sca["marker hue"] == "kde":
+        # Note: we don't expand the density to [0, 1], because the
+        # colorbar will show "density" and because we don't want to
+        # compute the density in this function and not someplace else.
+        brush = [cmap.mapToQColor(k) for k in kde]
+        # Note, colors could also be digitized (does not seem to be faster):
+        # cbin = np.linspace(0, 1, 1000)
+        # dig = np.digitize(kde, cbin)
+        # for idx in dig:
+        #     brush.append(cmap.mapToQColor(cbin[idx]))
+    elif sca["marker hue"] == "feature":
+        brush = []
+        feat = np.asarray(rtdc_ds[sca["hue feature"]][idx], dtype=float)
+        f_min = sca.get("hue min") or np.min(feat)
+        f_max = sca.get("hue max") or np.max(feat)
+        feat -= f_min
+        feat /= f_max - f_min
+        for f in feat:
+            if np.isnan(f):
+                brush.append(pg.mkColor("#FF0000"))
+            else:
+                brush.append(cmap.mapToQColor(f))
+    elif sca["marker hue"] == "dataset":
+        alpha = int(sca["marker alpha"] * 255)
+        colord = pg.mkColor(slot_state.get("color", "k"))
+        colord.setAlpha(alpha)
+        brush = pg.mkBrush(colord)
+    else:
+        alpha = int(sca["marker alpha"] * 255)
+        colork = pg.mkColor("#000000")
+        colork.setAlpha(alpha)
+        brush = pg.mkBrush(colork)
+
+    return x, y, kde, idx, brush

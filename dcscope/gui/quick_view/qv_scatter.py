@@ -2,8 +2,8 @@ import numpy as np
 import pyqtgraph as pg
 from PyQt6 import QtCore
 
-from .. import pipeline_plot
-from ..widgets import SimplePlotWidget, SimpleViewBox, get_colormap
+from .. import pipeline_plot_item
+from ..widgets import SimplePlotWidget, SimpleViewBox
 
 
 class QuickViewScatterWidget(SimplePlotWidget):
@@ -94,8 +94,8 @@ class QuickViewScatterWidget(SimplePlotWidget):
             points[:, 1] = 10**points[:, 1]
         return points
 
-    def plot_data(self, rtdc_ds, slot, plot_state, hue_kwargs, hue_type,
-                  x, y, kde, idx, isoelastics=False, lut_identifier=None):
+    def plot_data(self, rtdc_ds, slot, plot_state,
+                  x, y, brush, idx, isoelastics=False, lut_identifier=None):
 
         self.clear_hover()
         self.rtdc_ds = rtdc_ds
@@ -104,44 +104,28 @@ class QuickViewScatterWidget(SimplePlotWidget):
         self.yax = plot_state["general"]["axis y"]
         self.xscale = plot_state["general"]["scale x"]
         self.yscale = plot_state["general"]["scale y"]
-        hue_kwargs = hue_kwargs if hue_kwargs else {}
 
         self.events_plotted = idx
         #: unfiltered x data
         self.data_x = self.rtdc_ds[self.xax]
         #: unfiltered y data
         self.data_y = self.rtdc_ds[self.yax]
-        if hue_type == "none":
-            brush = "k"
-        else:
-            # define colormap
-            brush = []
-            cmap = get_colormap("viridis")
-            if hue_type == "kde":
-                for k in kde:
-                    brush.append(cmap.mapToQColor(k))
-            elif hue_type == "feature":
-                fdata = self.rtdc_ds[hue_kwargs["feat"]][idx]
-                fdata -= fdata.min()
-                fdata = np.array(fdata, dtype=float)  # cast int to float
-                fdata /= fdata.max()
-                for f in fdata:
-                    brush.append(cmap.mapToQColor(f))
 
         if x.size:  # test for empty x/y (#37)
             # set viewbox
-            pipeline_plot.set_viewbox(plot=self,
-                                      range_x=(x.min(), x.max()),
-                                      range_y=(y.min(), y.max()),
-                                      scale_x=self.xscale,
-                                      scale_y=self.yscale,
-                                      padding=0.05)
+            pipeline_plot_item.set_viewbox(
+                plot=self,
+                range_x=(x.min(), x.max()),
+                range_y=(y.min(), y.max()),
+                scale_x=self.xscale,
+                scale_y=self.yscale,
+                padding=0.05)
         # set data
         self.setData(x, y, brush=brush)
         # set axes labels (replace with user-defined flourescence names)
-        left = pipeline_plot.get_axis_label_from_feature(
+        left = pipeline_plot_item.get_axis_label_from_feature(
             self.yax, slot_state=self.slot.__getstate__())
-        bottom = pipeline_plot.get_axis_label_from_feature(
+        bottom = pipeline_plot_item.get_axis_label_from_feature(
             self.xax, slot_state=self.slot.__getstate__())
         self.plotItem.setLabels(left=left, bottom=bottom)
 
@@ -157,7 +141,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
             self.removeItem(lp)
         if isoelastics:
             cfg = self.rtdc_ds.config
-            self.isoelastics = pipeline_plot.add_isoelastics(
+            self.isoelastics = pipeline_plot_item.add_isoelastics(
                 plot_item=self.plotItem,
                 axis_x=self.xax,
                 axis_y=self.yax,

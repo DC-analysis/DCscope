@@ -9,6 +9,7 @@
  - ref: move custom colorbar definitions to `colorbaritem`
  - ref: put heavy-duty plotting code into `pipeline_plot_compute`
  - ref: separate PipelinePlotItem into its own submodule
+ - ref: compute brush color in background thread alongside KDE
 2.27.0
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
  - fix: switching tabs "View/Features" in QuickView did not update event data

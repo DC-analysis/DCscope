@@ -25,6 +25,8 @@ linestyles = {
 
 class PipelinePlotItem(SimplePlotItem):
     def __init__(self, *args, **kwargs):
+        """A pipeline plot item is one subplot"""
+
         super(PipelinePlotItem, self).__init__(*args, **kwargs)
         # circumvent problems with removed plots
         self.setAcceptHoverEvents(False)
@@ -327,45 +329,11 @@ def add_scatter(plot_item, plot_state, rtdc_ds, slot_state, hash_flag):
     scatter.setAcceptHoverEvents(False)
     plot_item.addItem(scatter)
 
-    x, y, kde, idx = compute_scatter_data_from_state(plot_state=plot_state,
-                                                     rtdc_ds=rtdc_ds)
-
-    # define colormap
-    # TODO:
-    # - common code base with QuickView
-    cmap = get_colormap(sca["colormap"])
-    if sca["marker hue"] == "kde":
-        brush = []
-        # Note: we don't expand the density to [0, 1], because the
-        # colorbar will show "density" and because we don want to
-        # compute the density in this function and not someplace else.
-        for k in kde:
-            brush.append(cmap.mapToQColor(k))
-        # Note, colors could also be digitized (does not seem to be faster):
-        # cbin = np.linspace(0, 1, 1000)
-        # dig = np.digitize(kde, cbin)
-        # for idx in dig:
-        #     brush.append(cmap.mapToQColor(cbin[idx]))
-    elif sca["marker hue"] == "feature":
-        brush = []
-        feat = np.asarray(rtdc_ds[sca["hue feature"]][idx], dtype=float)
-        feat -= sca["hue min"]
-        feat /= sca["hue max"] - sca["hue min"]
-        for f in feat:
-            if np.isnan(f):
-                brush.append(pg.mkColor("#FF0000"))
-            else:
-                brush.append(cmap.mapToQColor(f))
-    elif sca["marker hue"] == "dataset":
-        alpha = int(sca["marker alpha"] * 255)
-        colord = pg.mkColor(slot_state["color"])
-        colord.setAlpha(alpha)
-        brush = pg.mkBrush(colord)
-    else:
-        alpha = int(sca["marker alpha"] * 255)
-        colork = pg.mkColor("#000000")
-        colork.setAlpha(alpha)
-        brush = pg.mkBrush(colork)
+    x, y, _, _, brush = compute_scatter_data_from_state(
+        plot_state=plot_state,
+        rtdc_ds=rtdc_ds,
+        slot_state=slot_state,
+    )
 
     # convert to log-scale if applicable
     if gen["scale x"] == "log":
@@ -417,7 +385,7 @@ def get_axis_label_from_feature(feat, slot_state=None):
 
 
 def set_viewbox(plot, range_x, range_y, scale_x="linear", scale_y="linear",
-                padding=0):
+                padding=0.):
     # Set Log scale
     plot.setLogMode(x=scale_x == "log",
                     y=scale_y == "log")
