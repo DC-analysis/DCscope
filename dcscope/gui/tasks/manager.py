@@ -53,6 +53,11 @@ class TaskManager(QtCore.QObject):
         self.task_done.connect(self.trigger_next)
 
     @property
+    def num_tasks(self):
+        """Number of tasks running or queued"""
+        return self.num_tasks_queued + self.num_tasks_running
+
+    @property
     def num_tasks_running(self):
         """Number of tasks currently running"""
         num = 0
