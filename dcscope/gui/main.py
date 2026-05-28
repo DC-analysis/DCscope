@@ -78,13 +78,12 @@ class DCscope(QtWidgets.QMainWindow):
 
         # task manager for loading sessions and plotting
         self.tm = tasks.TaskManager(self)
+        self.tm.task_done.connect(self.on_update_tasks_label)
 
         # progress bar in lower right corner
-        self.progress_bar = QtWidgets.QProgressBar(self)
-        self.ui.statusbar.addPermanentWidget(self.progress_bar)
-        pb_geom = self.progress_bar.geometry()
-        self.progress_bar.setMaximumWidth(pb_geom.height() * 10)
-        self.progress_bar.setVisible(False)
+        self.tasks_label = QtWidgets.QLabel(self)
+        self.tasks_label.setText("")
+        self.ui.statusbar.addPermanentWidget(self.tasks_label)
 
         logging.basicConfig(format='%(levelname)s:%(message)s',
                             level=logging.INFO)
@@ -1076,6 +1075,15 @@ class DCscope(QtWidgets.QMainWindow):
         else:
             self.ui.toolButton_dm.setChecked(True)
 
+    @QtCore.pyqtSlot()
+    def on_update_tasks_label(self):
+        num_tasks = self.tm.num_tasks
+        if num_tasks > 0:
+            text = f"{num_tasks} tasks running..."
+        else:
+            text = ""
+        self.tasks_label.setText(text)
+
     def set_pipeline(self):
         if self.pipeline is not None:
             raise ValueError("Pipeline can only be set once")
@@ -1084,6 +1092,10 @@ class DCscope(QtWidgets.QMainWindow):
         self.ui.block_matrix.set_pipeline(self.pipeline)
         self.widget_quick_view.set_pipeline(self.pipeline)
         self.widget_ana_view.set_pipeline(self.pipeline)
+
+    def wait_for_tasks(self):
+        while self.tm.num_tasks:
+            QtTest.QTest.qWait(100)
 
 
 def excepthook(etype, value, trace):
