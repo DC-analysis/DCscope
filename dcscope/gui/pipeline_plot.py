@@ -25,7 +25,8 @@ class PipelinePlot(QtWidgets.QWidget):
 
     instances = {}
 
-    def __init__(self, parent, pipeline, plot_id, *args, **kwargs):
+    def __init__(self, parent, pipeline, plot_id, task_manager,
+                 *args, **kwargs):
         # keeps window from resizing when user updates the plot
         self._resize_lock = threading.Lock()
 
@@ -33,6 +34,9 @@ class PipelinePlot(QtWidgets.QWidget):
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)
+
+        self.tm = task_manager
+        self.tm.task_error.connect(self.on_task_error)
 
         # used to avoid unnecessary plotting
         self._plot_data_hash = "unset"
@@ -48,6 +52,13 @@ class PipelinePlot(QtWidgets.QWidget):
         PipelinePlot.instances[plot_id] = self
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
+
+    @QtCore.pyqtSlot(dict, object)
+    def on_task_error(self, task, error):
+        QtWidgets.QMessageBox.critical(
+            self,
+            f"Error while plotting '{self.identifier}'",
+            f"{type(error)}: {'; '.join(error.args)}")
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
@@ -191,28 +202,28 @@ class PipelinePlot(QtWidgets.QWidget):
 
         # limits in case of scatter plot and feature hue
         if lay["division"] == "merge":
-            pp = PipelinePlotItem(parent=linner)
+            pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
             self.plot_items.append(pp)
             linner.addItem(item=pp,
                            row=None,
                            col=None,
                            rowspan=1,
                            colspan=1)
-            pp.redraw(dslist, slot_states, plot_state)
+            pp.request_draw(dslist, slot_states, plot_state)
         elif lay["division"] == "each":
             colcount = 0
             for ds, sl in zip(dslist, slot_states):
                 # get the hash flag
                 hash_flag = get_hash_flag(hash_set, ds)
 
-                pp = PipelinePlotItem(parent=linner)
+                pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
                 self.plot_items.append(pp)
                 linner.addItem(item=pp,
                                row=None,
                                col=None,
                                rowspan=1,
                                colspan=1)
-                pp.redraw([ds], [sl], plot_state, hash_flag)
+                pp.request_draw([ds], [sl], plot_state, hash_flag)
                 colcount += 1
                 if colcount % lay["column count"] == 0:
                     linner.nextRow()
@@ -225,41 +236,41 @@ class PipelinePlot(QtWidgets.QWidget):
                 # get the hash flag
                 hash_flag = get_hash_flag(hash_set, ds)
 
-                pp = PipelinePlotItem(parent=linner)
+                pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
                 self.plot_items.append(pp)
                 linner.addItem(item=pp,
                                row=None,
                                col=None,
                                rowspan=1,
                                colspan=1)
-                pp.redraw([ds], [sl], plot_state_scatter, hash_flag)
+                pp.request_draw([ds], [sl], plot_state_scatter, hash_flag)
                 colcount += 1
                 if colcount % lay["column count"] == 0:
                     linner.nextRow()
             # contour plot
             plot_state_contour = copy.deepcopy(plot_state)
             plot_state_contour["scatter"]["enabled"] = False
-            pp = PipelinePlotItem(parent=linner)
+            pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
             self.plot_items.append(pp)
             linner.addItem(item=pp,
                            row=None,
                            col=None,
                            rowspan=1,
                            colspan=1)
-            pp.redraw(dslist, slot_states, plot_state_contour)
+            pp.request_draw(dslist, slot_states, plot_state_contour)
 
         elif lay["division"] == "onlycontours":
             # contour plots
             plot_state_contour = copy.deepcopy(plot_state)
             plot_state_contour["scatter"]["enabled"] = False
-            pp = PipelinePlotItem(parent=linner)
+            pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
             self.plot_items.append(pp)
             linner.addItem(item=pp,
                            row=None,
                            col=None,
                            rowspan=1,
                            colspan=1)
-            pp.redraw(dslist, slot_states, plot_state_contour)
+            pp.request_draw(dslist, slot_states, plot_state_contour)
 
         # colorbar
         colorbar_kwds = {}

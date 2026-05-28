@@ -55,9 +55,17 @@ class TaskWorker(QtCore.QObject):
         if self._progress_handles is not None:
             communicate_progress, communicate_message = self._progress_handles
             if communicate_progress is not None:
-                self.communicate_progress.disconnect(communicate_progress)
+                try:
+                    self.communicate_progress.disconnect(communicate_progress)
+                except TypeError:
+                    # not connected
+                    pass
             if communicate_message is not None:
-                self.communicate_message.disconnect(communicate_message)
+                try:
+                    self.communicate_message.disconnect(communicate_message)
+                except TypeError:
+                    # not connected
+                    pass
             self._progress_handles = None
 
     def abort_task(self, task: dict):

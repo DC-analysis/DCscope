@@ -1,13 +1,15 @@
 import html
+import threading
 
 import dclab
 import numpy as np
 import pyqtgraph as pg
 from dclab.kde import KernelDensityEstimator
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
 from pyqtgraph import exporters
 
+from .tasks import TaskManager
 from .widgets import SimplePlotItem
 from .pipeline_plot_compute import (
     compute_contours_from_state,
@@ -24,10 +26,13 @@ linestyles = {
 
 
 class PipelinePlotItem(SimplePlotItem):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, task_manager: TaskManager, *args, **kwargs):
         """A pipeline plot item is one subplot"""
-
         super(PipelinePlotItem, self).__init__(*args, **kwargs)
+        self.tm = task_manager
+        self.tm.task_done.connect(self.request_scatter_handler)
+
+        self._task_data = []
         # circumvent problems with removed plots
         self.setAcceptHoverEvents(False)
         # Disable user interaction
@@ -39,8 +44,12 @@ class PipelinePlotItem(SimplePlotItem):
         # Set background to white (for plot export)
         self.vb.setBackgroundColor("w")
 
+        self._update_lock = threading.Lock()
+
+        self.state_data: dict = None  # type: ignore
+
     def perform_export(self, file):
-        """Performs export in new layout with axes labels set
+        """Performs export of this subplot in new layout with axes labels set
 
         Overrides the basic functionality of SimplePlotItem.
         See https://github.com/DC-analysis/DCscope/issues/7
@@ -50,10 +59,17 @@ class PipelinePlotItem(SimplePlotItem):
             size=(int(self.width() + 100), int(self.height() + 100)),
             show=True)
         # fill layout
-        labelx, labely = get_axes_labels(self.plot_state, self.slot_states)
+        labelx, labely = get_axes_labels(self.state_data["plot_state"],
+                                         self.state_data["slot_states"])
         win.addLabel(labely, angle=-90)
-        explot = PipelinePlotItem()
-        explot.redraw(self.dslist, self.slot_states, self.plot_state)
+
+        tm = TaskManager(None)
+        explot = PipelinePlotItem(task_manager=tm)
+        explot.request_draw(**self.state_data)
+        while tm.num_tasks:
+            QtTest.QTest.qWait(100)
+        tm.close()
+
         win.addItem(explot)
         win.addLabel("")  # spacer to avoid cut tick labels on the right(#7)
         win.nextRow()
@@ -70,9 +86,12 @@ class PipelinePlotItem(SimplePlotItem):
             exp.params["width"] = int(exp.params["width"] / 72 * 300)
         elif suffix == "svg":
             exp = exporters.SVGExporter(win.scene())
+        else:
+            raise ValueError(f"Invalid suffix '{suffix}'")
         exp.export(file)
+        win.deleteLater()
 
-    def redraw(self, dslist, slot_states, plot_state, hash_flag=None):
+    def request_draw(self, dslist, slot_states, plot_state, hash_flag=None):
         # Remove everything
         for el in self._plot_elements:
             self.removeItem(el)
@@ -80,9 +99,12 @@ class PipelinePlotItem(SimplePlotItem):
         if not dslist:
             return
 
-        self.dslist = dslist
-        self.slot_states = slot_states
-        self.plot_state = plot_state
+        self.state_data = {
+            "dslist": dslist,
+            "slot_states": slot_states,
+            "plot_state": plot_state,
+            "hash_flag": hash_flag,
+        }
 
         # General
         gen = plot_state["general"]
@@ -108,13 +130,11 @@ class PipelinePlotItem(SimplePlotItem):
         sca = plot_state["scatter"]
         if sca["enabled"]:
             for rtdc_ds, ss in zip(dslist, slot_states):
-                sct = add_scatter(plot_item=self,
-                                  rtdc_ds=rtdc_ds,
-                                  plot_state=plot_state,
-                                  slot_state=ss,
-                                  hash_flag=hash_flag
-                                  )
-                self._plot_elements += sct
+                self.request_scatter(
+                    rtdc_ds=rtdc_ds,
+                    plot_state=plot_state,
+                    slot_state=ss,
+                    )
         # Contour data
         if plot_state["contour"]["enabled"]:
             # show legend
@@ -150,18 +170,6 @@ class PipelinePlotItem(SimplePlotItem):
                           dx=4
                           )
 
-                if plot_state["scatter"]["show event count"]:
-                    if True:
-                        add_label(text=f"{len(sct[0].data)} events",
-                                  anchor_parent=self.axes["right"]["item"],
-                                  font_size_diff=-1,
-                                  color="black",
-                                  text_halign="right",
-                                  text_valign="top",
-                                  dx=2,
-                                  dy=-5,
-                                  )
-
             elif (plot_state["contour"]["enabled"]
                     and not plot_state["scatter"]["enabled"]):
                 # only a contour plot
@@ -173,6 +181,80 @@ class PipelinePlotItem(SimplePlotItem):
                           text_valign="top",
                           dx=4,
                           )
+
+    def request_scatter(self, plot_state, rtdc_ds, slot_state):
+        task = {
+            "func": compute_scatter_data_from_state,
+            "kwargs": {"plot_state": plot_state,
+                       "rtdc_ds": rtdc_ds,
+                       "slot_state": slot_state,
+                       }
+            }
+
+        with self._update_lock:
+            self._task_data.append(task)
+
+        self.tm.add_task(
+            task=task,
+            topic="pipeline-plot",
+            )
+
+    @QtCore.pyqtSlot(dict, object)
+    def request_scatter_handler(self, task: dict, result: tuple):
+        if task not in self._task_data:
+            # ignore events from different plot items
+            return
+
+        plot_state = self.state_data["plot_state"]
+        hash_flag = self.state_data["hash_flag"]
+        x, y, _, _, brush = result
+
+        gen = plot_state["general"]
+        sca = plot_state["scatter"]
+        scatter = pg.ScatterPlotItem(size=sca["marker size"],
+                                     pen=pg.mkPen(color=(0, 0, 0, 0)),
+                                     brush=pg.mkBrush("k"),
+                                     symbol="s")
+        scatter.setAcceptHoverEvents(False)
+
+        with self._update_lock:
+            self.addItem(scatter)
+
+        # convert to log-scale if applicable
+        if gen["scale x"] == "log":
+            x = np.log10(x)
+        if gen["scale y"] == "log":
+            y = np.log10(y)
+
+        # add dcnum hash label
+        if hash_flag:
+            add_label(
+                hash_flag,
+                anchor_parent=self.axes["top"]["item"],
+                font_size_diff=-1,
+                color="red",
+                text_halign="left",
+                text_valign="top",
+            )
+
+        if (plot_state["scatter"]["show event count"]
+                and len(self.state_data["dslist"]) == 1):
+            add_label(
+                text=f"{len(x)} events",
+                anchor_parent=self.axes["right"]["item"],
+                font_size_diff=-1,
+                color="black",
+                text_halign="right",
+                text_valign="top",
+                dx=2,
+                dy=-5,
+            )
+
+        scatter.setData(x=x, y=y, brush=brush)
+        scatter.setZValue(-50)
+        with self._update_lock:
+            self._task_data.remove(task)
+            self._plot_elements.append(scatter)
 
 
 def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
@@ -317,44 +399,6 @@ def add_label(text, anchor_parent, text_halign="center", text_valign="center",
     else:  # "bottom"
         y = -height/2
     label.setPos(x + dx, y + dy)
-
-
-def add_scatter(plot_item, plot_state, rtdc_ds, slot_state, hash_flag):
-    gen = plot_state["general"]
-    sca = plot_state["scatter"]
-    scatter = pg.ScatterPlotItem(size=sca["marker size"],
-                                 pen=pg.mkPen(color=(0, 0, 0, 0)),
-                                 brush=pg.mkBrush("k"),
-                                 symbol="s")
-    scatter.setAcceptHoverEvents(False)
-    plot_item.addItem(scatter)
-
-    x, y, _, _, brush = compute_scatter_data_from_state(
-        plot_state=plot_state,
-        rtdc_ds=rtdc_ds,
-        slot_state=slot_state,
-    )
-
-    # convert to log-scale if applicable
-    if gen["scale x"] == "log":
-        x = np.log10(x)
-    if gen["scale y"] == "log":
-        y = np.log10(y)
-
-    # add dcnum hash label
-    if hash_flag:
-        add_label(
-            hash_flag,
-            anchor_parent=plot_item.axes["top"]["item"],
-            font_size_diff=-1,
-            color="red",
-            text_halign="left",
-            text_valign="top",
-        )
-
-    scatter.setData(x=x, y=y, brush=brush)
-    scatter.setZValue(-50)
-    return [scatter]
 
 
 def get_axes_labels(plot_state, slot_states):

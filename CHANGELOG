@@ -6,6 +6,7 @@
  - enh: migrate data file export to `Taskmanager`
  - enh: show progress bar when opening a session (uses `Taskmanager`)
  - enh: enable rubberband-resize for all subwindows
+ - ref: scatter plot data generation done in background thread
  - ref: use `TaskManager` for computing plot data in QuickView
  - ref: cleanup main.py, session.py with the help of pyright
  - ref: move custom colorbar definitions to `colorbaritem`

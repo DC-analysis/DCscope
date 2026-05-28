@@ -397,7 +397,9 @@ class DCscope(QtWidgets.QMainWindow):
             sub = widgets.MDISubWindowWOButtons(self)
             pw = pipeline_plot.PipelinePlot(parent=sub,
                                             pipeline=self.pipeline,
-                                            plot_id=plot_id)
+                                            plot_id=plot_id,
+                                            task_manager=self.tm,
+                                            )
             connect_pp_mod_signals(self, pw)
             sub.setWidget(pw)
             pw.update_content()
