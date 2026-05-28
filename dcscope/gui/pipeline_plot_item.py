@@ -8,7 +8,7 @@ from dclab.kde import KernelDensityEstimator
 from PyQt6 import QtCore, QtGui, QtWidgets
 from pyqtgraph import exporters
 
-from .widgets import SimplePlotItem, get_colormap
+from .widgets import SimplePlotItem
 from .pipeline_plot_compute import (
     compute_contours_from_state,
     compute_contour_reliable,
