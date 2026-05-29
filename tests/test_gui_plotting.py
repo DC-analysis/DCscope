@@ -54,6 +54,7 @@ def test_empty_plot_with_one_plot_per_dataset_issue_41(qtbot, mw):
     # Change to "each" and apply
     idx = pv.ui.comboBox_division.findData("each")
     pv.ui.comboBox_division.setCurrentIndex(idx)
+    mw.wait_for_tasks()
     # Lead to zero-division error in "get_plot_col_row_count"
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
 
@@ -79,6 +80,7 @@ def test_feature_bright_avg_not_present_issue_62(qtbot, mw):
 
     # and activate it
     pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
+    mw.wait_for_tasks()
     # this raised "ValueError: 'bright_avg' is not in list" (issue #62)
     qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
 
@@ -105,6 +107,7 @@ def test_handle_axis_selection_empty_plot(qtbot, mw):
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
         mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
+    mw.wait_for_tasks()
 
     # This lead to:
     #    Traceback (most recent call last):
@@ -122,6 +125,7 @@ def test_handle_axis_selection_empty_plot(qtbot, mw):
     # has no identity
     pv.ui.comboBox_axis_y.setCurrentIndex(
         pv.ui.comboBox_axis_y.findData("emodulus"))
+    mw.wait_for_tasks()
 
 
 def test_handle_empty_plots_issue_27(qtbot, mw):
@@ -179,6 +183,7 @@ def test_handle_empty_plots_issue_27(qtbot, mw):
         # this now only throws a warning
         # activate (raises #27)
         qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+        mw.wait_for_tasks()
 
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
@@ -219,6 +224,7 @@ def test_handle_empty_plots_issue_223(qtbot, mw):
         # this now only throws a warning
         # activate (raises #223)
         qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+        mw.wait_for_tasks()
 
         QtWidgets.QApplication.processEvents(
             QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
@@ -236,6 +242,7 @@ def test_handle_nan_valued_feature_color(qtbot, mw):
     # OverflowError: argument 4 overflowed: value must be in the range
     # -2147483648 to 2147483647
     mw.on_action_open(spath)
+    mw.wait_for_tasks()
 
 
 def test_hue_feature_not_computed_if_not_selected(qtbot, mw):
@@ -256,6 +263,7 @@ def test_hue_feature_not_computed_if_not_selected(qtbot, mw):
     ds = mw.pipeline.get_dataset(slot_index=0)
     # check whether the item has been plotted
     datasets, _ = mw.pipeline.get_plot_datasets(plot_id)
+    mw.wait_for_tasks()
     assert datasets[0] is ds
     # now check whether "bright_avg" has been computed
     assert "bright_avg" in ds.features
@@ -280,6 +288,7 @@ def test_plot_ml_score(qtbot, mw):
     # and activate it
     pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id, slot_id=slot_id)
     qtbot.mouseClick(pw, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
     # get the dataset
     ds = mw.pipeline.get_dataset(slot_index=0)
     # sanity check
@@ -293,6 +302,7 @@ def test_plot_ml_score(qtbot, mw):
     assert idvoy >= 0
     pv.ui.comboBox_axis_x.setCurrentIndex(idvoy)
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     try:
         pathlib.Path(tmp).unlink()
@@ -327,6 +337,7 @@ def test_remove_plots_issue_36(qtbot, mw):
 
     # remove a plot
     pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
+    mw.wait_for_tasks()
     pw.action_remove()
 
 
@@ -363,6 +374,7 @@ def test_reselect_filter(qtbot, mw):
     # Make sure there are only four points in the plot
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    mw.wait_for_tasks()
     scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
     assert len(scat.data) == 4
 
@@ -370,6 +382,7 @@ def test_reselect_filter(qtbot, mw):
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    mw.wait_for_tasks()
     scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
     assert len(scat.data) == 47
 
@@ -377,6 +390,7 @@ def test_reselect_filter(qtbot, mw):
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    mw.wait_for_tasks()
     scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
     assert len(scat.data) == 4
 
@@ -384,6 +398,7 @@ def test_reselect_filter(qtbot, mw):
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    mw.wait_for_tasks()
     scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
     assert len(scat.data) == 47
 
@@ -391,6 +406,7 @@ def test_reselect_filter(qtbot, mw):
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    mw.wait_for_tasks()
     scat = mw.subwindows_plots[plot_id].widget().plot_items[0].items[-1]
     assert len(scat.data) == 4
 
@@ -441,6 +457,7 @@ def test_zoomin_contours(qtbot, mw):
     pe = mw.ui.block_matrix.get_widget(
         filt_plot_id=plot_id, slot_id=slot_id[0])
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Get range before zoom-in
     mw.add_plot_window(plot_id)
@@ -457,6 +474,7 @@ def test_zoomin_contours(qtbot, mw):
     # Enable contour zoom-in and apply
     pv.ui.checkBox_zoomin.setChecked(True)
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Get range after zoom-in
     plot_widget = mw.subwindows_plots[plot_id].widget()
@@ -488,6 +506,7 @@ def test_only_contours_division(qtbot, mw):
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
         mw.widget_ana_view.ui.tab_plot)
     pv = mw.widget_ana_view.ui.widget_plot
+    mw.wait_for_tasks()
 
     # Get the initial plot state
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
@@ -504,12 +523,14 @@ def test_only_contours_division(qtbot, mw):
 
     # Apply changes
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Get the plot widget
     pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
 
     # Activate plots for contour view
     qtbot.mouseClick(pw.ui.toolButton_toggle, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Get the plot state
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
@@ -532,10 +553,12 @@ def test_contour_plot_with_invalid_percentiles(qtbot, mw):
     # Activate the slot-plot pair to show data
     pe = mw.ui.block_matrix.get_widget(slot_id, plot_id)
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Activate analysis view
     pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Switch to plot tab
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
@@ -552,6 +575,7 @@ def test_contour_plot_with_invalid_percentiles(qtbot, mw):
 
     # Apply changes
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # Verify the plot state was updated with the new percentiles
     plot_state = mw.pipeline.get_plot(plot_id).__getstate__()
@@ -593,10 +617,12 @@ def test_plot_not_resized_on_apply(qtbot, mw):
     # Activate the slot-plot pair to show data
     pe = mw.ui.block_matrix.get_widget(slot_id, plot_id)
     qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     # activate analysis view
     pe = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     qtbot.mouseClick(pe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
         mw.widget_ana_view.ui.tab_plot)
@@ -605,12 +631,14 @@ def test_plot_not_resized_on_apply(qtbot, mw):
     state_a = pv.read_plot_state()
 
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
 
     state_b = pv.read_plot_state()
 
     qtbot.mouseClick(pv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
 
