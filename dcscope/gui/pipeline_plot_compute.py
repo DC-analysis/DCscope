@@ -12,7 +12,12 @@ import pyqtgraph as pg
 from .widgets import get_colormap
 
 
-def compute_contours_from_state(plot_state, rtdc_ds):
+def compute_contours_from_state(plot_state, rtdc_ds, slot_state=None):
+    """Compute th econtour given the plot state and a dataset
+
+    `slot_state` is not used, but required for correctly assigning a
+    contour to a slot in the pipeline plot TaskManager workflow.
+    """
     gen = plot_state["general"]
     con = plot_state["contour"]
     rtdc_ds.apply_filter()

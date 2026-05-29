@@ -30,9 +30,12 @@ class PipelinePlotItem(SimplePlotItem):
         """A pipeline plot item is one subplot"""
         super(PipelinePlotItem, self).__init__(*args, **kwargs)
         self.tm = task_manager
+        self.tm.task_done.connect(self.request_contour_handler)
         self.tm.task_done.connect(self.request_scatter_handler)
 
-        self._task_data = []
+        self._task_data_contour = []
+        self._task_data_scatter = []
+        self.legend = None
         # circumvent problems with removed plots
         self.setAcceptHoverEvents(False)
         # Disable user interaction
@@ -133,27 +136,25 @@ class PipelinePlotItem(SimplePlotItem):
                     rtdc_ds=rtdc_ds,
                     plot_state=plot_state,
                     slot_state=ss,
-                    )
+                )
         # Contour data
         if plot_state["contour"]["enabled"]:
             # show legend
             if plot_state["contour"]["legend"]:
-                legend = self.addLegend(offset=(-.01, +.01))
+                self.legend = self.addLegend(offset=(-.01, +.01))
             else:
-                legend = None
+                self.legend = None
             for rtdc_ds, ss in zip(dslist, slot_states):
                 if plot_state["contour"].get("zoomin", False):
                     zoomin_contours(dslist=dslist,
                                     plot_item=self,
                                     plot_state=plot_state
                                     )
-                con = add_contour(plot_item=self,
-                                  rtdc_ds=rtdc_ds,
-                                  plot_state=plot_state,
-                                  slot_state=ss,
-                                  legend=legend,
-                                  )
-                self._plot_elements += con
+                self.request_contour(
+                    rtdc_ds=rtdc_ds,
+                    plot_state=plot_state,
+                    slot_state=ss,
+                )
 
         # Set subplot title and number of events
         if plot_state["layout"]["label plots"]:
@@ -181,6 +182,80 @@ class PipelinePlotItem(SimplePlotItem):
                           dx=4,
                           )
 
+    def request_contour(self, plot_state, rtdc_ds, slot_state):
+        task = {
+            "func": compute_contours_from_state,
+            "kwargs": {"plot_state": plot_state,
+                       "rtdc_ds": rtdc_ds,
+                       "slot_state": slot_state,
+                       }
+        }
+
+        with self._update_lock:
+            self._task_data_contour.append(task)
+
+        self.tm.add_task(
+            task=task,
+            topic="pipeline-plot",
+        )
+
+    @QtCore.pyqtSlot(dict, object)
+    def request_contour_handler(self, task: dict, result: tuple):
+        if task not in self._task_data_contour:
+            # ignore events from different plot items
+            return
+
+        plot_state = self.state_data["plot_state"]
+        slot_state = task["kwargs"]["slot_state"]
+        contours = result
+
+        con = plot_state["contour"]
+        elements = []
+        num_unreliable_contours = 0
+        for ii in range(len(contours)):
+            style = linestyles[con["line styles"][ii]]
+            width = con["line widths"][ii]
+            for cci in contours[ii]:
+                if not compute_contour_reliable(plot_state=plot_state,
+                                                contour=cci):
+                    num_unreliable_contours += 1
+                cline = pg.PlotDataItem(x=cci[:, 0],
+                                        y=cci[:, 1],
+                                        pen=pg.mkPen(color=slot_state["color"],
+                                                     width=width,
+                                                     style=style,
+                                                     ),
+                                        )
+                elements.append(cline)
+                self.addItem(cline)
+                if ii == 0 and self.legend is not None:
+                    self.legend.addItem(cline, slot_state["name"])
+                # Always plot higher percentiles above lower percentiles
+                # (useful if there are multiple contour plots overlapping)
+                cline.setZValue(con["percentiles"][ii])
+
+        label = ""
+        if not KernelDensityEstimator.check_feat_kde_applicability(
+            xax=plot_state["general"]["axis x"],
+                yax=plot_state["general"]["axis y"]):
+            label = "Contour data unavailable"
+        elif num_unreliable_contours or not elements:
+            # Tell the user to refine KDE spacing.
+            label = "Please reduce KDE spacing"
+        if label:
+            add_label(label,
+                      anchor_parent=self.axes["bottom"]["item"],
+                      font_size_diff=-1,
+                      color="red",
+                      text_halign="left",
+                      text_valign="bottom",
+                      dy=-12,
+                      )
+
+        with self._update_lock:
+            self._task_data_contour.remove(task)
+            self._plot_elements += elements
+
     def request_scatter(self, plot_state, rtdc_ds, slot_state):
         task = {
             "func": compute_scatter_data_from_state,
@@ -188,19 +263,19 @@ class PipelinePlotItem(SimplePlotItem):
                        "rtdc_ds": rtdc_ds,
                        "slot_state": slot_state,
                        }
-            }
+        }
 
         with self._update_lock:
-            self._task_data.append(task)
+            self._task_data_scatter.append(task)
 
         self.tm.add_task(
             task=task,
             topic="pipeline-plot",
-            )
+        )
 
     @QtCore.pyqtSlot(dict, object)
     def request_scatter_handler(self, task: dict, result: tuple):
-        if task not in self._task_data:
+        if task not in self._task_data_scatter:
             # ignore events from different plot items
             return
 
@@ -252,57 +327,8 @@ class PipelinePlotItem(SimplePlotItem):
         scatter.setData(x=x, y=y, brush=brush)
         scatter.setZValue(-50)
         with self._update_lock:
-            self._task_data.remove(task)
+            self._task_data_scatter.remove(task)
             self._plot_elements.append(scatter)
-
-
-def add_contour(plot_item, plot_state, rtdc_ds, slot_state, legend=None):
-    contours = compute_contours_from_state(plot_state=plot_state,
-                                           rtdc_ds=rtdc_ds)
-    con = plot_state["contour"]
-    elements = []
-    num_unreliable_contours = 0
-    for ii in range(len(contours)):
-        style = linestyles[con["line styles"][ii]]
-        width = con["line widths"][ii]
-        for cci in contours[ii]:
-            if not compute_contour_reliable(plot_state=plot_state,
-                                            contour=cci):
-                num_unreliable_contours += 1
-            cline = pg.PlotDataItem(x=cci[:, 0],
-                                    y=cci[:, 1],
-                                    pen=pg.mkPen(color=slot_state["color"],
-                                                 width=width,
-                                                 style=style,
-                                                 ),
-                                    )
-            elements.append(cline)
-            plot_item.addItem(cline)
-            if ii == 0 and legend is not None:
-                legend.addItem(cline, slot_state["name"])
-            # Always plot higher percentiles above lower percentiles
-            # (useful if there are multiple contour plots overlapping)
-            cline.setZValue(con["percentiles"][ii])
-
-    label = ""
-    if not KernelDensityEstimator.check_feat_kde_applicability(
-        xax=plot_state["general"]["axis x"],
-            yax=plot_state["general"]["axis y"]):
-        label = "Contour data unavailable"
-    elif num_unreliable_contours or not elements:
-        # Tell the user to refine KDE spacing.
-        label = "Please reduce KDE spacing"
-    if label:
-        add_label(label,
-                  anchor_parent=plot_item.axes["bottom"]["item"],
-                  font_size_diff=-1,
-                  color="red",
-                  text_halign="left",
-                  text_valign="bottom",
-                  dy=-12,
-                  )
-
-    return elements
 
 
 def add_isoelastics(plot_item, axis_x, axis_y, channel_width, pixel_size,
