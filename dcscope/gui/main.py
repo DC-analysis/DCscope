@@ -76,6 +76,10 @@ class DCscope(QtWidgets.QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.raise_()
+        self.activateWindow()
+        self.showMaximized()
+
         # task manager for loading sessions and plotting
         self.tm = tasks.TaskManager(self)
         self.tm.task_done.connect(self.on_update_tasks_label)
@@ -285,13 +289,6 @@ class DCscope(QtWidgets.QMainWindow):
         # check for updates
         do_update = int(self.settings.value("check for updates", 1))
         self.on_action_check_update(do_update)
-
-        # finalize
-        self.show()
-        self.raise_()
-        self.activateWindow()
-        self.showMaximized()
-        self.setWindowState(QtCore.Qt.WindowState.WindowActive)
 
     @QtCore.pyqtSlot()
     def add_dataslot(self, paths=None, is_dcor=False):
