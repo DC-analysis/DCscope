@@ -652,33 +652,34 @@ class Pipeline(object):
         fmin = np.inf
         fmax = -np.inf
         for ds in dslist:
-            if np.any(ds.filter.all):
-                if feat in ds:
-                    fdata = ds[feat][ds.filter.all]
-                    invalid = np.isinf(fdata)
-                    if np.any(invalid):
-                        vdata = fdata[~invalid]
+            with ds.lock:
+                if np.any(ds.filter.all):
+                    if feat in ds:
+                        fdata = ds[feat][ds.filter.all]
+                        invalid = np.isinf(fdata)
+                        if np.any(invalid):
+                            vdata = fdata[~invalid]
+                        else:
+                            vdata = fdata
+                        if feat in FEATURES_MONOTONOUS:
+                            # We are a little faster here.
+                            vmin = min(np.nanmin(vdata[:1000]),
+                                       np.nanmin(vdata[-1000:]))
+                            vmax = max(np.nanmax(vdata[:1000]),
+                                       np.nanmax(vdata[-1000:]))
+                        else:
+                            vmin = np.nanmin(vdata)
+                            vmax = np.nanmax(vdata)
+                        fmin = min(fmin, vmin)
+                        fmax = max(fmax, vmax)
                     else:
-                        vdata = fdata
-                    if feat in FEATURES_MONOTONOUS:
-                        # We are a little faster here.
-                        vmin = min(np.nanmin(vdata[:1000]),
-                                   np.nanmin(vdata[-1000:]))
-                        vmax = max(np.nanmax(vdata[:1000]),
-                                   np.nanmax(vdata[-1000:]))
-                    else:
-                        vmin = np.nanmin(vdata)
-                        vmax = np.nanmax(vdata)
-                    fmin = min(fmin, vmin)
-                    fmax = max(fmax, vmax)
+                        warnings.warn(f"Dataset {ds.identifier} does not "
+                                      f"contain the feature '{feat}'!",
+                                      MissingFeatureWarning)
                 else:
                     warnings.warn(f"Dataset {ds.identifier} does not "
-                                  f"contain the feature '{feat}'!",
-                                  MissingFeatureWarning)
-            else:
-                warnings.warn(f"Dataset {ds.identifier} does not "
-                              f"contain any events when filtered!",
-                              EmptyDatasetWarning)
+                                  f"contain any events when filtered!",
+                                  EmptyDatasetWarning)
         if margin:
             diff = fmax - fmin
             fmin -= margin * diff

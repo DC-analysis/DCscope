@@ -393,18 +393,19 @@ class DCscope(QtWidgets.QMainWindow):
         if plot_id in self.subwindows_plots:
             sub = self.subwindows_plots[plot_id]
         else:
-            # create subwindow
-            sub = widgets.MDISubWindowWOButtons(self)
-            pw = pipeline_plot.PipelinePlot(parent=sub,
-                                            pipeline=self.pipeline,
-                                            plot_id=plot_id,
-                                            task_manager=self.tm,
-                                            )
-            connect_pp_mod_signals(self, pw)
-            sub.setWidget(pw)
-            pw.update_content()
-            self.ui.mdiArea.addSubWindow(sub)
-            self.subwindows_plots[plot_id] = sub
+            with self.pipeline.lock:
+                # create subwindow
+                sub = widgets.MDISubWindowWOButtons(self)
+                pw = pipeline_plot.PipelinePlot(parent=sub,
+                                                pipeline=self.pipeline,
+                                                plot_id=plot_id,
+                                                task_manager=self.tm,
+                                                )
+                connect_pp_mod_signals(self, pw)
+                sub.setWidget(pw)
+                pw.update_content()
+                self.ui.mdiArea.addSubWindow(sub)
+                self.subwindows_plots[plot_id] = sub
         sub.show()
 
     @QtCore.pyqtSlot(QtCore.QEvent)
@@ -746,20 +747,23 @@ class DCscope(QtWidgets.QMainWindow):
         if path:
             settings.set_dir("session", path, self.settings)
             self.show()
-            with self.pipeline.lock:
-                # create dummy progress dialog
-                prog = QtWidgets.QProgressDialog("Loading session...", "Abort",
-                                                 0, 1000, self)
-                prog.setWindowTitle(
-                    f"Loading session {pathlib.Path(path).name}")
-                prog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
-                prog.setMinimumDuration(0)
-                prog.setAutoClose(True)
-                QtWidgets.QApplication.processEvents(
-                    QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
+            # create dummy progress dialog
+            prog = QtWidgets.QProgressDialog("Loading session...", "Abort",
+                                             0, 1000, self)
+            prog.setWindowTitle(
+                f"Loading session {pathlib.Path(path).name}")
+            prog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+            prog.setMinimumDuration(0)
+            prog.setAutoClose(True)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
+            with self.pipeline.lock:
                 search_paths = []
                 while not prog.wasCanceled():
+                    # make sure no tasks are running
+                    self.wait_for_tasks()
                     task = {
                         "func": session.open_session,
                         "args": [],
