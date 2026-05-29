@@ -95,6 +95,7 @@ class PipelinePlotItem(SimplePlotItem):
         # Remove everything
         for el in self._plot_elements:
             self.removeItem(el)
+        self._plot_elements.clear()
 
         if not dslist:
             return
