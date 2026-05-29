@@ -108,8 +108,6 @@ class PipelinePlotItem(SimplePlotItem):
 
         # General
         gen = plot_state["general"]
-        # TODO:
-        # - test whether all datasets have same channel width / pixel size
         # Isoelastics
         if gen["isoelastics"]:
             cfg = dslist[0].config
