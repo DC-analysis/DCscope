@@ -30,6 +30,8 @@ class PipelinePlot(QtWidgets.QWidget):
         # keeps window from resizing when user updates the plot
         self._resize_lock = threading.Lock()
 
+        self._initialized = False
+
         super(PipelinePlot, self).__init__(parent=parent, *args, **kwargs)
 
         self.ui = Ui_Form()
@@ -48,10 +50,15 @@ class PipelinePlot(QtWidgets.QWidget):
         self.plot_items = []
         self.pipeline = pipeline
         self.identifier = plot_id
-        self.update_content()
+
+        plot_state = pipeline.plots[
+            pipeline.plot_ids.index(plot_id)].__getstate__()
+        self.update_geometry(plot_state)
+        self.setWindowTitle(plot_state["layout"]["name"])
         PipelinePlot.instances[plot_id] = self
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
+        self._initialized = True
 
     @QtCore.pyqtSlot(dict, object)
     def on_task_error(self, task, error):
@@ -92,6 +99,7 @@ class PipelinePlot(QtWidgets.QWidget):
     @QtCore.pyqtSlot(QtGui.QResizeEvent)
     def resizeEvent(self, a0: QtGui.QResizeEvent | None):
         if (a0 is not None
+            and self._initialized
             and self.identifier
                 and not self._resize_lock.locked()):
             # Update the plot parameters
@@ -107,7 +115,6 @@ class PipelinePlot(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def update_content(self):
         """Update the current plot"""
-        parent: QtWidgets.QWidget = self.parent()  # type: ignore
         dslist, slot_states = self.pipeline.get_plot_datasets(self.identifier)
         plot = self.pipeline.get_plot(self.identifier)
         plot_state = plot.__getstate__()
@@ -135,6 +142,10 @@ class PipelinePlot(QtWidgets.QWidget):
                 self._plot_data_hash = plot_data_hash
                 self.update_content_plot(plot_state, slot_states, dslist)
 
+        self.update_geometry(plot_state)
+
+    def update_geometry(self, plot_state):
+        parent: QtWidgets.QWidget = self.parent()  # type: ignore
         # Set size in the end (after layout is populated)
         lay = plot_state["layout"]
         wsize_x = lay["size x"] + (self._window_decoration_size[0] or 8)

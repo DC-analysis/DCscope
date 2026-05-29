@@ -400,7 +400,6 @@ class DCscope(QtWidgets.QMainWindow):
                                                 )
                 connect_pp_mod_signals(self, pw)
                 sub.setWidget(pw)
-                pw.update_content()
                 self.ui.mdiArea.addSubWindow(sub)
                 self.subwindows_plots[plot_id] = sub
         sub.show()

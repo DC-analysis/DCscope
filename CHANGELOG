@@ -8,6 +8,7 @@
  - enh: show progress bar when opening a session (uses `Taskmanager`)
  - enh: enable rubberband-resize for all subwindows
  - enh: maximize main window before loading session
+ - enh: streamline session loading (remove duplicate plotting calls)
  - setup: bump dclab to 0.71.9 (thread-safety for filtering)
  - ref: scatter plot data generation done in background thread
  - ref: contour plot data generation done in background thread
