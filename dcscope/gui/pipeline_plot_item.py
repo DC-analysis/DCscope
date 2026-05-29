@@ -35,6 +35,7 @@ class PipelinePlotItem(SimplePlotItem):
 
         self._task_data_contour = []
         self._task_data_scatter = []
+        self._list_contours = []
         self.legend = None
         # circumvent problems with removed plots
         self.setAcceptHoverEvents(False)
@@ -42,7 +43,7 @@ class PipelinePlotItem(SimplePlotItem):
         self.setMouseEnabled(x=False, y=False)
         # bring axes to front
         self.axes_to_front()
-        # Keep track of all elements (for redraw)
+        # Keep track of all elements (possibly to reuse in redraw)
         self._plot_elements = []
         # Set background to white (for plot export)
         self.vb.setBackgroundColor("w")
@@ -99,6 +100,7 @@ class PipelinePlotItem(SimplePlotItem):
         for el in self._plot_elements:
             self.removeItem(el)
         self._plot_elements.clear()
+        self._list_contours.clear()
 
         if not dslist:
             return
@@ -145,11 +147,6 @@ class PipelinePlotItem(SimplePlotItem):
             else:
                 self.legend = None
             for rtdc_ds, ss in zip(dslist, slot_states):
-                if plot_state["contour"].get("zoomin", False):
-                    zoomin_contours(dslist=dslist,
-                                    plot_item=self,
-                                    plot_state=plot_state
-                                    )
                 self.request_contour(
                     rtdc_ds=rtdc_ds,
                     plot_state=plot_state,
@@ -227,9 +224,10 @@ class PipelinePlotItem(SimplePlotItem):
                                                      ),
                                         )
                 elements.append(cline)
-                self.addItem(cline)
-                if ii == 0 and self.legend is not None:
-                    self.legend.addItem(cline, slot_state["name"])
+                with self._update_lock:
+                    self.addItem(cline)
+                    if ii == 0 and self.legend is not None:
+                        self.legend.addItem(cline, slot_state["name"])
                 # Always plot higher percentiles above lower percentiles
                 # (useful if there are multiple contour plots overlapping)
                 cline.setZValue(con["percentiles"][ii])
@@ -253,8 +251,12 @@ class PipelinePlotItem(SimplePlotItem):
                       )
 
         with self._update_lock:
+            self._list_contours += contours
             self._task_data_contour.remove(task)
             self._plot_elements += elements
+
+            if plot_state["contour"].get("zoomin", False):
+                self.zoomin_contours()
 
     def request_scatter(self, plot_state, rtdc_ds, slot_state):
         task = {
@@ -329,6 +331,35 @@ class PipelinePlotItem(SimplePlotItem):
         with self._update_lock:
             self._task_data_scatter.remove(task)
             self._plot_elements.append(scatter)
+
+    def zoomin_contours(self, margin_per=5):
+        """Zoom-in to contour data with margin"""
+        if not self._list_contours:
+            # no contours available
+            return
+
+        x_min, x_max, y_min, y_max = 0, 0, 0, 0
+
+        # flatten list of contours
+        all_points = np.vstack([np.vstack(c) for conts in self._list_contours
+                                for c in conts])
+
+        if all_points.size > 0:
+            x_min = np.min(all_points[:, 0])
+            x_max = np.max(all_points[:, 0])
+            y_min = np.min(all_points[:, 1])
+            y_max = np.max(all_points[:, 1])
+
+        # Add margin
+        x_margin = (x_max - x_min) * margin_per*0.01
+        y_margin = (y_max - y_min) * margin_per*0.01
+
+        # Set view range with margins
+        self.setRange(
+            xRange=(x_min - x_margin, x_max + x_margin),
+            yRange=(y_min - y_margin, y_max + y_margin),
+            padding=0
+        )
 
 
 def add_isoelastics(plot_item, axis_x, axis_y, channel_width, pixel_size,
@@ -479,31 +510,3 @@ def set_viewbox(plot, range_x, range_y, scale_x="linear", scale_y="linear",
                   yRange=range_y,
                   padding=padding,
                   )
-
-
-def zoomin_contours(dslist, plot_item, plot_state, margin_per=5):
-    """Zoom-in contour data if enabled"""
-    x_min, x_max, y_min, y_max = 0, 0, 0, 0
-    # compute all contours
-    contours_list = [compute_contours_from_state(plot_state, ds)
-                     for ds in dslist]
-    # flatten list of contours
-    all_points = np.vstack([np.vstack(c) for conts in contours_list
-                            for c in conts])
-
-    if all_points.size > 0:
-        x_min = np.min(all_points[:, 0])
-        x_max = np.max(all_points[:, 0])
-        y_min = np.min(all_points[:, 1])
-        y_max = np.max(all_points[:, 1])
-
-    # Add margin
-    x_margin = (x_max - x_min) * margin_per*0.01
-    y_margin = (y_max - y_min) * margin_per*0.01
-
-    # Set view range with margins
-    plot_item.setRange(
-        xRange=(x_min - x_margin, x_max + x_margin),
-        yRange=(y_min - y_margin, y_max + y_margin),
-        padding=0
-    )
