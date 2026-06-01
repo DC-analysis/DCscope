@@ -26,6 +26,7 @@ class MatrixPlot(QtWidgets.QWidget):
         menu = QtWidgets.QMenu()
         menu.addAction('duplicate', self.action_duplicate)
         menu.addAction('remove', self.action_remove)
+        self.ui.toolButton_opt.setMenu(menu)
 
         self.setFixedWidth(int(65))
         self.setMinimumWidth(int(65))

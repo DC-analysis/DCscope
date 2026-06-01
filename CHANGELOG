@@ -6,6 +6,7 @@
  - fix: deleting last filter in Analysis View caused `IndexError`
  - fix: deleting last plot in Analysis View caused `IndexError`
  - reg: subplot export via context menu did not work
+ - reg: dot-menu for plot matrix element removed in refactoring process
  - enh: show number of tasks running in status bar
  - enh: migrate data file export to `Taskmanager`
  - enh: show progress bar when opening a session (uses `Taskmanager`)
