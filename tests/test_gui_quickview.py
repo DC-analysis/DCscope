@@ -80,6 +80,8 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
 
     em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # did that work?
     assert mw.ui.toolButton_quick_view.isChecked()
@@ -90,6 +92,9 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     qtbot.mouseClick(qv.ui.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
     qtbot.mouseClick(qv.ui.pushButton_poly_create,
                      QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     # three positions (not sure how to do this with mouse clicks)
     points = [[22, 0.01],
               [30, 0.01],
@@ -119,6 +124,9 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     cb.setCheckState(QtCore.Qt.CheckState.Checked)
     assert cb.checkState() == QtCore.Qt.CheckState.Checked
     qtbot.mouseClick(fv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     # Did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -133,6 +141,9 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     assert cb.checkState() == QtCore.Qt.CheckState.Checked
     cb.setCheckState(QtCore.Qt.CheckState.Unchecked)
     qtbot.mouseClick(fv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     assert not cb.checkState() == QtCore.Qt.CheckState.Checked
 
     QtWidgets.QApplication.processEvents(
@@ -149,6 +160,8 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     if qv.ui.pushButton_poly_save.isVisible():
         qtbot.mouseClick(qv.ui.pushButton_poly_save,
                          QtCore.Qt.MouseButton.LeftButton)
+        QtWidgets.QApplication.processEvents(
+            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # Check again
     # "Polygon Filter X" and "Choose..." selection
@@ -297,6 +310,8 @@ def test_no_events_issue_223_nan(qtbot, mw):
     idx_lut = sv.ui.comboBox_lut.findData("HE-3D-FEM-22")
     sv.ui.comboBox_lut.setCurrentIndex(idx_lut)
     qtbot.mouseClick(sv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # did that work?
     assert sv.ui.comboBox_lut.currentData() == "HE-3D-FEM-22"
@@ -348,6 +363,8 @@ def test_remove_dataset_h5py_error(qtbot, mw):
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)  # activate
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
                      QtCore.Qt.KeyboardModifier.ShiftModifier)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
     # did that work?
     assert mw.pipeline.is_element_active(slot_id, filt_id)
 
@@ -390,6 +407,8 @@ def test_translate_polygon_filter_issue_115(qtbot, mw):
 
     em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # did that work?
     assert mw.ui.toolButton_quick_view.isChecked()
@@ -400,6 +419,8 @@ def test_translate_polygon_filter_issue_115(qtbot, mw):
     qtbot.mouseClick(qv.ui.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
     qtbot.mouseClick(qv.ui.pushButton_poly_create,
                      QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
     # three positions (not sure how to do this with mouse clicks)
     points = [[22, 0.01],
               [30, 0.01],
@@ -485,6 +506,8 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
 
     em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
     qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # did that work?
     assert mw.ui.toolButton_quick_view.isChecked()
@@ -495,6 +518,8 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
     qtbot.mouseClick(qv.ui.toolButton_poly, QtCore.Qt.MouseButton.LeftButton)
     qtbot.mouseClick(qv.ui.pushButton_poly_create,
                      QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
     # three positions (not sure how to do this with mouse clicks)
     points = [[22, 0.01],
               [30, 0.01],
@@ -528,6 +553,9 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
 
     assert cb.checkState() == QtCore.Qt.CheckState.Checked
     qtbot.mouseClick(fv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     # did that work?
     ds = mw.pipeline.get_dataset(slot_index=0, filt_index=0,
                                  apply_filter=True)
@@ -542,6 +570,9 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
     qv.ui.widget_scatter.set_poly_points(points2)
     qtbot.mouseClick(qv.ui.pushButton_poly_save,
                      QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
     assert len(dclab.PolygonFilter.instances) == 1
     pf2 = dclab.PolygonFilter.instances[0]
     assert np.allclose(pf2.points, points2)
@@ -1244,9 +1275,13 @@ def test_cache_selected_event_using_dataslot_issue_196(qtbot, mw):
     em1 = mw.ui.block_matrix.get_widget(slot_id1, filt_id)
     qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton,
                      QtCore.Qt.KeyboardModifier.ShiftModifier)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     em1 = mw.ui.block_matrix.get_widget(slot_id1, filt_id)
     qtbot.mouseClick(em1, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # did that work?
     assert mw.pipeline.is_element_active(slot_id1, filt_id)
@@ -1262,6 +1297,8 @@ def test_cache_selected_event_using_dataslot_issue_196(qtbot, mw):
     # Open plot (settings) tool of QuickView
     plot_tool = qv.ui.toolButton_settings
     qtbot.mouseClick(plot_tool, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # select an event index in slot1
     qv.show_event(slot1_event)
@@ -1284,6 +1321,8 @@ def test_cache_selected_event_using_dataslot_issue_196(qtbot, mw):
 
     em2 = mw.ui.block_matrix.get_widget(slot_id2, filt_id)
     qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # did that work?
     assert mw.pipeline.is_element_active(slot_id2, filt_id)
@@ -1305,6 +1344,8 @@ def test_cache_selected_event_using_dataslot_issue_196(qtbot, mw):
 
     em1 = mw.ui.block_matrix.get_widget(slot_id1, filt_id)
     qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
     # Do we still have the correct event shown?
     assert qv.ui.spinBox_event.value()-1 == slot1_event

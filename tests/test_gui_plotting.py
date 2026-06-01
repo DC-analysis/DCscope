@@ -218,16 +218,14 @@ def test_handle_empty_plots_issue_223(qtbot, mw):
     plot_id = mw.add_plot()
     pe = mw.ui.block_matrix.get_widget(mw.pipeline.slot_ids[0], plot_id)
 
-    with pytest.warns(pipeline.core.EmptyDatasetWarning):
-        qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    # Up until 2.27.0, this threw a warning.
+    # Starting 2.28.0, warning is thrown in separate thread.
+    # activate (raises #223)
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
 
-        # this now only throws a warning
-        # activate (raises #223)
-        qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
-        mw.wait_for_tasks()
-
-        QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
 
 @pytest.mark.filterwarnings(

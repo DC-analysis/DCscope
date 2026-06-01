@@ -757,11 +757,12 @@ class Pipeline(object):
             fmin = fmax = 0
         return [fmin, fmax]
 
-    def get_plot(self, plot_id):
+    def get_plot(self, plot_id, run_checks=True):
         if plot_id not in self.plot_ids:
             raise ValueError(f"Plot '{plot_id}' not part of this pipeline!")
-        self.check_contour_spacing(plot_id)
-        self.check_auto_range_and_spacing(plot_id)
+        if run_checks:
+            self.check_contour_spacing(plot_id)
+            self.check_auto_range_and_spacing(plot_id)
         return self.plots[self.plot_ids.index(plot_id)]
 
     def get_plot_datasets(self, plot_id, apply_filter=True):

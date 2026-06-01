@@ -9,15 +9,30 @@ from dclab.kde.smooth_contour import compute_contour_opening_angles
 import numpy as np
 import pyqtgraph as pg
 
+from ..pipeline import Pipeline
+
 from .widgets import get_colormap
 
 
-def compute_contours_from_state(plot_state, rtdc_ds, slot_state=None):
-    """Compute th econtour given the plot state and a dataset
+def compute_contours_from_state(
+        plot_state,
+        rtdc_ds,
+        pipeline: Pipeline | None = None,
+        slot_state: dict | None = None,
+        ):
+    """Compute the contours given the plot state and a dataset
+
+    If `pipeline` is specified, then the plot dictionary is taken
+    from `pipeline.get_plot(plot_state["identifier"])`.
 
     `slot_state` is not used, but required for correctly assigning a
     contour to a slot in the pipeline plot TaskManager workflow.
     """
+    if pipeline is not None:
+        # get the latest plot state
+        plot = pipeline.get_plot(plot_state["identifier"])
+        plot_state = plot.__getstate__()
+
     gen = plot_state["general"]
     con = plot_state["contour"]
     rtdc_ds.apply_filter()
@@ -63,8 +78,22 @@ def compute_contour_reliable(plot_state, contour, thresh_ang=np.deg2rad(23)):
 def compute_scatter_data_from_state(
         plot_state,
         rtdc_ds,
+        pipeline: Pipeline | None = None,
         slot_state: dict | None = None,
         ):
+    """Compute scatte rplot data given the plot state and a dataset
+
+    If `pipeline` is specified, then the plot dictionary is taken
+    from `pipeline.get_plot(plot_state["identifier"])`.
+
+    `slot_state` is not used, but required for correctly assigning a
+    contour to a slot in the pipeline plot TaskManager workflow.
+    """
+    if pipeline is not None:
+        # get the latest plot state
+        plot = pipeline.get_plot(plot_state["identifier"])
+        plot_state = plot.__getstate__()
+
     gen = plot_state["general"]
     sca = plot_state["scatter"]
     slot_state = slot_state or {}

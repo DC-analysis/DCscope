@@ -87,7 +87,8 @@ class PipelinePlot(QtWidgets.QWidget):
             ):
                 pass
             else:
-                plot = self.pipeline.get_plot(self.identifier)
+                plot = self.pipeline.get_plot(self.identifier,
+                                              run_checks=False)
                 plot_state = plot.__getstate__()
                 self.update_content()
                 if plot.__getstate__() != plot_state:
@@ -115,8 +116,13 @@ class PipelinePlot(QtWidgets.QWidget):
     @QtCore.pyqtSlot()
     def update_content(self):
         """Update the current plot"""
-        dslist, slot_states = self.pipeline.get_plot_datasets(self.identifier)
-        plot = self.pipeline.get_plot(self.identifier)
+        dslist, slot_states = self.pipeline.get_plot_datasets(
+            self.identifier,
+            # don't apply filter here; this is done during plotting
+            # in pipeline_plot_compute.py
+            apply_filter=False,
+        )
+        plot = self.pipeline.get_plot(self.identifier, run_checks=False)
         plot_state = plot.__getstate__()
         # check whether anything changed
         # 1. plot state and all relevant slot states
@@ -213,7 +219,9 @@ class PipelinePlot(QtWidgets.QWidget):
 
         # limits in case of scatter plot and feature hue
         if lay["division"] == "merge":
-            pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
+            pp = PipelinePlotItem(parent=linner,
+                                  task_manager=self.tm,
+                                  pipeline=self.pipeline)
             self.plot_items.append(pp)
             linner.addItem(item=pp,
                            row=None,
@@ -227,7 +235,9 @@ class PipelinePlot(QtWidgets.QWidget):
                 # get the hash flag
                 hash_flag = get_hash_flag(hash_set, ds)
 
-                pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
+                pp = PipelinePlotItem(parent=linner,
+                                      task_manager=self.tm,
+                                      pipeline=self.pipeline)
                 self.plot_items.append(pp)
                 linner.addItem(item=pp,
                                row=None,
@@ -247,7 +257,9 @@ class PipelinePlot(QtWidgets.QWidget):
                 # get the hash flag
                 hash_flag = get_hash_flag(hash_set, ds)
 
-                pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
+                pp = PipelinePlotItem(parent=linner,
+                                      task_manager=self.tm,
+                                      pipeline=self.pipeline)
                 self.plot_items.append(pp)
                 linner.addItem(item=pp,
                                row=None,
@@ -261,7 +273,9 @@ class PipelinePlot(QtWidgets.QWidget):
             # contour plot
             plot_state_contour = copy.deepcopy(plot_state)
             plot_state_contour["scatter"]["enabled"] = False
-            pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
+            pp = PipelinePlotItem(parent=linner,
+                                  task_manager=self.tm,
+                                  pipeline=self.pipeline)
             self.plot_items.append(pp)
             linner.addItem(item=pp,
                            row=None,
@@ -274,7 +288,9 @@ class PipelinePlot(QtWidgets.QWidget):
             # contour plots
             plot_state_contour = copy.deepcopy(plot_state)
             plot_state_contour["scatter"]["enabled"] = False
-            pp = PipelinePlotItem(parent=linner, task_manager=self.tm)
+            pp = PipelinePlotItem(parent=linner,
+                                  task_manager=self.tm,
+                                  pipeline=self.pipeline)
             self.plot_items.append(pp)
             linner.addItem(item=pp,
                            row=None,

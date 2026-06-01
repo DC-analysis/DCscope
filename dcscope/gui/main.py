@@ -1014,7 +1014,6 @@ class DCscope(QtWidgets.QMainWindow):
         # Log all signals
         for key in data:
             logger.info(f"Signal '{key}': {json.dumps(data[key])}")
-
         if data.get("pipeline"):
             # Create plot windows
             plot_ids = self.pipeline.plot_ids
@@ -1048,9 +1047,6 @@ class DCscope(QtWidgets.QMainWindow):
 
         # Send new signal to all receivers
         self.pp_mod_recv.emit(data)
-
-        QtWidgets.QApplication.processEvents(
-            QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
         # redraw
         self.ui.mdiArea.update()

@@ -26,9 +26,11 @@ linestyles = {
 
 
 class PipelinePlotItem(SimplePlotItem):
-    def __init__(self, task_manager: TaskManager, *args, **kwargs):
+    def __init__(self, task_manager: TaskManager, pipeline, *args, **kwargs):
         """A pipeline plot item is one subplot"""
         super(PipelinePlotItem, self).__init__(*args, **kwargs)
+        self.pipeline = pipeline
+
         self.tm = task_manager
         self.tm.task_done.connect(self.request_contour_handler)
         self.tm.task_done.connect(self.request_scatter_handler)
@@ -68,7 +70,7 @@ class PipelinePlotItem(SimplePlotItem):
         win.addLabel(labely, angle=-90)
 
         tm = TaskManager(None)
-        explot = PipelinePlotItem(task_manager=tm)
+        explot = PipelinePlotItem(task_manager=tm, pipeline=self.pipeline)
         explot.request_draw(**self.state_data)
         while tm.num_tasks:
             QtTest.QTest.qWait(100)
@@ -185,6 +187,7 @@ class PipelinePlotItem(SimplePlotItem):
             "kwargs": {"plot_state": plot_state,
                        "rtdc_ds": rtdc_ds,
                        "slot_state": slot_state,
+                       "pipeline": self.pipeline,
                        }
         }
 
@@ -264,6 +267,7 @@ class PipelinePlotItem(SimplePlotItem):
             "kwargs": {"plot_state": plot_state,
                        "rtdc_ds": rtdc_ds,
                        "slot_state": slot_state,
+                       "pipeline": self.pipeline,
                        }
         }
 

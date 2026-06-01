@@ -864,7 +864,9 @@ class QuickView(QtWidgets.QWidget):
                 task = {
                     "func": pipeline_plot_item.compute_scatter_data_from_state,
                     "kwargs": {"plot_state": plot_state,
-                               "rtdc_ds": self.rtdc_ds}
+                               "rtdc_ds": self.rtdc_ds,
+                               "pipeline": None,
+                               }
                     }
                 self.tm.add_task(
                     task=task,

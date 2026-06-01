@@ -376,6 +376,8 @@ def test_polygon_filter_delete(qtbot, mw):
     assert qv.ui.pushButton_poly_delete.isVisible()
     qtbot.mouseClick(qv.ui.pushButton_poly_delete,
                      QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QEventLoop.ProcessEventsFlag.AllEvents, 500)
     assert not qv.ui.pushButton_poly_delete.isVisible()
 
     # did that work?
