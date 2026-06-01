@@ -25,8 +25,11 @@ def run_around_tests():
     session.clear_session()
 
 
-def test_export_single_plot(qtbot, monkeypatch, mw):
-    """Export of single plots not possible up until version 2.1.4"""
+# https://github.com/pyqtgraph/pyqtgraph/pull/3458
+# @pytest.mark.parametrize("export_format", ["png", "svg", None])
+@pytest.mark.parametrize("export_format", ["png", None])
+def test_export_single_plot_png(qtbot, monkeypatch, mw, export_format):
+    """Basic export of a single subplot as PNG/SVG"""
     spath = datapath / "version_2_1_0_basic.so2"
 
     qtbot.addWidget(mw)
@@ -44,6 +47,10 @@ def test_export_single_plot(qtbot, monkeypatch, mw):
     # create export dialog manually
     dlg = export.ExportPlot(mw, pipeline=mw.pipeline)
 
+    if export_format is not None:
+        dlg.ui.comboBox_fmt.setCurrentIndex(
+            dlg.ui.comboBox_fmt.findData(export_format))
+
     # select a single plot to export
     plot_id = mw.pipeline.plot_ids[0]
     assert isinstance(plot_id, str)
@@ -53,7 +60,13 @@ def test_export_single_plot(qtbot, monkeypatch, mw):
     assert dlg.ui.comboBox_plot.currentData() == plot_id
 
     dlg.export_plots()
-    assert pathlib.Path(tmpf).with_suffix(".png").exists()
+
+    if export_format is None:
+        # default is PNG
+        suffix = ".png"
+    else:
+        suffix = f".{export_format}"
+    assert pathlib.Path(tmpf).with_suffix(suffix).exists()
 
     # cleanup
     shutil.rmtree(tmpd, ignore_errors=True)
