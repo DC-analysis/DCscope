@@ -293,6 +293,11 @@ class FilterPanel(QtWidgets.QWidget):
                     filt_index = None
                 self.update_content(filt_index)
 
+                filt_rem = pp_dict.get("filter_removed")
+                if filt_rem is not None:
+                    # remove filter item from list/view
+                    self.update_content()
+
         qv_dict = data.get("quickview")
         if qv_dict and qv_dict.get("enabled"):
             if self.isVisible():
@@ -359,11 +364,14 @@ class FilterPanel(QtWidgets.QWidget):
         if self.pipeline and self.pipeline.filters:
             # remember the previous filter index and make sure it is sane
             prev_index = self.ui.comboBox_filters.currentIndex()
-            if prev_index is None or prev_index < 0:
+            if (
+                prev_index is None
+                or prev_index < 0
+                or prev_index > len(self.filter_ids) - 1
+            ):
                 prev_index = len(self.filter_ids) - 1
 
             self.setEnabled(True)
-            self.update_polygon_filters()
             # update combobox
             self.ui.comboBox_filters.blockSignals(True)
             if filt_index is None or filt_index < 0:
@@ -376,6 +384,9 @@ class FilterPanel(QtWidgets.QWidget):
                 [filt.name for filt in self.pipeline.filters])
             self.ui.comboBox_filters.setCurrentIndex(filt_index)
             self.ui.comboBox_filters.blockSignals(False)
+
+            self.update_polygon_filters()
+
             # populate content
             filt = self.pipeline.filters[filt_index]
             state = filt.__getstate__()

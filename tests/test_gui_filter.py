@@ -246,6 +246,39 @@ def test_filter_min_max_inf(qtbot, mw):
     assert np.allclose(rcstate["end"], 1.1, rtol=1e-4)
 
 
+def test_filter_remove(qtbot, mw):
+    """Remove an entire filter while in the analysis view"""
+    path = make_fake_dataset()
+
+    qtbot.addWidget(mw)
+
+    # add the file
+    mw.add_dataslot(paths=[path, path])
+    # add another filter
+    mw.add_filter()
+
+    assert len(mw.pipeline.slot_ids) == 2, "we added that"
+    assert len(mw.pipeline.filter_ids) == 2, "need two filters"
+
+    # open the filter edit in the Analysis View
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[1])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    # box filtering
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
+
+    # make sure the current filter is filter 1
+    assert wf.current_filter.identifier is mw.pipeline.filter_ids[1]
+
+    # delete the currently visible filter
+    qtbot.mouseClick(wf.ui.toolButton_remove, QtCore.Qt.MouseButton.LeftButton)
+
+    # make sure the current filter is filter 0
+    assert wf.current_filter.identifier is mw.pipeline.filter_ids[0]
+
+
 def test_polygon_filter_basic(qtbot, mw):
     path = data_path / "calibration_beads_47.rtdc"
 
