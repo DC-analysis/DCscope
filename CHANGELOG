@@ -4,6 +4,7 @@
  - fix: memory leak in plotting (plot elements were not removed)
  - fix: KDE contour spacing test only done on largest percentile contour
  - fix: deleting last filter in Analysis View caused `IndexError`
+ - fix: deleting last plot in Analysis View caused `IndexError`
  - reg: subplot export via context menu did not work
  - enh: show number of tasks running in status bar
  - enh: migrate data file export to `Taskmanager`

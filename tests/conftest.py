@@ -2,7 +2,7 @@ import shutil
 import tempfile
 import time
 
-from PyQt6 import QtCore
+from PyQt6 import QtCore, QtTest
 from pyqtgraph.graphicsItems import ViewBox
 
 import pytest
@@ -24,7 +24,9 @@ def mw():
     ViewBox.ViewBox.AllViews.clear()
     mw = DCscope()
     yield mw
+    mw.wait_for_tasks()
     mw.close()
+    QtTest.QTest.qWait(200)
 
 
 def pytest_configure(config):

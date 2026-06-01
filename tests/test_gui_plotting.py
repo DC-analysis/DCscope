@@ -6,7 +6,7 @@ import dclab
 import h5py
 import numpy as np
 import pytest
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtTest, QtWidgets
 
 from dcscope import pipeline, session
 
@@ -337,6 +337,48 @@ def test_remove_plots_issue_36(qtbot, mw):
     pw = mw.ui.block_matrix.get_widget(filt_plot_id=plot_id)
     mw.wait_for_tasks()
     pw.action_remove()
+
+
+def test_remove_plots_with_button(qtbot, mw):
+    """Remove a plot using the Analysis View"""
+    qtbot.addWidget(mw)
+
+    # add a dataslots
+    path = datapath / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path, path, path])
+
+    assert len(mw.pipeline.slot_ids) == 3, "we added those"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+
+    # now create a plot window
+    plot_id_0 = mw.add_plot()
+    # and another one
+    plot_id_1 = mw.add_plot()
+
+    # open the plot edit in the Analysis View
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.plot_ids[1])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    # Go to the plotting view
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
+    assert pv.isVisible()
+
+    # make sure the current plot is plot 1
+    assert pv.current_plot.identifier == mw.pipeline.plot_ids[1]
+    assert pv.current_plot.identifier == plot_id_1
+
+    # delete the currently visible plot
+    qtbot.mouseClick(pv.ui.toolButton_remove, QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    QtTest.QTest.qWait(500)
+
+    # make sure the current plot is plot 0
+    assert pv.current_plot.identifier == mw.pipeline.plot_ids[0]
+    assert pv.current_plot.identifier == plot_id_0
 
 
 def test_reselect_filter(qtbot, mw):

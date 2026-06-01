@@ -556,6 +556,8 @@ class PlotPanel(QtWidgets.QWidget):
                 else:
                     plot_index = None
                 self.update_content(plot_index)
+            elif pp_dict.get("plot_removed"):
+                self.update_content()
             elif pp_dict.get("plot_changed") == self.current_plot.identifier:
                 self.update_content()
 
@@ -649,7 +651,11 @@ class PlotPanel(QtWidgets.QWidget):
         if self._pipeline is not None and self.plot_ids:
             # remember the previous plot index and make sure it is sane
             prev_index = self.ui.comboBox_plots.currentIndex()
-            if prev_index is None or prev_index < 0:
+            if (
+                prev_index is None
+                or prev_index < 0
+                or prev_index > len(self.plot_ids) - 1
+            ):
                 prev_index = len(self.plot_ids) - 1
 
             self.setEnabled(True)

@@ -264,19 +264,18 @@ def test_filter_remove(qtbot, mw):
     fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[1])
     qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
 
-    # box filtering
     wf = mw.widget_ana_view.ui.widget_filter
     mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
         mw.widget_ana_view.ui.tab_filter)
 
     # make sure the current filter is filter 1
-    assert wf.current_filter.identifier is mw.pipeline.filter_ids[1]
+    assert wf.current_filter.identifier == mw.pipeline.filter_ids[1]
 
     # delete the currently visible filter
     qtbot.mouseClick(wf.ui.toolButton_remove, QtCore.Qt.MouseButton.LeftButton)
 
     # make sure the current filter is filter 0
-    assert wf.current_filter.identifier is mw.pipeline.filter_ids[0]
+    assert wf.current_filter.identifier == mw.pipeline.filter_ids[0]
 
 
 def test_polygon_filter_basic(qtbot, mw):
