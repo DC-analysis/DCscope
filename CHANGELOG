@@ -11,6 +11,7 @@
  - enh: streamline session loading (remove duplicate plotting calls)
  - enh: move plot data checking to background thread
  - setup: bump dclab to 0.71.9 (thread-safety for filtering)
+ - docs: update screenshots (and recipes)
  - ref: scatter plot data generation done in background thread
  - ref: contour plot data generation done in background thread
  - ref: use `TaskManager` for computing plot data in QuickView

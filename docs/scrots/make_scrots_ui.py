@@ -6,7 +6,7 @@ import pathlib
 import sys
 
 import dclab
-from PyQt6 import QtCore
+from PyQt6 import QtCore, QtTest
 from PyQt6.QtWidgets import QApplication
 from dcscope.gui.main import DCscope
 
@@ -27,6 +27,7 @@ mw.on_modify_slot(mw.pipeline.slot_ids[0])
 mw.subwindows["analysis_view"].move(200, 300)
 
 # main window
+mw.wait_for_tasks()
 mw.update()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.grab().save("_ui_main.png")
@@ -49,18 +50,25 @@ mw.pp_mod_send.emit({"quickview": {
 }})
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.ui.toolButton_settings.toggle()
+QtTest.QTest.qWait(500)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 idx = mw.widget_quick_view.ui.comboBox_x.findData("fl3_max_ctc")
 mw.widget_quick_view.ui.comboBox_x.setCurrentIndex(idx)
 idy = mw.widget_quick_view.ui.comboBox_y.findData("fl2_max_ctc")
 mw.widget_quick_view.ui.comboBox_y.setCurrentIndex(idy)
 mw.widget_quick_view.ui.comboBox_xscale.setCurrentIndex(1)
 mw.widget_quick_view.ui.comboBox_yscale.setCurrentIndex(1)
-mw.widget_quick_view.ui.checkBox_hue.click()
+mw.widget_quick_view.ui.checkBox_hue.setChecked(True)
 mw.widget_quick_view.ui.toolButton_apply.click()
+# make sure all plotting signals are processed
+QtTest.QTest.qWait(500)
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_settings.png")
 mw.widget_quick_view.ui.toolButton_event.toggle()
+QtTest.QTest.qWait(500)
+QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.ui.spinBox_event.setValue(4829)
+QtTest.QTest.qWait(500)
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_event.png")
 # manually create a polygon filter with points from the poly file
@@ -72,6 +80,7 @@ mw.widget_quick_view.ui.lineEdit_poly.setText("CD66⁺/CD14⁻")
 mw.widget_quick_view.ui.widget_scatter.set_poly_points(pf.points)
 # show an event
 mw.widget_quick_view.ui.imageView_image_poly.show()
+QtTest.QTest.qWait(500)
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 mw.widget_quick_view.grab().save("_ui_qv_poly.png")
 
