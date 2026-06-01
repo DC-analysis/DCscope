@@ -60,7 +60,7 @@ class ExportPlot(QtWidgets.QDialog):
                                                               'Output Folder')
             if path:
                 for ii, plot in enumerate(self.pipeline.plots):
-                    fn = "SO-plot_{}_{}.{}".format(ii, plot.name, fmt)
+                    fn = f"SO-plot_{ii}_{plot.name}.{fmt}"
                     # remove bad characters from file name
                     fn = get_valid_filename(fn)
                     fnames[plot.identifier] = pathlib.Path(path) / fn
