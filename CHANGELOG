@@ -2,6 +2,7 @@
  - feat: introduce `TaskManager` and `TaskWorker` for more progress bars
  - fix: plot resized when applying plot settings in AnalysisView
  - fix: memory leak in plotting (plot elements were not removed)
+ - fix: KDE contour spacing test only done on largest percentile contour
  - reg: subplot export via context menu did not work
  - enh: show number of tasks running in status bar
  - enh: migrate data file export to `Taskmanager`
@@ -21,6 +22,7 @@
  - ref: separate PipelinePlotItem into its own submodule
  - ref: compute brush color in background thread alongside KDE
  - ref: `zoomin_contours` calls `compute_contours_from_state` unneccesarily
+ - tests: update manual tests session with correct contour spacing
 2.27.0
  - fix: delay on selecting "Plot" tab when "Marker hue" was set to "Feature"
  - fix: switching tabs "View/Features" in QuickView did not update event data

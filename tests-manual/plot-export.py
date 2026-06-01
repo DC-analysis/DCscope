@@ -18,6 +18,7 @@ mw = DCscope()
 
 # load session
 mw.on_action_open(here / "plot-export.so2")
+mw.wait_for_tasks()
 QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
 # scatter-and-contour-export-png
@@ -105,3 +106,6 @@ plot1_subplot1.perform_export(str(
     here / "plot-export_scatter-and-contour-subplot1-export-svg_actual.svg"))
 plot1_subplot2.perform_export(str(
     here / "plot-export_scatter-and-contour-subplot2-export-svg_actual.svg"))
+
+mw.settings.setValue("advanced/user confirm clear", "0")
+mw.close()

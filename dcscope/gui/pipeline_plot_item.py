@@ -212,13 +212,22 @@ class PipelinePlotItem(SimplePlotItem):
         con = plot_state["contour"]
         elements = []
         num_unreliable_contours = 0
+
+        # check the contour with the highest quantile
+        if contours:
+            cont_high_quant = contours[0]
+            for cch in cont_high_quant:
+                if not compute_contour_reliable(plot_state=plot_state,
+                                                contour=cch):
+                    num_unreliable_contours += 1
+        else:
+            # no contours means incorrect spacing
+            num_unreliable_contours += 1
+
         for ii in range(len(contours)):
             style = linestyles[con["line styles"][ii]]
             width = con["line widths"][ii]
             for cci in contours[ii]:
-                if not compute_contour_reliable(plot_state=plot_state,
-                                                contour=cci):
-                    num_unreliable_contours += 1
                 cline = pg.PlotDataItem(x=cci[:, 0],
                                         y=cci[:, 1],
                                         pen=pg.mkPen(color=slot_state["color"],

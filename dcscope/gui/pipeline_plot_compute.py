@@ -62,7 +62,7 @@ def compute_contour_reliable(plot_state, contour, thresh_ang=np.deg2rad(23)):
         xscale=plot_state["general"]["scale x"],
         yscale=plot_state["general"]["scale y"],
     )
-    if (np.allclose(np.abs(angles[0]), np.pi / 2)
+    if (np.allclose(np.abs(angles[0]), np.pi / 2, atol=0.001, rtol=0)
             and np.all(angles[1:6] == 0)):
         # We have probably encountered a contour at the boundary
         # of the image. It looks like this is ok.
