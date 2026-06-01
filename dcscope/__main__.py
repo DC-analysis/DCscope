@@ -1,13 +1,32 @@
 def main(splash=True):
     import importlib.resources
     import sys
+    import warnings
 
     from PyQt6.QtWidgets import QApplication
-    from PyQt6.QtCore import QEventLoop
+    from PyQt6.QtCore import QEventLoop, Qt
+    from PyQt6 import QtGui
     # import before creating application
     import pyqtgraph  # noqa: F401
 
     app = QApplication(sys.argv)
+
+    style_hints = QApplication.styleHints()
+    if style_hints.colorScheme() == Qt.ColorScheme.Dark:
+        theme_shade = "dark"
+    else:
+        theme_shade = "light"
+
+    # set Qt icon theme search path
+    ref = importlib.resources.files("dcscope.img") / "icon.png"
+    with importlib.resources.as_file(ref) as icon_path:
+        theme_dir = icon_path.with_name("icon-theme")
+        theme_path = theme_dir / theme_shade
+    if theme_path.exists():
+        QtGui.QIcon.setThemeSearchPaths([str(theme_path)])
+        QtGui.QIcon.setThemeName(".")
+    else:
+        warnings.warn("DCscope theme path not available")
 
     if splash:
         from PyQt6.QtWidgets import QSplashScreen

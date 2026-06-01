@@ -15,6 +15,31 @@ class PlotMatrixElement(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        style_hints = QtWidgets.QApplication.styleHints()
+        if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
+            # dark
+            self.colors = {
+                "gray": "#474747",
+                "turquois": "#306852",
+                "gray-turquois": "#244d45",
+                "light-gray": "#464646",
+                "pink": "#c1278e",
+                "text": "white",
+            }
+            self.setStyleSheet("background-color:#464646; color:white")
+        else:
+            # light
+            self.colors = {
+                "gray": "#DCDCDC",
+                "turquois": "#86E7C1",
+                "gray-turquois": "#C9DAD7",
+                "light-gray": "#EFEFEF",
+                "pink": "#F0A1D6",
+                "text": "black",
+            }
+            self.setStyleSheet("background-color:#EFEFEF; color:black")
+
+
         self.pipeline = pipeline
 
         self.slot_index = slot_index
@@ -82,23 +107,23 @@ class PlotMatrixElement(QtWidgets.QWidget):
 
     def update_content(self):
         if self.invalid:
-            color = "#DCDCDC"  # gray
+            color = self.colors["gray"]
             label = "invalid"
             tooltip = "Incompatible plot settings"
         elif self.active and self.enabled:
-            color = "#86E7C1"  # turquois
+            color = self.colors["turquois"]
             label = "active"
             tooltip = "Click to deactivate"
         elif self.active and not self.enabled:
-            color = "#C9DAD7"  # gray-turquois
+            color = self.colors["gray-turquois"]
             label = "active\n(unused)"
             tooltip = "Click to deactivate"
         elif not self.active and self.enabled:
-            color = "#EFEFEF"  # light gray
+            color = self.colors["light-gray"]
             label = "inactive"
             tooltip = "Click to activate"
         else:
-            color = "#DCDCDC"  # gray
+            color = self.colors["gray"]
             label = "inactive\n(unused)"
             tooltip = "Click to activate"
 
@@ -106,4 +131,4 @@ class PlotMatrixElement(QtWidgets.QWidget):
         self.setToolTip(tooltip)
         self.ui.label.setToolTip(tooltip)
         self.setStyleSheet(
-            "background-color:{};color:black".format(color))
+            f"background-color:{color};color:{self.colors['text']}")

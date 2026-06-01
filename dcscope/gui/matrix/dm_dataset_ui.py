@@ -22,7 +22,6 @@ class Ui_Form(object):
         sizePolicy.setHeightForWidth(Form.sizePolicy().hasHeightForWidth())
         Form.setSizePolicy(sizePolicy)
         Form.setAutoFillBackground(False)
-        Form.setStyleSheet("background-color:#C3C9FF; color:black")
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)

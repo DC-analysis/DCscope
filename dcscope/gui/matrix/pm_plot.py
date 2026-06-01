@@ -16,6 +16,14 @@ class MatrixPlot(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        style_hints = QtWidgets.QApplication.styleHints()
+        if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
+            # dark
+            self.setStyleSheet("background-color:#3a536e; color:white")
+        else:
+            # light
+            self.setStyleSheet("background-color:#86B5E7; color:black")
+
         self.pipeline = pipeline
         self.plot_index = plot_index
         self.identifier = None

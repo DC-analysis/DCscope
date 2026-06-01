@@ -19,6 +19,14 @@ class MatrixDataset(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        style_hints = QtWidgets.QApplication.styleHints()
+        if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
+            # dark
+            self.setStyleSheet("background-color:#464a77; color:white")
+        else:
+            # light
+            self.setStyleSheet("background-color:#C3C9FF; color:black")
+
         self.pipeline = pipeline
         self.slot_index = slot_index
         self.path = None

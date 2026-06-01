@@ -16,6 +16,14 @@ class MatrixFilter(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        style_hints = QtWidgets.QApplication.styleHints()
+        if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
+            # dark
+            self.setStyleSheet("background-color:#5a551a; color:white")
+        else:
+            # light
+            self.setStyleSheet("background-color:#E7E186; color:black")
+
         self.pipeline = pipeline
         self.filt_index = filt_index
 

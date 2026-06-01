@@ -14,6 +14,30 @@ class DataMatrixElement(QtWidgets.QWidget):
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
+        style_hints = QtWidgets.QApplication.styleHints()
+        if style_hints.colorScheme() == QtCore.Qt.ColorScheme.Dark:
+            # dark
+            self.colors = {
+                "gray": "#474747",
+                "green": "#2a7f2d",
+                "gray-green": "#354335",
+                "light-gray": "#464646",
+                "pink": "#c1278e",
+                "text": "white",
+            }
+            self.setStyleSheet("background-color:#464646; color:white")
+        else:
+            # light
+            self.colors = {
+                "gray": "#DCDCDC",
+                "green": "#86E789",
+                "gray-green": "#C9DAC9",
+                "light-gray": "#EFEFEF",
+                "pink": "#F0A1D6",
+                "text": "black",
+            }
+            self.setStyleSheet("background-color:#EFEFEF; color:black")
+
         self.pipeline = pipeline
 
         self.slot_index = slot_index
@@ -121,29 +145,29 @@ class DataMatrixElement(QtWidgets.QWidget):
 
     def update_content(self):
         if self.invalid:
-            color = "#DCDCDC"  # gray
+            color = self.colors["gray"]
             label = "invalid"
             tooltip = "Incompatible filter settings"
         elif self.active and self.enabled:
-            color = "#86E789"  # green
+            color = self.colors["green"]
             label = "active"
             tooltip = "Click to deactivate"
         elif self.active and not self.enabled:
-            color = "#C9DAC9"  # gray-green
+            color = self.colors["gray-green"]
             label = "active\n(unused)"
             tooltip = "Click to deactivate"
         elif not self.active and self.enabled:
-            color = "#EFEFEF"  # light gray
+            color = self.colors["light-gray"]
             label = "inactive"
             tooltip = "Click to activate"
         else:
-            color = "#DCDCDC"  # gray
+            color = self.colors["gray"]
             label = "inactive\n(unused)"
             tooltip = "Click to activate"
 
         if not self.invalid:
             if self.quickview:
-                color = "#F0A1D6"
+                color = self.colors["pink"]
                 label += "\n(QV)"
             else:
                 tooltip += "\nShift+Click for Quick View"
@@ -151,4 +175,5 @@ class DataMatrixElement(QtWidgets.QWidget):
         self.ui.label.setText(label)
         self.setToolTip(tooltip)
         self.ui.label.setToolTip(tooltip)
-        self.setStyleSheet(f"background-color:{color};color:black")
+        self.setStyleSheet(
+            f"background-color:{color};color:{self.colors['text']}")

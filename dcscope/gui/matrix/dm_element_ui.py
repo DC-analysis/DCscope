@@ -27,7 +27,6 @@ class Ui_Form(object):
         font.setPointSize(9)
         Form.setFont(font)
         Form.setAutoFillBackground(False)
-        Form.setStyleSheet("background-color:#EFEFEF; color:black")
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetDefaultConstraint)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)

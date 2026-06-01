@@ -1,11 +1,9 @@
-import importlib.resources
 import json
 import logging
 import pathlib
 import signal
 import sys
 import traceback
-import warnings
 import webbrowser
 
 import dclab
@@ -44,16 +42,6 @@ pg.setConfigOption("background", None)
 pg.setConfigOption("foreground", "k")
 pg.setConfigOption("antialias", True)
 pg.setConfigOption("imageAxisOrder", "row-major")
-
-# set Qt icon theme search path
-ref = importlib.resources.files("dcscope.img") / "icon.png"
-with importlib.resources.as_file(ref) as icon_path:
-    theme_path = icon_path.with_name("icon-theme")
-if theme_path.exists():
-    QtGui.QIcon.setThemeSearchPaths([str(theme_path)])
-    QtGui.QIcon.setThemeName(".")
-else:
-    warnings.warn("DCscope theme path not available")
 
 logger = logging.getLogger(__name__)
 

@@ -86,24 +86,24 @@ def find_icons(name, theme, resolutions_used):
     return cands
 
 
-if __name__ == "__main__":
+def create_theme(shade="light", source_append=""):
     resolutions_used = ["16", "22", "24", "32", "64", "128"]
     directories = []
     here = pathlib.Path(__file__).parent
     for theme in icons:
         for name in icons[theme]:
-            ipaths = find_icons(name, theme, resolutions_used)
+            ipaths = find_icons(name, theme+source_append, resolutions_used)
             if not ipaths:
-                print("Could not find {} {}".format(theme, name))
+                print(f"Could not find {theme+source_append} {name}")
                 continue
             for ipath in ipaths:
                 relp = ipath.parent.relative_to(icon_root)
-                dest = here / relp
+                dest = here / shade / relp
                 directories.append(str(relp))
                 dest.mkdir(exist_ok=True, parents=True)
                 shutil.copy(ipath, dest)
 
-    with (here / "index.theme").open("w") as fd:
+    with (here / shade / "index.theme").open("w") as fd:
         directories = sorted(set(directories))
         fd.write(index.format(directories=",".join(
             ["dcscope"] + directories)))
@@ -122,3 +122,8 @@ if __name__ == "__main__":
             else:
                 raise ValueError(f"No resolution found for {dd}!")
             fd.write(index_item.format(directory=dd, res=res))
+
+
+if __name__ == "__main__":
+    create_theme(shade="light")
+    create_theme(shade="dark", source_append="-dark")
