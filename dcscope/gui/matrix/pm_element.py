@@ -39,7 +39,6 @@ class PlotMatrixElement(QtWidgets.QWidget):
             }
             self.setStyleSheet("background-color:#EFEFEF; color:black")
 
-
         self.pipeline = pipeline
 
         self.slot_index = slot_index
