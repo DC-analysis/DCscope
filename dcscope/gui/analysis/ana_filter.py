@@ -321,6 +321,7 @@ class FilterPanel(QtWidgets.QWidget):
     def on_moreless(self):
         """User wants to choose box filters"""
         if not self._box_edit_view:
+            self.ui.pushButton_apply.setEnabled(False)
             # get available features to show
             features, _ = self.get_features_labels()
             # create missing range controls if applicable (e.g. ml_score_???)
@@ -337,6 +338,7 @@ class FilterPanel(QtWidgets.QWidget):
             self.ui.label_box_edit.setVisible(True)
             self._box_edit_view = True
         else:
+            self.ui.pushButton_apply.setEnabled(True)
             # Hide all filters that are not active
             for _, rc in self._box_range_controls.items():
                 if not rc.is_active():

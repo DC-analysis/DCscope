@@ -1,4 +1,6 @@
 2.28.1
+ - enh: align-right box filter selection button in Analysis View
+ - enh: disable "Apply" button when changing box filters in Analysis View
  - build: include latest version of pyqtgraph to fix SVG export issue (#228)
 2.28.0
  - feat: introduce `TaskManager` and `TaskWorker` for more progress bars

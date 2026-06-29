@@ -241,7 +241,7 @@
           </property>
          </widget>
         </item>
-        <item>
+        <item alignment="Qt::AlignmentFlag::AlignRight">
          <widget class="QToolButton" name="toolButton_moreless">
           <property name="text">
            <string>Select box filters...</string>

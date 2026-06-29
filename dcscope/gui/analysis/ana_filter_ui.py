@@ -118,7 +118,7 @@ class Ui_Form(object):
         self.verticalLayout_3.addWidget(self.label_box_edit)
         self.toolButton_moreless = QtWidgets.QToolButton(parent=self.groupBox_box)
         self.toolButton_moreless.setObjectName("toolButton_moreless")
-        self.verticalLayout_3.addWidget(self.toolButton_moreless)
+        self.verticalLayout_3.addWidget(self.toolButton_moreless, 0, QtCore.Qt.AlignmentFlag.AlignRight)
         self.verticalLayout_5.addWidget(self.groupBox_box)
         self.groupBox = QtWidgets.QGroupBox(parent=Form)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
