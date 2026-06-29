@@ -206,6 +206,81 @@ def test_filter_min_max_delete(qtbot, mw):
     assert np.max(ds2b["area_um"]) > 30
 
 
+def test_filter_min_max_global_range_with_quickview(qtbot, mw):
+    """Boxfilter should show global range, not filtered range"""
+    qtbot.addWidget(mw)
+
+    # add the file
+    mw.add_dataslot(paths=[data_path / "artificial_with_image_bg.rtdc"])
+
+    assert len(mw.pipeline.slot_ids) == 1, "we added that"
+    assert len(mw.pipeline.filter_ids) == 1, "automatically added"
+    # sanity check
+    ds10 = dclab.new_dataset(mw.pipeline.get_dataset(0))
+    assert np.max(ds10["area_um"]) > 180
+
+    me1 = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0],
+                                        slot_id=mw.pipeline.slot_ids[0]
+                                        )
+    # open quickview
+    qtbot.mouseClick(me1, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+
+    # open the filter edit in the Analysis View
+    fe = mw.ui.block_matrix.get_widget(filt_plot_id=mw.pipeline.filter_ids[0])
+    qtbot.mouseClick(fe.ui.toolButton_modify, QtCore.Qt.MouseButton.LeftButton)
+
+    # box filtering
+    wf = mw.widget_ana_view.ui.widget_filter
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_filter)
+
+    # enable selection
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
+    # find the porosity item and click the checkbox
+    rc = wf._box_range_controls["area_um"]
+    qtbot.mouseClick(rc.ui.checkBox, QtCore.Qt.MouseButton.LeftButton)
+    # disable selection
+    qtbot.mouseClick(wf.ui.toolButton_moreless,
+                     QtCore.Qt.MouseButton.LeftButton)
+
+    # make sure the range shown is correct
+    assert rc.minimum == 139.587
+    assert rc.maximum == 228.25221
+
+    # set the range control for area from 0 to 180 µm²
+    rc.ui.doubleSpinBox_min.setValue(0)
+    rc.ui.doubleSpinBox_max.setValue(180)
+
+    # click apply
+    qtbot.mouseClick(wf.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
+
+    # make sure this worked
+    assert rc.read_pipeline_state()["end"] == 180
+    box_filters = mw.pipeline.filters[0].__getstate__()["box filters"]
+    assert box_filters["area_um"]["end"] == 180
+    assert box_filters["area_um"]["active"] is True
+
+    # activate the filter for the dataset
+    qtbot.mouseClick(me1, QtCore.Qt.MouseButton.LeftButton)
+
+    QtWidgets.QApplication.processEvents(
+        QEventLoop.ProcessEventsFlag.AllEvents, 500)
+
+    assert len(mw.pipeline.get_filters_for_slot(mw.pipeline.slot_ids[0])) == 1
+
+    # get the datasets from the pipeline and check that they are filtered
+    ds1a = dclab.new_dataset(mw.pipeline.get_dataset(0))
+
+    # This is expected
+    assert np.max(ds1a["area_um"]) < 180
+
+    # make sure the range shown is still correct
+    assert rc.minimum == 139.587
+    assert rc.maximum == 228.25221
+
+
 def test_filter_min_max_inf(qtbot, mw):
     path = make_fake_dataset()
 
@@ -235,6 +310,8 @@ def test_filter_min_max_inf(qtbot, mw):
     # disable selection
     qtbot.mouseClick(wf.ui.toolButton_moreless,
                      QtCore.Qt.MouseButton.LeftButton)
+    QtWidgets.QApplication.processEvents(
+        QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
     # check that the range control does not have all-zero values
     rcstate = rc.read_pipeline_state()

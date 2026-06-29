@@ -406,12 +406,14 @@ class FilterPanel(QtWidgets.QWidget):
             # compute min/max values
             mmdict = {}
             for feat in self.active_box_features:
-                mmdict[feat] = self.pipeline.get_min_max(feat=feat)
+                mmdict[feat] = self.pipeline.get_min_max_coarse(feat=feat)
             # update used features
             for feat in self._box_range_controls:
                 rc = self._box_range_controls[feat]
                 if feat in mmdict:
                     rc.setLimits(*mmdict[feat])
+                else:
+                    print("Ignoring feature", feat)
                 if self.current_filter is not None:
                     state = self.current_filter.__getstate__()
                     if feat not in state["box filters"]:

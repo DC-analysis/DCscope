@@ -732,12 +732,27 @@ class Pipeline(object):
         for ds in dslist:
             if np.any(ds.filter.all):
                 if feat in ds:
-                    vmin = ds[feat].min()
-                    if not np.isnan(vmin):
+                    fdata = ds[feat]
+                    vmin = fdata.min()
+                    vmax = fdata.max()
+
+                    if np.any(np.isinf([vmin, vmax])):
+                        # Until now, we might have gotton away with our
+                        # custom h5attrs-backed ufuncs to get the minimum
+                        # and maximum of the feature data. But if there is
+                        # an inf present, then data is probably already loaded
+                        # into memory anyway. The following triggers loading
+                        # the entire feature data into memory for computing
+                        # the non-nan, non-inf minimum and maximum.
+                        fdata_valid = fdata[~np.isinf(fdata)]
+                        if fdata_valid.size:
+                            vmin = np.nanmin(fdata_valid)
+                            vmax = np.nanmax(fdata_valid)
+
+                    if not (np.isnan(vmin) or np.isinf(vmin)):
                         fmin = min(vmin, fmin)
 
-                    vmax = ds[feat].max()
-                    if not np.isnan(vmax):
+                    if not (np.isnan(vmax) or np.isinf(vmin)):
                         fmax = max(vmax, fmax)
                 else:
                     warnings.warn(f"Dataset {ds.identifier} does not "

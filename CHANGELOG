@@ -1,4 +1,6 @@
 2.28.1
+ - reg: limits of box filters incorrectly shown when QuickView was active
+ - enh: `Pipeline.get_min_max_coarse` handles inf data
  - enh: align-right box filter selection button in Analysis View
  - enh: disable "Apply" button when changing box filters in Analysis View
  - build: include latest version of pyqtgraph to fix SVG export issue (#228)
