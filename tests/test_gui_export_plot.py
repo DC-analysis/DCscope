@@ -25,6 +25,8 @@ def run_around_tests():
     session.clear_session()
 
 
+# TODO: add "svg" when pyqtgraph>0.14.0 is released
+# https://github.com/DC-analysis/DCscope/issues/228
 # https://github.com/pyqtgraph/pyqtgraph/pull/3458
 # @pytest.mark.parametrize("export_format", ["png", "svg", None])
 @pytest.mark.parametrize("export_format", ["png", None])
