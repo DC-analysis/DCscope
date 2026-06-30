@@ -32,16 +32,18 @@ jobs:
     - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine
-        pip install .
+        python -m pip install setuptools wheel twine
+        python -m pip install .
         # https://github.com/DC-analysis/DCscope/issues/228
         # install pyqtgraph > 0.14.0 fixing SVG export issue
-        pip install git+https://github.com/pyqtgraph/pyqtgraph.git@4683d7a2d3f2b0a8412618a41dc780bd9cce339b
+        # https://github.com/DC-analysis/DCscope/issues/228
+        python -m pip uninstall -y pyqtgraph
+        python -m pip install git+https://github.com/paulmueller/pyqtgraph.git@907c5b0fd65f6b6da684f7a814349e5643ac3fc8
     - name: Build windows executable
       if: runner.os == 'windows'
       working-directory: ./build-recipes
       run: |
-        pip install -r win_build_requirements.txt
+        python -m pip install -r win_build_requirements.txt
         pyinstaller -y --log-level=WARN win_DCscope.spec
         # Run the binary (the most simple test)
         dist\\DCscope\\DCscope.exe --version
