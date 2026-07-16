@@ -45,16 +45,14 @@ class LogPanel(QtWidgets.QWidget):
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
             log_names = list(ds.logs.keys())
+
             with QtCore.QSignalBlocker(self.ui.listWidget_log_name):
                 for log in log_names:
                     self.ui.listWidget_log_name.addItem(log)
 
-            # Apply previously selected log
-            if self._selected_log in log_names:
-                log_idx = log_names.index(self._selected_log)
+            if log_names:
+                log_idx = find_same_name(self._selected_log, log_names)
                 self.ui.listWidget_log_name.setCurrentRow(log_idx)
-            elif len(log_names):
-                self.ui.listWidget_log_name.setCurrentRow(0)
 
     @QtCore.pyqtSlot(int)
     def on_select_log(self, log_index):
@@ -142,3 +140,25 @@ class LogPanel(QtWidgets.QWidget):
             self.ui.listWidget_dataset.clear()
             self.ui.listWidget_log_name.clear()
             self.ui.textEdit.clear()
+
+
+def find_same_name(name, name_list):
+    """For a given name, find the item in `name_list` that matches
+
+    The idea is to match identical names and names that only differ
+    by a few characters at the end.
+
+    Return the index, fallback to 0.
+    """
+    if name is None:
+        return 0
+    elif name in name_list:
+        return name_list.index(name)
+    elif len(name) > 5:
+        for ii in range(6, len(name))[::-1]:
+            stub = name[:ii]
+            print(stub, ii)
+            for jj, item in enumerate(name_list):
+                if item.startswith(stub):
+                    return jj
+    return 0
