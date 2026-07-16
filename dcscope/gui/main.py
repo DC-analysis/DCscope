@@ -61,6 +61,8 @@ class DCscope(QtWidgets.QMainWindow):
         """
         super(DCscope, self).__init__()
 
+        self._drag_mime_data_urls = None
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -413,9 +415,11 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(QtGui.QDragEnterEvent)
     def dragEnterEvent(self, a0: QtGui.QDragEnterEvent | None):
         """Whether files are accepted"""
+        self._drag_mime_data_urls = None
         if a0 is not None:
             mime_data = a0.mimeData()
             if mime_data is not None and mime_data.hasUrls():
+                self._drag_mime_data_urls = mime_data.urls()
                 a0.accept()
             else:
                 a0.ignore()
@@ -426,9 +430,12 @@ class DCscope(QtWidgets.QMainWindow):
         """Add dropped files to view"""
         urls = None
         if a0 is not None:
-            mime_data = a0.mimeData()
-            if mime_data is not None:
-                urls = mime_data.urls()
+            # This first line caused a segmentation fault on linux/KDE:
+            # mime_data = a0.mimeData()
+            # if mime_data is not None:
+            #    urls = mime_data.urls()
+            # Workaround: fetch the URLs during `dragEnterEvent`
+            urls = self._drag_mime_data_urls
         if urls:
             pathlist = []
             is_dcor = bool(urls[0].host())
