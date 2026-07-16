@@ -1,3 +1,5 @@
+2.28.2
+ - fix: Log view selection lost when switching between datasets
 2.28.1
  - reg: limits of box filters incorrectly shown when QuickView was active
  - enh: `Pipeline.get_min_max_coarse` handles inf data

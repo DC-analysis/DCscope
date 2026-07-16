@@ -40,12 +40,14 @@ class LogPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
         """Show the logs of the dataset in the right-hand list widget"""
-        self.ui.listWidget_log_name.clear()
+        with QtCore.QSignalBlocker(self.ui.listWidget_log_name):
+            self.ui.listWidget_log_name.clear()
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
             log_names = list(ds.logs.keys())
-            for log in log_names:
-                self.ui.listWidget_log_name.addItem(log)
+            with QtCore.QSignalBlocker(self.ui.listWidget_log_name):
+                for log in log_names:
+                    self.ui.listWidget_log_name.addItem(log)
 
             # Apply previously selected log
             if self._selected_log in log_names:
@@ -69,7 +71,8 @@ class LogPanel(QtWidgets.QWidget):
                 self.on_select_log(0)
                 return
 
-            lines = ds.logs[list(ds.logs.keys())[log_index]]
+            self._selected_log = list(ds.logs.keys())[log_index]
+            lines = ds.logs[self._selected_log]
 
             if lines[0].strip() == "{" and lines[-1].strip() == "}":
                 # JSON
