@@ -803,8 +803,12 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot, mw):
     # Check if QuickView-window is open
     assert mw.ui.toolButton_quick_view.isChecked(), "Quickview not Open"
 
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     # Get QuickView instance
     qv = mw.widget_quick_view
+
+    assert qv.isVisible(), "Checkbox is not visible"
 
     # Open event tool of QuickView
     event_tool = qv.ui.toolButton_event
