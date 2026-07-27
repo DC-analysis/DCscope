@@ -1,6 +1,7 @@
 2.28.2
  - fix: Log view selection lost when switching between datasets
  - fix: workaround for segmentation fault with `QDropEvent.mimeData()`
+ - fix: `AttributeError` for `widget_under_mouse.ToolTip()` in Block Matrix
  - enh: Log view keeps selection for similar log names
  - setup: bump dclab to 0.71.10 (KDE, DCOR, basin search in same directory)
 2.28.1

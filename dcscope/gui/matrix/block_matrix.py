@@ -58,15 +58,17 @@ class BlockMatrix(QtWidgets.QWidget):
         QtWidgets.QWidget.setMouseTracking(self, enable)
         recursive_set(self)
 
-    def mouseMoveEvent(self, e):
-        p = self.mapToGlobal(e.pos())
-        # Get the global position of the mouse event
-        widget_under_mouse = QtWidgets.QApplication.widgetAt(p)
+    def mouseMoveEvent(self, a0):
+        if a0 is not None:
+            p = self.mapToGlobal(a0.pos())
+            # Get the global position of the mouse event
+            widget_under_mouse = QtWidgets.QApplication.widgetAt(p)
 
-        QtWidgets.QToolTip.showText(e.pos(),
-                                    widget_under_mouse.toolTip(),
-                                    widget_under_mouse,
-                                    msecShowTime=60000)
+            if widget_under_mouse is not None:
+                QtWidgets.QToolTip.showText(a0.pos(),
+                                            widget_under_mouse.toolTip(),
+                                            widget_under_mouse,
+                                            msecShowTime=60000)
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
