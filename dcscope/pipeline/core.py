@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import pathlib
 import threading
@@ -28,7 +30,7 @@ class ContourSpacingWarning(UserWarning):
     pass
 
 
-class Pipeline(object):
+class Pipeline:
     def __init__(self, state=None):
         self._plot_counter = 0
         self._slot_counter = 0
@@ -247,6 +249,7 @@ class Pipeline(object):
                             identifier=state["identifier"]
                             )
             slot.__setstate__(state)
+        assert slot is not None
 
         slot_id = slot.identifier
         if slot_id in self.slot_ids:
@@ -317,7 +320,7 @@ class Pipeline(object):
             for ax in ["x", "y"]:
                 feat = plot_state["general"][f"axis {ax}"]
                 spacing = plot_state["contour"][f"spacing {ax}"]
-                for ds, slot_state in zip(*self.get_plot_datasets(
+                for _, slot_state in zip(*self.get_plot_datasets(
                         plot_id, apply_filter=False)):
                     slot_id = slot_state["identifier"]
                     slot = self.get_slot(slot_id)
@@ -490,7 +493,7 @@ class Pipeline(object):
             of the dataset and its hierarchy parents are updated
         """
         if not isinstance(slot_index, int):
-            raise ValueError(
+            raise TypeError(
                 f"`slot_index` must be an integer, got '{slot_index}'")
         slot = self.slots[slot_index]
         if filt_index is None or (filt_index == -1 and len(self.filters) == 0):
@@ -789,12 +792,12 @@ class Pipeline(object):
             slot = self.slots[slot_index]
             slot_id = slot.identifier
             if (self.element_states[slot_id][plot_id]
-                    and slot_id in self.slots_used):
-                if self.is_element_valid(slot_id, plot_id):
-                    ds = self.get_dataset(slot_index=slot_index,
-                                          apply_filter=apply_filter)
-                    datasets.append(ds)
-                    states.append(slot.__getstate__())
+                and slot_id in self.slots_used
+                    and self.is_element_valid(slot_id, plot_id)):
+                ds = self.get_dataset(slot_index=slot_index,
+                                      apply_filter=apply_filter)
+                datasets.append(ds)
+                states.append(slot.__getstate__())
         return datasets, states
 
     def get_plot_col_row_count(self, plot_id, pipeline_state=None):
@@ -870,18 +873,21 @@ class Pipeline(object):
         ds = self.get_slot(slot_id).get_dataset()
         if filt_plot_id in self.filter_ids:
             filt = self.get_filter(filt_plot_id)
+            is_valid = True
             # box filters
             for feat in filt.boxdict:
                 if feat not in ds.features:
-                    return False
+                    is_valid = False
+                    break
             else:
                 # polygon filters
                 for pid in filt.polylist:
                     pf = dclab.PolygonFilter.get_instance_from_id(pid)
                     if (pf.axes[0] not in ds.features
                             or pf.axes[1] not in ds.features):
-                        return False
-            return True
+                        is_valid = False
+                        break
+            return is_valid
         elif filt_plot_id in self.plot_ids:
             plot_index = self.plot_ids.index(filt_plot_id)
             plot_state = self.plots[plot_index].__getstate__()
