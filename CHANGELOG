@@ -1,3 +1,5 @@
+2.28.3
+ - fix: QuickView window partially covered by BlockMatrix on startup
 2.28.2
  - fix: Log view selection lost when switching between datasets
  - fix: workaround for segmentation fault with `QDropEvent.mimeData()`

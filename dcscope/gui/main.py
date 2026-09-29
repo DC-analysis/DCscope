@@ -1053,6 +1053,11 @@ class DCscope(QtWidgets.QMainWindow):
         self.subwindows["quick_view"].setVisible(toggled)
         if toggled:
             self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
+            # Move quickview to leftmost part of mdiArea
+            geo = self.subwindows["quick_view"].geometry()
+            geo.moveLeft(0)
+            self.subwindows["quick_view"].setGeometry(geo)
+
         self.pp_mod_send.emit({"quickview": {
             "enabled": toggled,
             "slot_index": 0,
