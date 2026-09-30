@@ -117,10 +117,11 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
 
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    QtTest.QTest.qWait(100)
 
     assert mw.widget_ana_view.ui.tab_filter.isVisible()
     cb = fv._polygon_checkboxes[pf.unique_id]
-    assert not cb.checkState() == QtCore.Qt.CheckState.Checked
+    assert cb.checkState() != QtCore.Qt.CheckState.Checked
     cb.setCheckState(QtCore.Qt.CheckState.Checked)
     assert cb.checkState() == QtCore.Qt.CheckState.Checked
     qtbot.mouseClick(fv.ui.pushButton_apply, QtCore.Qt.MouseButton.LeftButton)
@@ -144,7 +145,7 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
 
-    assert not cb.checkState() == QtCore.Qt.CheckState.Checked
+    assert cb.checkState() != QtCore.Qt.CheckState.Checked
 
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
@@ -155,6 +156,7 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
     assert qv.ui.comboBox_poly.count() == 2
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Now hit "Save" if it is visible (it should not be visible)
     if qv.ui.pushButton_poly_save.isVisible():
@@ -192,6 +194,7 @@ def test_no_events_disable(qtbot, mw):
                      QtCore.Qt.KeyboardModifier.ShiftModifier)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Get Quick View instance
     qv = mw.widget_quick_view
@@ -202,6 +205,9 @@ def test_no_events_disable(qtbot, mw):
     # Check the reverse
     qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton,
                      QtCore.Qt.KeyboardModifier.ShiftModifier)
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
     assert not qv.ui.label_noevents.isVisible()
 
 
@@ -542,6 +548,7 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
 
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    QtTest.QTest.qWait(100)
 
     assert mw.widget_ana_view.ui.tab_filter.isVisible()
 
@@ -652,6 +659,7 @@ def test_subtract_background(qtbot, mw):
                      QtCore.Qt.KeyboardModifier.ShiftModifier)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     qv2 = mw.widget_quick_view
 
@@ -758,6 +766,7 @@ def test_auto_contrast_qpi(qtbot, mw):
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
@@ -811,6 +820,7 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot, mw):
 
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
     # Get QuickView instance
     qv = mw.widget_quick_view
 
@@ -822,6 +832,7 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot, mw):
 
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
@@ -888,6 +899,7 @@ def test_contour_display(qtbot, mw):
 
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contour.isVisible(), "Checkbox is not visible"
@@ -949,6 +961,7 @@ def test_contour_display_qpi_amp(qtbot, mw):
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contour.isVisible(), "Checkbox is not visible"
@@ -1012,6 +1025,7 @@ def test_contour_display_qpi_pha(qtbot, mw):
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contour.isVisible(), "Checkbox is not visible"
