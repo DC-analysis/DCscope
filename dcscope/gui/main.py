@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 import logging
 import pathlib
@@ -59,7 +61,7 @@ class DCscope(QtWidgets.QMainWindow):
         application will print the version after initialization
         and exit.
         """
-        super(DCscope, self).__init__()
+        super().__init__()
 
         self._drag_mime_data_urls = None
 
@@ -79,7 +81,7 @@ class DCscope(QtWidgets.QMainWindow):
         self.tasks_label.setText("")
         self.ui.statusbar.addPermanentWidget(self.tasks_label)
 
-        logging.basicConfig(format='%(levelname)s:%(message)s',
+        logging.basicConfig(format="%(levelname)s:%(message)s",
                             level=logging.INFO)
 
         # pipeline
@@ -510,7 +512,7 @@ class DCscope(QtWidgets.QMainWindow):
 
             QtCore.QMetaObject.invokeMethod(
                 self._update_worker,
-                'processUpdate',
+                "processUpdate",
                 QtCore.Qt.ConnectionType.QueuedConnection,
                 QtCore.Q_ARG(str, version),
                 QtCore.Q_ARG(str, ghrepo),
@@ -529,14 +531,14 @@ class DCscope(QtWidgets.QMainWindow):
         web = mdict["releases url"]
         dlb = mdict["binary url"]
         msg = QMessageBox()
-        msg.setWindowTitle("DCscope {} available!".format(ver))
+        msg.setWindowTitle(f"DCscope {ver} available!")
         msg.setTextFormat(QtCore.Qt.TextFormat.RichText)
-        text = "You can install DCscope {} ".format(ver)
+        text = f"You can install DCscope {ver} "
         if dlb is not None:
-            text += 'from a <a href="{}">direct download</a>. '.format(dlb)
+            text += f"from a <a href='{dlb}'>direct download</a>. "
         else:
-            text += 'by running `pip install --upgrade dcscope`. '
-        text += 'Visit the <a href="{}">official release page</a>!'.format(web)
+            text += "by running `pip install --upgrade dcscope`. "
+        text += f"Visit the <a href='{web}'>official release page</a>!"
         msg.setText(text)
         msg.exec()
 
@@ -569,7 +571,7 @@ class DCscope(QtWidgets.QMainWindow):
         """Clear the entire session"""
         if bool(int(self.settings.value("advanced/user confirm clear", "1"))):
             button_reply = QMessageBox.question(
-                self, 'Clear Session', "All progress will be lost. Continue?",
+                self, "Clear Session", "All progress will be lost. Continue?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No)
             yes = button_reply == QMessageBox.StandardButton.Yes
@@ -588,7 +590,7 @@ class DCscope(QtWidgets.QMainWindow):
         """Clear only the datasets"""
         if bool(int(self.settings.value("advanced/user confirm clear", "1"))):
             button_reply = QMessageBox.question(
-                self, 'Clear Datasets',
+                self, "Clear Datasets",
                 "Remove all datasets from this session?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No)
@@ -687,12 +689,12 @@ class DCscope(QtWidgets.QMainWindow):
             if yes:
                 # if the user agrees, these files will be overridden
                 existing_paths.clear()
-        for path in filt_dict:
+        for path, value in filt_dict.items():
             if path in existing_paths:
                 # not overriding this one
                 continue
             else:
-                session.export_filters(path, self.pipeline, filt_dict[path])
+                session.export_filters(path, self.pipeline, value)
 
     @QtCore.pyqtSlot()
     def on_action_export_plot(self):
@@ -711,9 +713,9 @@ class DCscope(QtWidgets.QMainWindow):
         if path is None:
             path, _ = QFileDialog.getOpenFileName(
                 parent=self,
-                caption='Select Filter',
+                caption="Select Filter",
                 directory=settings.get_dir("filters", self.settings),
-                filter='Filters formats (*.poly *.sof)')
+                filter="Filters formats (*.poly *.sof)")
         if path:
             settings.set_dir("filters", path, self.settings)
             with self.pipeline.lock:
@@ -724,16 +726,16 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def on_action_open(self, path=None):
         """Open a DCscope session"""
-        if self.pipeline.slots or self.pipeline.filters:
-            if not self.on_action_clear():
-                return
+        if ((self.pipeline.slots or self.pipeline.filters)
+                and not self.on_action_clear()):
+            return
         if path is None:
             path, _ = QFileDialog.getOpenFileName(
                 parent=self,
-                caption='Open session',
+                caption="Open session",
                 directory=settings.get_dir("session", self.settings),
-                filter='DCscope session (*.so2)',
-                initialFilter='DCscope session (*.so2)',
+                filter="DCscope session (*.so2)",
+                initialFilter="DCscope session (*.so2)",
                 options=QFileDialog.Option.DontUseNativeDialog)
         if path:
             settings.set_dir("session", path, self.settings)
@@ -819,7 +821,7 @@ class DCscope(QtWidgets.QMainWindow):
                                     "Missing files: \n\n" + missds)
                                 msg.exec()
                                 spath = QFileDialog.getExistingDirectory(
-                                    self, 'Data search path')
+                                    self, "Data search path")
                                 if spath:
                                     search_paths.append(spath)
                                 else:
@@ -859,9 +861,9 @@ class DCscope(QtWidgets.QMainWindow):
     def on_action_save(self):
         path, _ = QFileDialog.getSaveFileName(
             parent=self,
-            caption='Save session',
+            caption="Save session",
             directory=settings.get_dir("session", self.settings),
-            filter='DCscope session (*.so2)')
+            filter="DCscope session (*.so2)")
         if path:
             settings.set_dir("session", path, self.settings)
             if not path.endswith(".so2"):
@@ -886,7 +888,7 @@ class DCscope(QtWidgets.QMainWindow):
             sw_text += f"- {lib.__name__} {lib.__version__}\n"
         sw_text += f"- PyQt6 {QtCore.QT_VERSION_STR}\n"  # Extrawurst
         sw_text += "\n Breeze icon theme by the KDE Community (LGPL)."
-        if hasattr(sys, 'frozen'):
+        if hasattr(sys, "frozen"):
             sw_text += "\nThis executable has been created using PyInstaller."
         QMessageBox.information(self, "Software", sw_text)
 
@@ -1102,9 +1104,9 @@ def excepthook(etype, value, trace):
 
     errorbox = QMessageBox()
     errorbox.setIcon(QMessageBox.Icon.Critical)
-    copy_button = QtWidgets.QPushButton('Copy message to clipboard and close')
+    copy_button = QtWidgets.QPushButton("Copy message to clipboard and close")
     copy_button.clicked.connect(lambda: copy_text_to_clipboard(exc_long))
-    errorbox.addButton(QtWidgets.QPushButton('Close'),
+    errorbox.addButton(QtWidgets.QPushButton("Close"),
                        QMessageBox.ButtonRole.YesRole)
     errorbox.addButton(copy_button, QMessageBox.ButtonRole.NoRole)
     errorbox.setDetailedText(exc_long)
