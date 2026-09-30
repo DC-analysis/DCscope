@@ -9,7 +9,7 @@ class DataMatrixElement(QtWidgets.QWidget):
     pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, pipeline, slot_index, filt_index, *args, **kwargs):
-        super(DataMatrixElement, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)

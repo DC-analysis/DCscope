@@ -1,4 +1,8 @@
+from __future__ import annotations
+
 from PyQt6 import QtCore, QtWidgets
+
+from ...pipeline import Pipeline
 
 from .dm_dataset import MatrixDataset
 from .dm_filter import MatrixFilter
@@ -17,9 +21,9 @@ class DataMatrix(QtWidgets.QWidget):
     pp_mod_recv_child = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        super(DataMatrix, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        self.pipeline = None
+        self.pipeline: Pipeline = None  # type: ignore
 
         # add grid layout
         self.glo = QtWidgets.QGridLayout()
@@ -97,7 +101,7 @@ class DataMatrix(QtWidgets.QWidget):
 
         # remove rows
         for ii in range(self.pipeline.num_slots + 1, self.glo.rowCount()):
-            for jj in range(0, self.glo.columnCount()):
+            for jj in range(self.glo.columnCount()):
                 item = self.glo.itemAtPosition(ii, jj)
                 if item is not None:
                     item.widget().abolish()
@@ -105,7 +109,7 @@ class DataMatrix(QtWidgets.QWidget):
 
         # remove columns
         for jj in range(self.pipeline.num_filters + 1, self.glo.columnCount()):
-            for ii in range(0, self.glo.rowCount()):
+            for ii in range(self.glo.rowCount()):
                 item = self.glo.itemAtPosition(ii, jj)
                 if item is not None:
                     item.widget().abolish()
@@ -227,7 +231,7 @@ class DataMatrix(QtWidgets.QWidget):
             if fs.identifier == filter_id:
                 break
         else:
-            raise KeyError("Filter '{}' not found!".format(filter_id))
+            raise KeyError(f"Filter '{filter_id}' not found!")
         return ii
 
     def get_filter_widget_state(self, filter_id):
@@ -240,7 +244,7 @@ class DataMatrix(QtWidgets.QWidget):
             if dw.identifier == slot_id:
                 break
         else:
-            raise KeyError("Dataset '{}' not found!".format(slot_id))
+            raise KeyError(f"Dataset '{slot_id}' not found!")
         return ii
 
     def get_slot_widget_state(self, slot_id, ret_index=False):
@@ -267,10 +271,10 @@ class DataMatrix(QtWidgets.QWidget):
                     if f.identifier == filt_id:
                         break
                 else:
-                    raise KeyError("Filter '{}' not found!".format(filt_id))
+                    raise KeyError(f"Filter '{filt_id}' not found!")
                 break
         else:
-            raise KeyError("Dataset '{}' not found!".format(slot_id))
+            raise KeyError(f"Dataset '{slot_id}' not found!")
         return ii, jj
 
     def set_pipeline(self, pipeline):

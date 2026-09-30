@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from PyQt6 import QtCore, QtWidgets
 
 from ..helpers import connect_pp_mod_signals
+from ...pipeline import Pipeline
 from .block_matrix_ui import Ui_Form
 
 
@@ -16,12 +19,12 @@ class BlockMatrix(QtWidgets.QWidget):
 
     def __init__(self, *args, **kwargs):
         """Helper class that wraps DataMatrix and PlotMatrix"""
-        super(BlockMatrix, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
-        self.pipeline = None
+        self.pipeline: Pipeline = None  # type: ignore
 
         # Signals
         # DataMatrix buttons
@@ -93,15 +96,6 @@ class BlockMatrix(QtWidgets.QWidget):
         self.ui.data_matrix.set_pipeline(self.pipeline)
         self.ui.plot_matrix.set_pipeline(self.pipeline)
 
-    def add_dataset(self, *args, **kwargs):
-        self.ui.data_matrix.add_dataset(*args, **kwargs)
-
-    def add_filter(self, *args, **kwargs):
-        self.ui.data_matrix.add_filter(*args, **kwargs)
-
-    def add_plot(self, *args, **kwargs):
-        self.ui.plot_matrix.add_plot(*args, **kwargs)
-
     def get_widget(self, slot_id=None, filt_plot_id=None):
         """Convenience function for testing"""
         if slot_id is None and filt_plot_id is not None:
@@ -113,7 +107,7 @@ class BlockMatrix(QtWidgets.QWidget):
                     break
             else:
                 raise KeyError(
-                    "Widget identifier '{}' not found!".format(filt_plot_id))
+                    f"Widget identifier '{filt_plot_id}' not found!")
             return wi
         elif slot_id is not None and filt_plot_id is None:
             # get a slot
@@ -122,7 +116,7 @@ class BlockMatrix(QtWidgets.QWidget):
                     break
             else:
                 raise KeyError(
-                    "Widget identifier '{}' not found!".format(filt_plot_id))
+                    f"Widget identifier '{filt_plot_id}' not found!")
             return wi
         elif slot_id is not None and filt_plot_id is not None:
             # get a matrix element
@@ -136,24 +130,12 @@ class BlockMatrix(QtWidgets.QWidget):
                 wi = fpd[filt_plot_id]
             else:
                 raise KeyError(
-                    "Widget identifier '{}' not found!".format(filt_plot_id))
+                    f"Widget identifier '{filt_plot_id}' not found!")
             return wi
         else:
             raise ValueError(
                 "At least one of `slot_id`, `filt_plot_id` must be specified!")
 
-    def invalidate_elements(self, invalid_dm, invalid_pm):
-        for slot_id, filt_id in invalid_dm:
-            em = self.ui.data_matrix.get_matrix_element(slot_id, filt_id)
-            em.active = False
-            em.invalid = True
-            em.update_content()
-        for slot_id, plot_id in invalid_pm:
-            em = self.ui.plot_matrix.get_matrix_element(slot_id, plot_id)
-            em.active = False
-            em.invalid = True
-            em.update_content()
-
     def update(self, *args, **kwargs):
         self.ui.scrollArea_block.update()
-        super(BlockMatrix, self).update(*args, **kwargs)
+        super().update(*args, **kwargs)
