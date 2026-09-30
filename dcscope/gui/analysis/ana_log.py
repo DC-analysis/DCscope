@@ -52,6 +52,9 @@ class LogPanel(QtWidgets.QWidget):
             if log_names:
                 log_idx = find_same_name(self._selected_log, log_names)
                 self.ui.listWidget_log_name.setCurrentRow(log_idx)
+            else:
+                self.ui.listWidget_log_name.clear()
+                self.ui.textEdit.clear()
 
     @QtCore.pyqtSlot(int)
     def on_select_log(self, log_index):

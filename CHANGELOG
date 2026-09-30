@@ -3,6 +3,7 @@
  - fix: reactivating QuickView initially shows first dataset
  - fix: hide trace graphs in QuickView when there's no data to display
  - fix: sample names not displayed correctly when reordering datasets
+ - fix: table and log view do not clear data view from previous selection
  - enh: improved default location of QuickView and AnalysisView windows
  - setup: add ruff settings to pyproject.toml
  - ref: publish current QuickView element via central `Pipeline`

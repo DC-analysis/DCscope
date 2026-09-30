@@ -100,6 +100,12 @@ class TablesPanel(QtWidgets.QWidget):
                 self.ui.listWidget_table_name.setCurrentRow(table_idx)
             elif len(table_names):
                 self.ui.listWidget_table_name.setCurrentRow(0)
+            else:
+                self.ui.listWidget_table_graphs.setEnabled(False)
+                self.ui.listWidget_table_name.clear()
+                self.ui.listWidget_table_graphs.clear()
+                self.ui.plainTextEdit_raw.setPlainText("")
+                self.ui.graphicsView_lines.clear()
 
     @QtCore.pyqtSlot(int)
     def on_select_table(self, table_index):
@@ -148,6 +154,8 @@ class TablesPanel(QtWidgets.QWidget):
             self.ui.listWidget_table_graphs.setEnabled(False)
             self.ui.listWidget_table_name.clear()
             self.ui.listWidget_table_graphs.clear()
+            self.ui.plainTextEdit_raw.setPlainText("")
+            self.ui.graphicsView_lines.clear()
 
     @QtCore.pyqtSlot()
     def on_select_graphs(self):
@@ -189,8 +197,10 @@ class TablesPanel(QtWidgets.QWidget):
                     self.ui.graphicsView_lines.autoRange()
                 else:
                     self.ui.graphicsView_lines.clear()
+                    self.ui.plainTextEdit_raw.setPlainText("")
         else:
             self.ui.listWidget_table_graphs.clear()
+            self.ui.plainTextEdit_raw.setPlainText("")
 
     def set_pipeline(self, pipeline):
         if self.pipeline is not None:
