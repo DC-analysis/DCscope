@@ -159,7 +159,6 @@ def find_same_name(name, name_list):
     elif len(name) > 5:
         for ii in range(6, len(name))[::-1]:
             stub = name[:ii]
-            print(stub, ii)
             for jj, item in enumerate(name_list):
                 if item.startswith(stub):
                     return jj
