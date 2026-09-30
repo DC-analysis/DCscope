@@ -6,7 +6,7 @@ import dclab
 import h5py
 import numpy as np
 import pytest
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtTest, QtWidgets
 
 from dcscope import session
 from dcscope.gui import DCscope
@@ -625,11 +625,14 @@ def test_subtract_background(qtbot, mw):
     # Get QuickView instance
     qv = mw.widget_quick_view
 
+    assert qv.isVisible()
+
     # Open event tool of QuickView
     event_tool = qv.ui.toolButton_event
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_background.isVisible(), (
@@ -691,11 +694,14 @@ def test_auto_contrast(qtbot, mw):
     # Get QuickView instance
     qv = mw.widget_quick_view
 
+    assert qv.isVisible()
+
     # Open event tool of QuickView
     event_tool = qv.ui.toolButton_event
     qtbot.mouseClick(event_tool, QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
+    QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
     assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
