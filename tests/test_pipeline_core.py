@@ -1,5 +1,6 @@
 import copy
 import pathlib
+import shutil
 import socket
 
 import dclab
@@ -146,9 +147,27 @@ def test_get_min_max_plot():
     assert amax2 <= (amin + amax) / 2
 
 
-if __name__ == "__main__":
-    # Run all tests
-    loc = locals()
-    for key in list(loc.keys()):
-        if key.startswith("test_") and hasattr(loc[key], "__call__"):
-            loc[key]()
+def test_sort_and_reduced_sample_names(tmp_path):
+    path = pathlib.Path(__file__).parent / "data" / "calibration_beads_47.rtdc"
+    p1 = tmp_path / "one.rtdc"
+    p2 = tmp_path / "two.rtdc"
+    shutil.copy2(path, p1)
+    shutil.copy2(path, p2)
+
+    pl = pipeline.Pipeline()
+    pl.add_slot(path=p1)
+    pl.add_slot(path=p2)
+
+    # sanity checks
+    assert pl.reduced_sample_names[0] == "one"
+    assert pl.reduced_sample_names[1] == "two"
+    pl.deduce_reduced_sample_names()
+    assert pl.reduced_sample_names[0] == "one"
+    assert pl.reduced_sample_names[1] == "two"
+
+    pl.reorder_slots([1, 0])
+    assert pl.reduced_sample_names[0] == "two"
+    assert pl.reduced_sample_names[1] == "one"
+    pl.deduce_reduced_sample_names()
+    assert pl.reduced_sample_names[0] == "two"
+    assert pl.reduced_sample_names[1] == "one"

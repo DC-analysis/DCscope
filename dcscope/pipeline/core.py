@@ -954,6 +954,7 @@ class Pipeline:
         for idx in indices:
             new_slots.append(self.slots[idx])
         self.slots = new_slots
+        self.deduce_reduced_sample_names()
 
     def reset(self):
         """Reset the pipeline"""
