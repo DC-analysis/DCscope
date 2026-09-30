@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import copy
 import importlib.resources
@@ -46,7 +48,7 @@ class QuickView(QtWidgets.QWidget):
         self._hover_ds_id = None
         self._hover_event_idx = None
 
-        super(QuickView, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.tm = TaskManager(self)
 
         self.ui = Ui_Form()
@@ -93,7 +95,7 @@ class QuickView(QtWidgets.QWidget):
         # Set look-up table options for isoelasticity lines
         self.ui.comboBox_lut.clear()
         lut_dict = dclab.features.emodulus.load.get_internal_lut_names_dict()
-        for lut_id in lut_dict.keys():
+        for lut_id in lut_dict:
             self.ui.comboBox_lut.addItem(lut_id, lut_id)
         # Set LE-2D-FEM-19 as a default
         idx = self.ui.comboBox_lut.findData("LE-2D-FEM-19")
@@ -171,7 +173,7 @@ class QuickView(QtWidgets.QWidget):
             self.on_stats2clipboard)
 
         # Set individual plots
-        kw0 = dict(x=np.arange(10), y=np.arange(10))
+        kw0 = {"x": np.arange(10), "y": np.arange(10)}
         self.trace_plots = {
             "fl1_raw": pg.PlotDataItem(pen="#6EA068", **kw0),  # green
             "fl2_raw": pg.PlotDataItem(pen="#8E7A45", **kw0),  # orange
@@ -184,6 +186,7 @@ class QuickView(QtWidgets.QWidget):
             self.ui.graphicsView_trace.addItem(self.trace_plots[key])
             self.trace_plots[key].setVisible(False)
 
+        assert self.ui.graphicsView_trace.plotItem is not None
         self.ui.graphicsView_trace.plotItem.setLabels(
             left="Fluorescence [a.u.]", bottom="Event time [µs]")
         self.legend_trace = self.ui.graphicsView_trace.addLegend(
@@ -235,9 +238,9 @@ class QuickView(QtWidgets.QWidget):
     @property
     def rtdc_ds(self):
         """Dataset to plot; set to None initially and if the file is closed"""
-        if self._rtdc_ds is not None:
-            if not util.check_file_open(self._rtdc_ds):
-                self._rtdc_ds = None
+        if (self._rtdc_ds is not None
+                and not util.check_file_open(self._rtdc_ds)):
+            self._rtdc_ds = None
         # now check again
         if self._rtdc_ds is None:
             self._set_initial_ui()
@@ -264,7 +267,7 @@ class QuickView(QtWidgets.QWidget):
     def closeEvent(self, a0):
         self.tm.close()
         self.event_getter.close()
-        return super(QuickView, self).closeEvent(a0)
+        return super().closeEvent(a0)
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
@@ -357,7 +360,7 @@ class QuickView(QtWidgets.QWidget):
             ("marker hue feature", self.ui.comboBox_z_hue),
         ]:
             idx = cb.findData(plot[key])
-            idx = idx if idx > 0 else 0
+            idx = max(0, idx)
             cb.setCurrentIndex(idx)
 
         # isoelastics
@@ -602,12 +605,13 @@ class QuickView(QtWidgets.QWidget):
         self.ui.pushButton_poly_save.setVisible(True)
         self.ui.pushButton_poly_cancel.setVisible(True)
         # defaults
-        self.ui.lineEdit_poly.setText("Polygon Filter {}".format(
-            dclab.PolygonFilter._instance_counter + 1))
+        self.ui.lineEdit_poly.setText(
+            f"Polygon Filter {dclab.PolygonFilter._instance_counter + 1}")
         self.ui.checkBox_poly.setChecked(False)
         self.ui.widget_scatter.activate_poly_mode()
         # trigger resize and redraw
         mdiwin = self.parent()
+        assert isinstance(mdiwin, QtWidgets.QMdiSubWindow)
         mdiwin.adjustSize()
         mdiwin.update()
         self.update()
@@ -707,7 +711,7 @@ class QuickView(QtWidgets.QWidget):
             # assemble tsv data
             tsv = ""
             for hi, vi in zip(h, v):
-                tsv += "{}\t{:.7g}\n".format(hi, vi)
+                tsv += f"{hi}\t{vi:.7g}\n"
             QtWidgets.qApp.clipboard().setText(tsv)
 
     @QtCore.pyqtSlot()
@@ -906,9 +910,8 @@ class QuickView(QtWidgets.QWidget):
                                         self.ui.comboBox_z_hue])]:
                 # Do not replot if the user changes the options for a
                 # disabled settings (e.g. downsampling, hue)
-                if sender in sen:
-                    if not cb.isChecked():
-                        break
+                if sender in sen and not cb.isChecked():
+                    break
             else:
                 self.plot()
 
