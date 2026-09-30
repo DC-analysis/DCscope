@@ -212,6 +212,8 @@ class DCscope(QtWidgets.QMainWindow):
 
         self.ui.toolButton_quick_view.toggled.connect(
             self.on_quick_view_toggled)
+        self.ui.toolButton_ana_view.toggled.connect(
+            self.on_ana_view_toggled)
 
         # BLOCK MATRIX (wraps DataMatrix and PlotMatrix)
         # BlockMatrix appearance
@@ -461,7 +463,6 @@ class DCscope(QtWidgets.QMainWindow):
         sub.setWidget(self.widget_ana_view)
         self.subwindows["analysis_view"] = sub
         # signals
-        self.ui.toolButton_ana_view.toggled.connect(sub.setVisible)
         self.ui.toolButton_ana_view.toggled.connect(
             self.widget_ana_view.on_visible)
         sub.hide()
@@ -958,7 +959,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.widget_ana_view.ui.widget_filter.show_filter(filt_id)
         # finally, check the button
         self.ui.toolButton_ana_view.setChecked(True)
-        self.subwindows["analysis_view"].setVisible(True)
         # redraw
         self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
@@ -972,7 +972,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.widget_ana_view.ui.widget_plot.show_plot(plot_id)
         # finally, check the button
         self.ui.toolButton_ana_view.setChecked(True)
-        self.subwindows["analysis_view"].setVisible(True)
         # redraw
         self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
@@ -986,7 +985,6 @@ class DCscope(QtWidgets.QMainWindow):
         self.widget_ana_view.ui.widget_slot.show_slot(slot_id)
         # finally, check the button
         self.ui.toolButton_ana_view.setChecked(True)
-        self.subwindows["analysis_view"].setVisible(True)
         # redraw
         self.ui.mdiArea.update()
         self.subwindows["analysis_view"].update()
@@ -1036,14 +1034,32 @@ class DCscope(QtWidgets.QMainWindow):
         self.subwindows["analysis_view"].update()
 
     @QtCore.pyqtSlot(bool)
+    def on_ana_view_toggled(self, toggled):
+        """Hide or show analysis view window"""
+        self.subwindows["analysis_view"].setVisible(toggled)
+        if toggled:
+            self.ui.mdiArea.setActiveSubWindow(
+                self.subwindows["analysis_view"])
+            # Move quickview to leftmost part of mdiArea
+            geo = self.subwindows["analysis_view"].geometry()
+            right = self.ui.mdiArea.viewport().rect().right()
+            geo.moveRight(right - 5)
+            self.subwindows["analysis_view"].setGeometry(geo)
+
+        if self.pipeline.slot_ids and self.pipeline.filter_ids:
+            self.pp_mod_send.emit({"quickview": {"enabled": toggled}})
+
+    @QtCore.pyqtSlot(bool)
     def on_quick_view_toggled(self, toggled):
-        # Hide or show quickview window
+        """Hide or show quickview window"""
         self.subwindows["quick_view"].setVisible(toggled)
         if toggled:
             self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
-            # Move quickview to leftmost part of mdiArea
+            # Move quickview to left-lower part of mdiArea
             geo = self.subwindows["quick_view"].geometry()
+            bottom = self.ui.mdiArea.viewport().rect().bottom()
             geo.moveLeft(0)
+            geo.moveBottom(bottom)
             self.subwindows["quick_view"].setGeometry(geo)
         else:
             self.pipeline.quickview_element["slot_id"] = None

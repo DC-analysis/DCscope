@@ -1,6 +1,7 @@
 2.28.3
  - fix: QuickView window partially covered by BlockMatrix on startup
  - fix: reactivating QuickView initially shows first dataset
+ - enh: improved default location of QuickView and AnalysisView windows
  - setup: add ruff settings to pyproject.toml
  - ref: publish current QuickView element via central `Pipeline`
  - ref: minor code cleanup
