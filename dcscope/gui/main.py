@@ -1046,9 +1046,6 @@ class DCscope(QtWidgets.QMainWindow):
             geo.moveRight(right - 5)
             self.subwindows["analysis_view"].setGeometry(geo)
 
-        if self.pipeline.slot_ids and self.pipeline.filter_ids:
-            self.pp_mod_send.emit({"quickview": {"enabled": toggled}})
-
     @QtCore.pyqtSlot(bool)
     def on_quick_view_toggled(self, toggled):
         """Hide or show quickview window"""
