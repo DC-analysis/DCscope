@@ -57,13 +57,11 @@ class DataMatrixElement(QtWidgets.QWidget):
         if not self.invalid:
             if event.modifiers() == QtCore.Qt.KeyboardModifier.ShiftModifier:
                 # Let everyone know that this widget gets quickview
-                qv_dict = {
-                    "enabled": True,
-                    "slot_index": self.slot_index,
-                    "slot_id": self.pipeline.slot_ids[self.slot_index],
-                    "filt_index": self.filt_index,
-                    "filt_id": self.pipeline.filter_ids[self.filt_index],
-                }
+                slot_id = self.pipeline.slot_ids[self.slot_index]
+                filt_id = self.pipeline.filter_ids[self.filt_index]
+                self.pipeline.quickview_element["slot_id"] = slot_id
+                self.pipeline.quickview_element["filt_id"] = filt_id
+                qv_dict = {"enabled": True}
                 self.pp_mod_send.emit({"quickview": qv_dict})
             else:
                 # Activate or deactivate this filter
@@ -96,21 +94,13 @@ class DataMatrixElement(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data: dict):
         qv_dict = data.get("quickview", {})
-
-        if qv_dict:
-            if qv_dict.get("enabled"):
-                # every instance must know where quick view is set
-                self.quickview_dict = qv_dict
-            else:
-                self.quickview_dict = {"filt_id": None,
-                                       "slot_id": None}
-
         pp_dict = data.get("pipeline", {})
+
         if pp_dict or qv_dict:
             slot_id = self.pipeline.slot_ids[self.slot_index]
-            filter_id = self.pipeline.filter_ids[self.filt_index]
+            filt_id = self.pipeline.filter_ids[self.filt_index]
             state = {
-                "active": self.pipeline.element_states[slot_id][filter_id],
+                "active": self.pipeline.element_states[slot_id][filt_id],
                 "enabled": (
                     self.pipeline.filters[self.filt_index].filter_used
                     and self.pipeline.slots[self.slot_index].slot_used
@@ -119,14 +109,14 @@ class DataMatrixElement(QtWidgets.QWidget):
 
             self.write_pipeline_state(state)
 
-            if self.quickview_dict:
-                # Determine whether we have the QuickView
-                is_quickview = (filter_id == self.quickview_dict["filt_id"]
-                                and slot_id == self.quickview_dict["slot_id"])
+            is_quickview = (
+                self.pipeline.quickview_element["filt_id"] == filt_id
+                and self.pipeline.quickview_element["slot_id"] == slot_id
+            )
 
-                if is_quickview != self.quickview:
-                    self.quickview = is_quickview
-                    self.update_content()
+            if is_quickview != self.quickview:
+                self.quickview = is_quickview
+                self.update_content()
 
     def read_pipeline_state(self):
         state = {"active": self.active and not self.invalid,

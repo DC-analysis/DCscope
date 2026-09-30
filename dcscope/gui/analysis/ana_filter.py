@@ -282,29 +282,29 @@ class FilterPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
+        assert self.pipeline is not None
         pp_dict = data.get("pipeline")
-        if pp_dict:
-            if self.isVisible():
-                # If a filter is created, show it.
-                filt_id = pp_dict.get("filter_added")
-                if filt_id is not None:
-                    filt_index = self.pipeline.filter_ids.index(filt_id)
-                else:
-                    filt_index = None
-                self.update_content(filt_index)
+        if pp_dict and self.isVisible():
+            # If a filter is created, show it.
+            filt_id = pp_dict.get("filter_added")
+            if filt_id is not None:
+                filt_index = self.pipeline.filter_ids.index(filt_id)
+            else:
+                filt_index = None
+            self.update_content(filt_index)
 
-                filt_rem = pp_dict.get("filter_removed")
-                if filt_rem is not None:
-                    # remove filter item from list/view
-                    self.update_content()
+            filt_rem = pp_dict.get("filter_removed")
+            if filt_rem is not None:
+                # remove filter item from list/view
+                self.update_content()
 
         qv_dict = data.get("quickview")
-        if qv_dict and qv_dict.get("enabled"):
-            if self.isVisible():
-                # If quickview is clicked, show corresponding filter
-                filt_index = qv_dict.get("filt_index")
-                if filt_index is not None:
-                    self.update_content(filt_index)
+        if qv_dict and qv_dict.get("enabled") and self.isVisible():
+            # If quickview is clicked, show corresponding filter
+            filt_id = self.pipeline.quickview_element["filt_id"]
+            if filt_id is not None:
+                filt_index = self.pipeline.filter_ids.index(filt_id)
+                self.update_content(filt_index)
 
         if data.get("filter"):
             # filter changes without pipeline changes (e.g. PolygonFilter)

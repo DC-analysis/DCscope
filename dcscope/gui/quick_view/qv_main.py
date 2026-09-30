@@ -1,4 +1,5 @@
 import collections
+import copy
 import importlib.resources
 import logging
 import pathlib
@@ -267,31 +268,38 @@ class QuickView(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
-        qv_dict = data.get("quickview")
-        if qv_dict and qv_dict.get("enabled"):
-            ds = self.pipeline.get_dataset(slot_index=qv_dict["slot_index"],
-                                           filt_index=qv_dict["filt_index"])
-            self.show_rtdc(rtdc_ds=ds,
-                           slot=self.pipeline.slots[qv_dict["slot_index"]])
-            self.current_pipeline_element = qv_dict
+        if self.isVisible():
+            qv_dict = data.get("quickview") or {}
+            pqv = copy.deepcopy(self.pipeline.quickview_element)
 
-        if data.get("pipeline") and self.isVisible():
-            # fetch the slot from the pipeline
-            if self.current_pipeline_element is not None:
-                slot_id = self.current_pipeline_element["slot_id"]
-                filt_id = self.current_pipeline_element["filt_id"]
-                try:
-                    slot_index = self.pipeline.slot_ids.index(slot_id)
-                    filt_index = self.pipeline.filter_ids.index(filt_id)
+            try:
+                slot_index = self.pipeline.slot_ids.index(pqv["slot_id"])
+                filt_index = self.pipeline.filter_ids.index(pqv["filt_id"])
+            except BaseException:
+                logger.debug(f"Could not find element for QuickView: {pqv}")
+                self.current_pipeline_element = None
+                self.enable_interface(False)
+            else:
+                replot = False
+
+                if (qv_dict.get("enabled")
+                        and self.current_pipeline_element != pqv):
+                    # The quickview dataset that should be displayed changed.
+                    replot = True
+
+                if data.get("pipeline"):
+                    # Something changed in the pipeline.
+                    replot = True
+
+                if replot:
+                    # The quickview matrix element changed
                     ds = self.pipeline.get_dataset(slot_index=slot_index,
                                                    filt_index=filt_index)
                     self.show_rtdc(rtdc_ds=ds,
                                    slot=self.pipeline.slots[slot_index])
-                except BaseException:
-                    logger.debug(f"Could not find element for QuickView: "
-                                 f"{self.current_pipeline_element}")
-                    self.current_pipeline_element = None
-                    self.enable_interface(False)
+                    # Only update current pipeline element when we
+                    # actually changed the quickview.
+                    self.current_pipeline_element = pqv
 
             self.update_polygon_panel()
 

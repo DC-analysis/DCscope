@@ -46,6 +46,11 @@ class Pipeline:
         self.slots = []
         #: individual element states
         self.element_states = {}
+        #: current quickview element (not part of the general state)
+        self.quickview_element = {
+            "slot_id": None,
+            "filt_id": None,
+        }
 
         self.lock = threading.Lock()
 
@@ -78,6 +83,8 @@ class Pipeline:
             raise ValueError("Bad pipeline state ('filters used' don't match)")
         if set(self.slots_used) != set(state["slots used"]):
             raise ValueError("Bad pipeline state ('slots used' don't match)")
+        # quickview sanity check
+        self._check_quick_view()
 
     def __getstate__(self):
         state = {"elements": copy.deepcopy(self.element_states),
@@ -87,6 +94,13 @@ class Pipeline:
                  "slots": [slot.__getstate__() for slot in self.slots],
                  "slots used": self.slots_used}
         return state
+
+    def _check_quick_view(self):
+        """Sanity check for the quickview"""
+        if (self.quickview_element["slot_id"] not in self.slot_ids
+                or self.quickview_element["filt_id"] not in self.filter_ids):
+            self.quickview_element["slot_id"] = None
+            self.quickview_element["filt_id"] = None
 
     @property
     def filter_ids(self):
@@ -904,6 +918,7 @@ class Pipeline:
         for slot_id in self.element_states:
             if filt_id in self.element_states[slot_id]:
                 self.element_states[slot_id].pop(filt_id)
+        self._check_quick_view()
 
     def remove_plot(self, plot_id):
         """Remove a filter by plot identifier"""
@@ -920,6 +935,7 @@ class Pipeline:
         slot.close()
         if slot_id in self.element_states:
             self.element_states.pop(slot_id)
+        self._check_quick_view()
 
     def reorder_slots(self, indices):
         """Change the order of data slots
@@ -953,6 +969,8 @@ class Pipeline:
         self._plot_counter = 0
         self._slot_counter = 0
         self._filter_counter = 0
+
+        self._check_quick_view()
 
     def set_element_active(self, slot_id, filt_plot_id, active=True):
         """Activate an element in the block matrix"""

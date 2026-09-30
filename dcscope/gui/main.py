@@ -921,15 +921,8 @@ class DCscope(QtWidgets.QMainWindow):
         else:
             self.ui.toolButton_quick_view.setChecked(True)
             self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
-            if not self.widget_quick_view.current_pipeline_element:
-                # select the first item in the pipeline
-                self.pp_mod_send.emit({"quickview": {
-                    "enabled": True,
-                    "slot_index": 0,
-                    "filt_index": 0,
-                    "slot_id": self.pipeline.slot_ids[0],
-                    "filt_id": self.pipeline.filter_ids[0],
-                }})
+            # open quickview window
+            self.pp_mod_send.emit({"quickview": {"enabled": True}})
 
             # adjusts QuickView size correctly
             self.widget_quick_view.on_tool()
@@ -947,15 +940,8 @@ class DCscope(QtWidgets.QMainWindow):
         else:
             self.ui.toolButton_quick_view.setChecked(True)
             self.ui.mdiArea.setActiveSubWindow(self.subwindows["quick_view"])
-            if not self.widget_quick_view.current_pipeline_element:
-                # select the first item in the pipeline
-                self.pp_mod_send.emit({"quickview": {
-                    "enabled": True,
-                    "slot_index": 0,
-                    "filt_index": 0,
-                    "slot_id": self.pipeline.slot_ids[0],
-                    "filt_id": self.pipeline.filter_ids[0],
-                }})
+            # open quickview window
+            self.pp_mod_send.emit({"quickview": {"enabled": True}})
 
             # adjusts QuickView size correctly
             self.widget_quick_view.on_tool()
@@ -1057,14 +1043,12 @@ class DCscope(QtWidgets.QMainWindow):
             geo = self.subwindows["quick_view"].geometry()
             geo.moveLeft(0)
             self.subwindows["quick_view"].setGeometry(geo)
+        else:
+            self.pipeline.quickview_element["slot_id"] = None
+            self.pipeline.quickview_element["filt_id"] = None
 
-        self.pp_mod_send.emit({"quickview": {
-            "enabled": toggled,
-            "slot_index": 0,
-            "filt_index": 0,
-            "slot_id": self.pipeline.slot_ids[0],
-            "filt_id": self.pipeline.filter_ids[0],
-        }})
+        if self.pipeline.slot_ids and self.pipeline.filter_ids:
+            self.pp_mod_send.emit({"quickview": {"enabled": toggled}})
 
     @QtCore.pyqtSlot()
     def on_splitter(self):
