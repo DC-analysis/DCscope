@@ -15,7 +15,7 @@ class LogPanel(QtWidgets.QWidget):
     pp_mod_recv = QtCore.pyqtSignal(dict)
 
     def __init__(self, *args, **kwargs):
-        super(LogPanel, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.ui = Ui_Form()
         self.ui.setupUi(self)
 
@@ -33,9 +33,8 @@ class LogPanel(QtWidgets.QWidget):
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
         """We received a signal that something changed"""
-        if data.get("pipeline"):
-            if self.isVisible():
-                self.update_content()
+        if data.get("pipeline") and self.isVisible():
+            self.update_content()
 
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
