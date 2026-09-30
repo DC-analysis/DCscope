@@ -79,8 +79,6 @@ class QuickView(QtWidgets.QWidget):
 
         self.setWindowTitle("Quick View")
 
-        self._set_initial_ui()
-
         # Set scale options (with data)
         for cb in [self.ui.comboBox_xscale, self.ui.comboBox_yscale]:
             cb.clear()
@@ -221,6 +219,8 @@ class QuickView(QtWidgets.QWidget):
         self._dataset_event_plot_indices_cache = {}
 
         self._statistics_cache = collections.OrderedDict()
+
+        self._set_initial_ui()
 
         self.pp_mod_recv.connect(self.on_pp_mod_recv)
         self.tm.task_done.connect(self.on_task_done)
@@ -389,6 +389,8 @@ class QuickView(QtWidgets.QWidget):
             self.ui.imageView_image.setImage(np.full((10, 10), 200))
             self.ui.imageView_image_amp.setImage(np.full((10, 10), 200))
             self.ui.imageView_image_pha.setImage(np.full((10, 10), 200))
+            for key in self.trace_plots:
+                self.trace_plots[key].setVisible(False)
 
     @QtCore.pyqtSlot(bool)
     def on_getter_busy(self, busy):
