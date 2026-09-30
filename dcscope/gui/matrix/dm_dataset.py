@@ -14,7 +14,7 @@ class MatrixDataset(QtWidgets.QWidget):
 
     def __init__(self, pipeline, slot_index, *args, **kwargs):
         """Create a new dataset matrix element"""
-        super(MatrixDataset, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.ui = Ui_Form()
         self.ui.setupUi(self)
@@ -141,7 +141,7 @@ class MatrixDataset(QtWidgets.QWidget):
             # widget state
             wd_state = self.read_pipeline_state()
             # pipeline state with same keys as widget state
-            pp_state = {k: state[k] for k in wd_state.keys()}
+            pp_state = {k: state[k] for k in wd_state}
             # always write the pipeline state (which calls update_content),
             # because the number of datasets might have changed and the
             # reduced sample name might have changed.
@@ -198,7 +198,7 @@ class MatrixDataset(QtWidgets.QWidget):
             region = meta_tool.get_info(self.path,
                                         section="setup",
                                         key="chip region")
-            icon = QtGui.QIcon.fromTheme("region_{}".format(region))
+            icon = QtGui.QIcon.fromTheme(f"region_{region}")
             pixmap = icon.pixmap(16)
             self.ui.label_region.setPixmap(pixmap)
             self.ui.label_region.setToolTip(region)
