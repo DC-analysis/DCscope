@@ -169,7 +169,8 @@ Dataset
 The **Dataset** tab allows to
 specify additional metadata, such as unique colors used for plotting and
 additional metadata for computing the Young's modulus or correcting
-for fluorescence cross-talk. It also allows to specify fluorescence
+for fluorescence crosstalk (see :ref:`sec_qg_fl_crosstalk`). It also
+allows to specify fluorescence
 channel labels that will then be used for labeling the axes of plots.
 
 .. figure:: scrots/ui_ana_slot.png
