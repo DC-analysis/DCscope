@@ -10,6 +10,7 @@ Quick Guides
    sec_qg_filtering
    sec_qg_dcor
    sec_qg_youngs_modulus
+   sec_qg_fl_crosstalk
    sec_qg_lme4
    sec_qg_extensions
    sec_qg_export_data
