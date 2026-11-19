@@ -6,6 +6,7 @@ import dclab
 import h5py
 import numpy as np
 import pytest
+from PyQt6 import QtWidgets
 
 from dcscope.gui import bulk
 from dcscope import session
@@ -43,6 +44,16 @@ def run_around_tests():
     yield
     # Code that will run after your test, for example:
     session.clear_session()
+
+
+@pytest.fixture(autouse=True)
+def warnings_shown(monkeypatch):
+    """Record message box warnings instead of showing them"""
+    shown = []
+    monkeypatch.setattr(QtWidgets.QMessageBox, "warning",
+                        lambda parent, title, text, *args, **kwargs:
+                        shown.append((title, text)))
+    return shown
 
 
 def test_manual_basic(qtbot, mw):
@@ -84,7 +95,7 @@ def test_manual_basic(qtbot, mw):
         assert "emodulus viscosity" not in ds.config["calculation"]
 
 
-def test_manual_wrong_medium(qtbot, mw):
+def test_manual_wrong_medium(qtbot, mw, warnings_shown):
     """Deliberately set wrong medium"""
     qtbot.addWidget(mw)
 
@@ -103,6 +114,10 @@ def test_manual_wrong_medium(qtbot, mw):
         dlg.ui.comboBox_medium.findData("water"))
 
     dlg.on_ok()
+
+    # The user is informed that the medium was not changed (#124)
+    assert len(warnings_shown) == 1
+    assert warnings_shown[0][1].count("(CellCarrier B)") == 2
 
     for slot in mw.pipeline.slots:
         ds = slot.get_dataset()
@@ -201,7 +216,7 @@ def test_viscosity_compute(qtbot, mw):
             == "buyukurganci-2022"
 
 
-def test_wrong_medium_viscosity(qtbot, mw):
+def test_wrong_medium_viscosity(qtbot, mw, warnings_shown):
     """Deliberately set wrong visosity"""
     qtbot.addWidget(mw)
 
@@ -217,6 +232,7 @@ def test_wrong_medium_viscosity(qtbot, mw):
     dlg.ui.doubleSpinBox_visc.setValue(1.0)  # random number
 
     dlg.on_ok()
+    assert len(warnings_shown) == 1
 
     for slot in mw.pipeline.slots:
         ds = slot.get_dataset()
@@ -258,3 +274,42 @@ def test_lut_selection(qtbot, mw):
         assert "emodulus viscosity" not in ds.config["calculation"]
         assert ds.config["calculation"]["emodulus viscosity model"] == \
             "buyukurganci-2022"
+
+
+def test_wrong_medium_warning_only_for_fixed_media_issue_124(
+        qtbot, mw, warnings_shown):
+    """Only list datasets for which the medium could not be changed"""
+    qtbot.addWidget(mw)
+    path_known = make_dataset(medium="CellCarrier")
+    path_other = make_dataset(medium="other")
+    mw.add_dataslot(paths=[path_known, path_other])
+
+    dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
+    dlg.ui.comboBox_medium.setCurrentIndex(
+        dlg.ui.comboBox_medium.findData("other"))
+    dlg.ui.doubleSpinBox_visc.setValue(6.74)
+    dlg.on_ok()
+
+    slot_known, slot_other = mw.pipeline.slots
+    assert slot_known.__getstate__()["emodulus"]["emodulus medium"] \
+        == "CellCarrier"
+    assert slot_other.__getstate__()["emodulus"]["emodulus medium"] \
+        == "other"
+    assert slot_other.__getstate__()["emodulus"]["emodulus viscosity"] \
+        == 6.74
+
+    assert len(warnings_shown) == 1
+    text = warnings_shown[0][1]
+    # only one dataset is listed
+    assert text.count("\n- ") == 1
+    assert text.count(f"- {slot_known.name} (CellCarrier)") == 1
+
+
+def test_no_warning_for_unchanged_medium(qtbot, mw, warnings_shown):
+    qtbot.addWidget(mw)
+    path = datapath / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path])
+    dlg = bulk.BulkActionEmodulus(mw, pipeline=mw.pipeline)
+    assert dlg.ui.comboBox_medium.currentData() == "unchanged"
+    dlg.on_ok()
+    assert not warnings_shown
