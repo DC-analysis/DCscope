@@ -79,6 +79,79 @@
         </layout>
        </item>
        <item>
+        <widget class="QGroupBox" name="groupBox_defaults">
+         <property name="title">
+          <string>Defaults for new plots and datasets</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout_defaults">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_defaults_plot">
+            <property name="text">
+             <string>Plot settings</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_defaults_plot">
+            <item>
+             <widget class="QLabel" name="label_defaults_plot_status">
+              <property name="toolTip">
+               <string>Use the "Save as default" button in the plot settings of the Analysis View to define the default plot settings.</string>
+              </property>
+              <property name="text">
+               <string>built-in</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_defaults_plot">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>0</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_defaults_plot_reset">
+              <property name="toolTip">
+               <string>Use the built-in default plot settings for new plots</string>
+              </property>
+              <property name="text">
+               <string>Reset</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_defaults_visc_model">
+            <property name="text">
+             <string>Viscosity model (Young's modulus)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="comboBox_defaults_visc_model"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_defaults_lut">
+            <property name="text">
+             <string>Look-up table (Young's modulus)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_defaults_lut"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>

@@ -11,6 +11,7 @@ from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import QStandardPaths
 
 from ..extensions import ExtensionManager, SUPPORTED_FORMATS
+from . import defaults
 from .widgets import show_wait_cursor
 from .preferences_ui import Ui_Dialog
 
@@ -68,6 +69,12 @@ class Preferences(QtWidgets.QDialog):
             ["dcor/api key", self.ui.dcor_api_key, ""],
             ["dcor/servers", self.ui.dcor_servers, ["dcor.mpl.mpg.de"]],
             ["dcor/use ssl", self.ui.dcor_use_ssl, "1"],
+            [defaults.KEY_EMODULUS_LUT,
+             self.ui.comboBox_defaults_lut,
+             defaults.DEFAULT_EMODULUS_LUT],
+            [defaults.KEY_EMODULUS_VISC_MODEL,
+             self.ui.comboBox_defaults_visc_model,
+             defaults.DEFAULT_EMODULUS_VISC_MODEL],
             ["gui/block matrix slot widget width",
              self.ui.spinBox_slot_widget_width, "65"],
             ["lme4/r path", self.ui.lme4_rpath, rdefault],
@@ -87,6 +94,14 @@ class Preferences(QtWidgets.QDialog):
             QStandardPaths.writableLocation(
                 QStandardPaths.StandardLocation.AppDataLocation), "extensions")
         self.extensions = ExtensionManager(store_path)
+
+        # default settings for new plots and datasets (#129)
+        for name, data in defaults.EMODULUS_VISC_MODELS.items():
+            self.ui.comboBox_defaults_visc_model.addItem(name, data)
+        for lut_id in defaults.get_emodulus_lut_choices():
+            self.ui.comboBox_defaults_lut.addItem(lut_id, lut_id)
+        self.ui.pushButton_defaults_plot_reset.clicked.connect(
+            self.on_defaults_plot_reset)
 
         self.ui.tabWidget.setCurrentIndex(0)
         self.reload()
@@ -138,8 +153,19 @@ class Preferences(QtWidgets.QDialog):
                 self.ui.dcor_servers.clear()
                 self.ui.dcor_servers.addItems(value)
                 self.ui.dcor_servers.setCurrentIndex(0)
+            elif isinstance(widget, QtWidgets.QComboBox):
+                idx = widget.findData(value)
+                if idx < 0:
+                    idx = widget.findData(default)
+                widget.setCurrentIndex(idx)
             else:
                 raise NotImplementedError("No rule for '{}'".format(key))
+
+        # user-defined default plot settings
+        has_plot_defaults = defaults.has_plot_defaults(self.settings)
+        self.ui.label_defaults_plot_status.setText(
+            "user-defined" if has_plot_defaults else "built-in")
+        self.ui.pushButton_defaults_plot_reset.setEnabled(has_plot_defaults)
 
         # peculiarities of developer mode
         devmode = bool(int(self.settings.value("advanced/developer mode", 0)))
@@ -388,6 +414,8 @@ class Preferences(QtWidgets.QDialog):
                     items.remove(curtext)
                 items.insert(0, curtext)
                 value = items
+            elif isinstance(widget, QtWidgets.QComboBox):
+                value = widget.currentData()
             else:
                 raise NotImplementedError("No rule for '{}'".format(key))
 
@@ -415,6 +443,12 @@ class Preferences(QtWidgets.QDialog):
             msg.exec()
 
         # reload UI to give visual feedback
+        self.reload()
+
+    @QtCore.pyqtSlot()
+    def on_defaults_plot_reset(self):
+        """Use the built-in default plot settings for new plots"""
+        defaults.reset_plot_defaults(self.settings)
         self.reload()
 
     @QtCore.pyqtSlot()

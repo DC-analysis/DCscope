@@ -6,6 +6,7 @@ import numpy as np
 
 from PyQt6 import QtCore, QtWidgets
 
+from dcscope.gui import defaults
 from dcscope.gui.analysis.ana_slot import SlotPanel
 from dcscope.gui.widgets import show_wait_cursor
 
@@ -55,12 +56,16 @@ class BulkActionEmodulus(QtWidgets.QDialog):
             self.ui.comboBox_temp.findData("feature"))
         self.ui.comboBox_temp.currentIndexChanged.connect(self.on_cb_temp)
 
+        # user-defined defaults (#129)
+        emod_defaults = defaults.get_emodulus_defaults(QtCore.QSettings())
+
         self.ui.comboBox_visc_model.clear()
         self.ui.comboBox_visc_model.addItem("buyukurganci-2022",
                                             "buyukurganci-2022")
         self.ui.comboBox_visc_model.addItem("herold-2017", "herold-2017")
         self.ui.comboBox_visc_model.setCurrentIndex(
-            self.ui.comboBox_visc_model.findData("buyukurganci-2022"))
+            self.ui.comboBox_visc_model.findData(
+                emod_defaults["emodulus viscosity model"]))
         self.ui.comboBox_visc_model.currentIndexChanged.connect(
             self.on_cb_medium)
 
@@ -69,7 +74,7 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         for lut_id in lut_dict.keys():
             self.ui.comboBox_lut.addItem(lut_id, lut_id)
         # Set default LUT
-        idx = self.ui.comboBox_lut.findData("LE-2D-FEM-19")
+        idx = self.ui.comboBox_lut.findData(emod_defaults["emodulus lut"])
         self.ui.comboBox_lut.setCurrentIndex(idx)
 
         # buttons

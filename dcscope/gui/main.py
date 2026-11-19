@@ -27,6 +27,7 @@ from . import (
     bulk,
     compute,
     dcor,
+    defaults,
     export,
     pipeline_plot,
     preferences,
@@ -327,6 +328,9 @@ class DCscope(QtWidgets.QMainWindow):
                     self.add_filter()
                 try:
                     slot_id = self.pipeline.add_slot(path=path)
+                    # user-defined default settings (#129)
+                    defaults.apply_slot_defaults(
+                        self.settings, self.pipeline.get_slot(slot_id))
                 except BaseException:
                     if len(fnames) == 1:
                         # Let the user know immediately
@@ -372,6 +376,9 @@ class DCscope(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def add_plot(self):
         plot_id = self.pipeline.add_plot()
+        # user-defined default settings (#129)
+        defaults.apply_plot_defaults(
+            self.settings, self.pipeline.get_plot(plot_id, run_checks=False))
         self.add_plot_window(plot_id)
         # update UI contents
         self.widget_ana_view.ui.widget_plot.update_content()

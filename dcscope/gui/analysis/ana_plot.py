@@ -9,6 +9,7 @@ from PyQt6 import QtCore, QtWidgets
 
 from ...pipeline import Pipeline
 from ...pipeline.plot import STATE_OPTIONS
+from .. import defaults
 from ..widgets import show_wait_cursor
 from .ana_plot_ui import Ui_Form
 
@@ -50,6 +51,8 @@ class PlotPanel(QtWidgets.QWidget):
         self.ui.toolButton_remove.clicked.connect(self.on_plot_removed)
         self.ui.pushButton_reset.clicked.connect(self.update_content)
         self.ui.pushButton_apply.clicked.connect(self.write_plot)
+        self.ui.pushButton_save_default.clicked.connect(
+            self.on_save_as_default)
         self.ui.comboBox_plots.currentIndexChanged.connect(self.update_content)
         self.ui.comboBox_marker_hue.currentIndexChanged.connect(
             self.on_hue_selected)
@@ -702,6 +705,19 @@ class PlotPanel(QtWidgets.QWidget):
             self.setEnabled(False)
 
     @QtCore.pyqtSlot()
+    @QtCore.pyqtSlot()
+    def on_save_as_default(self):
+        """Use the current plot settings as defaults for new plots (#129)"""
+        defaults.save_plot_defaults(QtCore.QSettings(),
+                                    self.read_plot_state())
+        QtWidgets.QMessageBox.information(
+            self,
+            "Default plot settings saved",
+            "New plots will be created with these plot settings (except "
+            "for the plot name, ranges, and KDE spacing). You can reset "
+            "the default plot settings in the preferences (Edit > "
+            "Preferences > General).")
+
     def write_plot(self):
         """Update the dcscope.pipeline.Plot instance"""
         with self.pipeline.lock:

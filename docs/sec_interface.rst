@@ -200,6 +200,13 @@ data points are colored according to a kernel density estimate (KDE),
 another feature dimension, or the dataset color specified in the
 *Dataset* tab). In this example, contour plots are not used.
 
+Use the *Save as default* button to use the current plot settings
+(except for the plot name, the plot ranges, and the KDE spacing) for
+all plots that you create in the future. You can reset these defaults
+in the *General* tab of the *Edit | Preferences* dialog. There, you can
+also set the default viscosity model and look-up table that are used
+for computing the Young's modulus of new datasets.
+
 
 .. figure:: scrots/ui_ana_plot.png
     :target: _images/ui_ana_plot.png
