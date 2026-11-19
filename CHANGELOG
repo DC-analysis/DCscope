@@ -13,6 +13,7 @@
    and use the icon theme of DCscope
  - ref: use item data instead of item text for the LUT selection
    in the Young's modulus settings (#167)
+ - ref: use relative imports within the dcscope package
 2.28.4
  - setup: bump dclab to 0.73.0 (chopped image basins support)
 2.28.3

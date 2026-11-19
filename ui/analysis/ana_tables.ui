@@ -182,12 +182,12 @@
   <customwidget>
    <class>SimplePlotWidget</class>
    <extends>QGraphicsView</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
   <customwidget>
    <class>SimpleImageView</class>
    <extends>QGraphicsView</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

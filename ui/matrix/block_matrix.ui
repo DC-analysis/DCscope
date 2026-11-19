@@ -183,13 +183,13 @@
   <customwidget>
    <class>DataMatrix</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.matrix.data_matrix</header>
+   <header>.data_matrix</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>PlotMatrix</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.matrix.plot_matrix</header>
+   <header>.plot_matrix</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

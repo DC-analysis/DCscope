@@ -520,7 +520,7 @@
   <customwidget>
    <class>BlockMatrix</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.matrix.block_matrix</header>
+   <header>.matrix.block_matrix</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

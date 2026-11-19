@@ -224,43 +224,43 @@
   <customwidget>
    <class>FilterPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_filter</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>MetaPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_meta</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>PlotPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_plot</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SlotPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_slot</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>LogPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_log</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>TablesPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_tables</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>BasinsPanel</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.analysis</header>
+   <header>.ana_basins</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

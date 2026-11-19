@@ -671,7 +671,7 @@
   <customwidget>
    <class>DoubleSpinBoxNan</class>
    <extends>QDoubleSpinBox</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
   <customwidget>
    <class>ColorButton</class>

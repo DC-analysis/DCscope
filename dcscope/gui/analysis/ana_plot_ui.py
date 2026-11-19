@@ -504,4 +504,4 @@ class Ui_Form(object):
         self.pushButton_save_default.setText(_translate("Form", "Save as default"))
         self.pushButton_reset.setText(_translate("Form", "Reset"))
         self.pushButton_apply.setText(_translate("Form", "Apply"))
-from dcscope.gui.widgets import FeatureComboBox, RangeControl
+from ..widgets import FeatureComboBox, RangeControl
