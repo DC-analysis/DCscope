@@ -68,20 +68,22 @@ class PipelinePlot(QtWidgets.QWidget):
         """Display errors of plotting tasks that belong to this plot
 
         All plots share the same task manager. Errors of tasks that
-        belong to other plots or to plots that are not part of the
-        pipeline anymore (e.g. when the session is cleared) are only
-        logged.
+        belong to other plots are ignored (they are handled by these
+        plots). Errors are logged and, if the plot is still part of
+        the pipeline, displayed in a message box. Plots that are not
+        part of the pipeline anymore (e.g. when the session is
+        cleared) only log the error.
         """
         plot_state = task.get("kwargs", {}).get("plot_state") or {}
-        if (plot_state.get("identifier") != self.identifier
-                or self.identifier not in self.pipeline.plot_ids):
+        if plot_state.get("identifier") != self.identifier:
             return
         msg = f"{type(error).__name__}: {error}"
         logger.error(f"Error while plotting '{self.identifier}': {msg}")
-        QtWidgets.QMessageBox.critical(
-            self,
-            f"Error while plotting '{self.identifier}'",
-            msg)
+        if self.identifier in self.pipeline.plot_ids:
+            QtWidgets.QMessageBox.critical(
+                self,
+                f"Error while plotting '{self.identifier}'",
+                msg)
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
