@@ -110,14 +110,38 @@ def test_gui_stats_folder_ml_score_issue_108(qtbot, mw, tmp_path):
     assert dlg.ui.bulklist_features.get_selection() == [
         "deform", "ml_score_abc", "ml_score_xyz"]
 
-    # the statistics export cannot handle broken files
-    (tmp_path / "broken.rtdc").unlink()
     tpath = tmp_path / "out.tsv"
     with mock.patch.object(QtWidgets.QFileDialog,
                            "getSaveFileName",
-                           return_value=(str(tpath), None)):
+                           return_value=(str(tpath), None)), \
+            mock.patch.object(QtWidgets.QMessageBox, "warning") as warn:
         dlg.done(True)
+    # the broken file is skipped and the user is informed
+    warn.assert_called_once()
+    assert warn.call_args.args[2].count("broken.rtdc")
     lines = tpath.read_text(encoding="utf-8").split("\n")
     header = lines[3].split("\t")
     assert any(h.count("ML score ABC") for h in header)
     assert any(h.count("ML score XYZ") for h in header)
+    # two datasets and a trailing empty line
+    assert len(lines) == 4 + 2 + 1
+    assert not "".join(lines).count("broken.rtdc")
+
+
+def test_gui_stats_folder_only_broken_files(qtbot, mw, tmp_path):
+    """No statistics file is written if no dataset can be read"""
+    qtbot.addWidget(mw)
+    (tmp_path / "broken.rtdc").write_text("not an HDF5 file")
+    with mock.patch.object(QtWidgets.QFileDialog,
+                           "getExistingDirectory",
+                           return_value=str(tmp_path)):
+        dlg = ComputeStatistics(mw, pipeline=mw.pipeline)
+    qtbot.addWidget(dlg)
+    tpath = tmp_path / "out.tsv"
+    with mock.patch.object(QtWidgets.QFileDialog,
+                           "getSaveFileName",
+                           return_value=(str(tpath), None)), \
+            mock.patch.object(QtWidgets.QMessageBox, "warning") as warn:
+        assert not dlg.export_statistics()
+    assert warn.call_count == 2
+    assert not tpath.exists()
