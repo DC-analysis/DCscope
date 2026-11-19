@@ -33,6 +33,8 @@ class SlotPanel(QtWidgets.QWidget):
         self.ui.toolButton_duplicate.clicked.connect(self.on_duplicate_slot)
         self.ui.toolButton_remove.clicked.connect(self.on_remove_slot)
         self.ui.pushButton_apply.clicked.connect(self.write_slot)
+        self.ui.pushButton_ct_apply_all.clicked.connect(
+            self.on_crosstalk_apply_all)
         self.ui.pushButton_reset.clicked.connect(self.update_content)
         self.ui.comboBox_slots.currentIndexChanged.connect(self.update_content)
         self.ui.comboBox_medium.currentIndexChanged.connect(self.on_ui_changed)
@@ -496,6 +498,21 @@ class SlotPanel(QtWidgets.QWidget):
             self.on_ui_changed()
         else:
             self.setEnabled(False)
+
+    @QtCore.pyqtSlot()
+    def on_crosstalk_apply_all(self):
+        """Set the crosstalk values shown for all datasets (#198)
+
+        Only the crosstalk values are applied; other (not yet applied)
+        changes of the current dataset are not.
+        """
+        crosstalk = self.read_pipeline_state()["crosstalk"]
+        with self.pipeline.lock:
+            for slot in self.pipeline.slots:
+                state = slot.__getstate__()
+                state["crosstalk"].update(crosstalk)
+                slot.__setstate__(state)
+        self.pp_mod_send.emit({"pipeline": {"feature_changed": "crosstalk"}})
 
     def write_slot(self):
         """Update the dcscope.pipeline.Dataslot instance"""
