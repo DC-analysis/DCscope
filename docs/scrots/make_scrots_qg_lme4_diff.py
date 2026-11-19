@@ -7,10 +7,13 @@ from PyQt6.QtWidgets import QApplication
 from dcscope.gui.main import DCscope
 from dcscope.gui import compute
 
+import scrots_common
+
 test_data = pathlib.Path(__file__).parent / ".." / ".." / "tests" / "data"
 
 
 app = QApplication(sys.argv)
+scrots_common.setup_icon_theme()
 
 QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.Language.C))
 

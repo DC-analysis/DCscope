@@ -10,7 +10,13 @@ from PyQt6 import QtCore
 from PyQt6.QtWidgets import QApplication
 from dcscope.gui.main import DCscope
 
+import scrots_common
+
+# download missing datasets
+scrots_common.ensure_datasets()
+
 app = QApplication(sys.argv)
+scrots_common.setup_icon_theme()
 
 QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.Language.C))
 
