@@ -1,8 +1,12 @@
 import pathlib
 
 import dclab
+from PyQt6 import QtWidgets
 
+from dcscope import session
 from dcscope.gui import pipeline_plot
+
+import conftest  # noqa: F401
 
 
 datapath = pathlib.Path(__file__).parent / "data"
@@ -90,3 +94,32 @@ def test_get_hash_flag_dataset_with_hash():
     assert results[0] is None
     assert results[1] is None
     assert results[2] == "Pipeline 1d01"
+
+
+def test_task_error_only_shown_for_own_plot(qtbot, mw, monkeypatch):
+    """Errors of plotting tasks are only shown by the plot they belong to"""
+    session.clear_session()
+    shown = []
+    monkeypatch.setattr(
+        QtWidgets.QMessageBox, "critical",
+        lambda parent, title, text, *args, **kwargs: shown.append(text))
+    qtbot.addWidget(mw)
+    mw.add_dataslot(paths=[datapath / "calibration_beads_47.rtdc"])
+    plot_id = mw.add_plot()
+    pp = mw.subwindows_plots[plot_id].widget()
+
+    # error of a task that belongs to another plot
+    task_other = {"kwargs": {"plot_state": {"identifier": "plot:other"}}}
+    pp.on_task_error(task_other, ValueError("other plot"))
+    assert not shown
+
+    # error with non-string arguments (raised a TypeError before)
+    task_own = {"kwargs": {"plot_state": {"identifier": plot_id}}}
+    pp.on_task_error(task_own, KeyError(5))
+    assert shown == ["KeyError: 5"]
+
+    # plot removed from the pipeline (e.g. session cleared)
+    mw.pipeline.reset()
+    pp.on_task_error(task_own, ValueError("removed"))
+    assert len(shown) == 1
+    session.clear_session()

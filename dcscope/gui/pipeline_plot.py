@@ -1,5 +1,6 @@
 import copy
 import html
+import logging
 import threading
 
 import dclab
@@ -10,6 +11,8 @@ from .. import util
 from .widgets import DCscopeColorBarItem
 from .pipeline_plot_item import PipelinePlotItem, get_axes_labels
 from .pipeline_plot_ui import Ui_Form
+
+logger = logging.getLogger(__name__)
 
 
 class ContourSpacingTooLarge(UserWarning):
@@ -62,10 +65,23 @@ class PipelinePlot(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(dict, object)
     def on_task_error(self, task, error):
+        """Display errors of plotting tasks that belong to this plot
+
+        All plots share the same task manager. Errors of tasks that
+        belong to other plots or to plots that are not part of the
+        pipeline anymore (e.g. when the session is cleared) are only
+        logged.
+        """
+        plot_state = task.get("kwargs", {}).get("plot_state") or {}
+        if (plot_state.get("identifier") != self.identifier
+                or self.identifier not in self.pipeline.plot_ids):
+            return
+        msg = f"{type(error).__name__}: {error}"
+        logger.error(f"Error while plotting '{self.identifier}': {msg}")
         QtWidgets.QMessageBox.critical(
             self,
             f"Error while plotting '{self.identifier}'",
-            f"{type(error)}: {'; '.join(error.args)}")
+            msg)
 
     @QtCore.pyqtSlot(dict)
     def on_pp_mod_recv(self, data):
