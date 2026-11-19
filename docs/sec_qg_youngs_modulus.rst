@@ -78,7 +78,7 @@ available for the selected dataset.
 
     In order to prevent users from doing a wrong analysis, DCscope does not
     allow users to change the buffer in the *Dataset* tab if the buffer medium
-    (e.g. 0.59% MC-PBS) was selected in Shape-In or CytoShot. Therefore,
+    (e.g. 0.59% MC-PBS) was selected in Shape-In or Naiad Capture. Therefore,
     the analysis of the Young's modulus cannot be re-done for a different
     buffer.
 
@@ -91,8 +91,9 @@ for all datasets of the current session. Note that the options
 in this dialog do not necessarily reflect the options available for the
 individual datasets. Only valid options are adopted. For instance,
 you will not be able to change the medium for a dataset if a medium is
-already given in its metadata. To verify the options set, you can always
-check the current setting via the *Analysis View* (see above).
+already given in its metadata. In this case, DCscope lists the datasets
+for which the medium was not changed. To verify the options set, you can
+always check the current setting via the *Analysis View* (see above).
 
 
 Validity

@@ -90,8 +90,22 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     @QtCore.pyqtSlot()
     def on_ok(self):
         with self.pipeline.lock:
-            self.set_emodulus_properties()
+            skipped = self.set_emodulus_properties()
         self.pp_mod_send.emit({"pipeline": {"feature_changed": "emodulus"}})
+        if skipped:
+            # Tell the user that the medium of some datasets was not
+            # changed (#124).
+            names = "\n".join(
+                f"- {name} ({medium})" for name, medium in skipped)
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Medium not changed for some datasets",
+                "The medium could not be changed for the following "
+                "datasets, because a known medium is defined in the "
+                "metadata of the measurement:\n\n"
+                f"{names}\n\n"
+                "For these datasets, the Young's modulus is computed "
+                "with the medium (and viscosity) from the metadata.")
 
     @QtCore.pyqtSlot()
     def on_cb_medium(self):
@@ -126,7 +140,15 @@ class BulkActionEmodulus(QtWidgets.QDialog):
     @show_wait_cursor
     @QtCore.pyqtSlot()
     def set_emodulus_properties(self):
-        """Set the given emodulus properties for all datasets"""
+        """Set the given emodulus properties for all datasets
+
+        Returns
+        -------
+        skipped: list of tuple
+            Names and media of the datasets for which the medium
+            could not be set, because a known medium is defined in
+            the metadata of the dataset
+        """
         medium = self.ui.comboBox_medium.currentData()
         visc_model = self.ui.comboBox_visc_model.currentData()
         lut = self.ui.comboBox_lut.currentData()
@@ -143,8 +165,10 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         else:
             viscval = None
 
+        skipped = []
+
         if len(self.pipeline.slots) == 0:
-            return
+            return skipped
 
         for slot in self.pipeline.slots:
             ds = slot.get_dataset()
@@ -162,6 +186,9 @@ class BulkActionEmodulus(QtWidgets.QDialog):
                 # available.
                 if viscval is not None:
                     state["emodulus"]["emodulus viscosity"] = viscval
+            elif medium != "unchanged":
+                # The medium is defined in the metadata (#124)
+                skipped.append((slot.name, valid_media[0][0]))
 
             if scen in [s[1] for s in valid_scenarios]:  # scen is not None
                 state["emodulus"]["emodulus scenario"] = scen
@@ -177,6 +204,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
             state["emodulus"]["emodulus lut"] = lut
 
             slot.__setstate__(state)
+
+        return skipped
 
     def update_viscosity(self):
         """Update viscosity shown"""
