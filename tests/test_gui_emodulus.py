@@ -349,7 +349,7 @@ def test_changeable_lut_selection(qtbot, mw):
 
     # This is the actual test
     assert wsl.ui.comboBox_visc_model.currentData() == "buyukurganci-2022"
-    assert wsl.ui.comboBox_lut.currentText() == "HE-3D-FEM-22"
+    assert wsl.ui.comboBox_lut.currentData() == "HE-3D-FEM-22"
 
     try:
         path1.unlink()
