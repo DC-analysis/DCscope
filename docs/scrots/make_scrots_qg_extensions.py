@@ -13,6 +13,7 @@ data_path = pathlib.Path(__file__).resolve().parent / ".." / "data"
 
 app = QApplication(sys.argv)
 scrots_common.setup_icon_theme()
+scrots_common.setup_style()
 
 QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.Language.C))
 

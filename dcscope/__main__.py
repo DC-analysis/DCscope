@@ -11,6 +11,11 @@ def main(splash=True):
 
     app = QApplication(sys.argv)
 
+    # Use the same style on all platforms. The platform styles behave
+    # differently, e.g. the popup lists of comboboxes are not widened
+    # to fit their items with the "Windows" style (#194).
+    app.setStyle("Fusion")
+
     style_hints = QApplication.styleHints()
     if style_hints.colorScheme() == Qt.ColorScheme.Dark:
         theme_shade = "dark"

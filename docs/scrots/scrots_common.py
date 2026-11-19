@@ -3,15 +3,16 @@
 - The datasets are part of the soRT-FDC manuscript data on figshare
   (https://doi.org/10.6084/m9.figshare.11302595.v1). Missing datasets
   are downloaded to this directory (and ignored by git).
-- The icon theme of DCscope is used (like in `dcscope/__main__.py`),
-  so that the screenshots do not depend on the desktop environment.
+- The icon theme and the "Fusion" style of DCscope are used (like in
+  `dcscope/__main__.py`), so that the screenshots do not depend on the
+  desktop environment.
 """
 import hashlib
 import importlib.resources
 import pathlib
 import urllib.request
 
-from PyQt6 import QtGui
+from PyQt6 import QtGui, QtWidgets
 
 HERE = pathlib.Path(__file__).parent
 
@@ -62,6 +63,14 @@ def ensure_datasets():
         path = HERE / name
         if not path.exists():
             download(url, path, md5)
+
+
+def setup_style():
+    """Use the "Fusion" style, like DCscope (see `dcscope/__main__.py`)
+
+    Call this after creating the QApplication.
+    """
+    QtWidgets.QApplication.setStyle("Fusion")
 
 
 def setup_icon_theme():
