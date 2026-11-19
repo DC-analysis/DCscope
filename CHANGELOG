@@ -19,6 +19,8 @@
    and look-up table for new datasets (preferences) (#129)
  - enh: allow computing statistics of machine-learning score features
    ("ml_score_???") for datasets in a directory (#108)
+ - enh: use the "Fusion" Qt style on all platforms (e.g. feature names
+   were cut off in dropdown lists with the "Windows" style) (#194)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope
