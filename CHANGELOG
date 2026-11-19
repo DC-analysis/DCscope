@@ -1,13 +1,13 @@
 2.28.5
- - enh: user-defined default settings for new plots ("Save as default"
-   in the plot settings) and default Young's modulus viscosity model
-   and look-up table for new datasets (preferences) (#129)
  - fix: plots were shown with a wrong range (not the range of the
    data) on first show and the range controls in the Analysis View
    were not updated (#229)
  - fix: plotting errors were shown by all plot windows (also for
    plots not in the session anymore), and errors with non-string
    arguments crashed DCscope
+ - enh: user-defined default settings for new plots ("Save as default"
+   in the plot settings) and default Young's modulus viscosity model
+   and look-up table for new datasets (preferences) (#129)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope
