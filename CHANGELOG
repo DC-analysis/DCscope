@@ -10,6 +10,10 @@
  - fix: Young's modulus bulk action did not tell the user that the
    medium could not be changed for datasets with a known medium in
    the metadata (#124)
+ - fix: computing statistics of the datasets in the session failed
+   without naming the dataset if its data could not be read (e.g.
+   corrupt file or lost connection to DCOR); such datasets are now
+   skipped and listed (#208)
  - enh: user-defined default settings for new plots ("Save as default"
    in the plot settings) and default Young's modulus viscosity model
    and look-up table for new datasets (preferences) (#129)

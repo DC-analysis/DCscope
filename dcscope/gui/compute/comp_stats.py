@@ -128,7 +128,8 @@ class ComputeStatistics(QtWidgets.QDialog):
         prog.setValue(0)
         # compute statistics
         values = []
-        #: files (datasets in a directory) that could not be read
+        #: datasets (slot names or file paths) and the errors that
+        #: occurred while computing their statistics
         failed = []
         if self.ui.comboBox.currentIndex() == 0:
             # from pipeline
@@ -136,13 +137,22 @@ class ComputeStatistics(QtWidgets.QDialog):
             for slot_index in range(len(self.pipeline.slots)):
                 slot = self.pipeline.slots[slot_index]
                 if slot.slot_used:  # only export slots "used" (#15)
-                    ds = self.pipeline.get_dataset(slot_index)
-                    h, v = dclab.statistics.get_statistics(ds,
-                                                           methods=methods,
-                                                           features=features)
-                    h = ["Path", "Slot", "Name"] + h
-                    v = ["{}".format(ds.path), slot_index, slot.name] + v
-                    values.append(v)
+                    try:
+                        ds = self.pipeline.get_dataset(slot_index)
+                        h, v = dclab.statistics.get_statistics(
+                            ds, methods=methods, features=features)
+                    except BaseException as e:
+                        # The data could not be read, e.g. corrupt file or
+                        # connection to DCOR lost (#208).
+                        name = f"{slot.name} ({slot.path})"
+                        error = f"{type(e).__name__}: {e}"
+                        logger.error(f"Could not compute statistics for "
+                                     f"{name}: {error}")
+                        failed.append((name, error))
+                    else:
+                        h = ["Path", "Slot", "Name"] + h
+                        v = ["{}".format(ds.path), slot_index, slot.name] + v
+                        values.append(v)
                 if prog.wasCanceled():
                     break
                 prog.setValue(slot_index + 1)
@@ -170,7 +180,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                     error = f"{type(e).__name__}: {e}"
                     logger.error(f"Could not compute statistics for "
                                  f"'{pp}': {error}")
-                    failed.append((pp, error))
+                    failed.append((str(pp), error))
                 else:
                     h = ["Path", "Name"] + h
                     v = ["{}".format(pp), title] + v
@@ -184,9 +194,10 @@ class ComputeStatistics(QtWidgets.QDialog):
                 f"- {pp}\n  ({error})" for pp, error in failed)
             QtWidgets.QMessageBox.warning(
                 self,
-                "Some files could not be read",
-                "Statistics could not be computed for the following files, "
-                f"which are not included in the output:\n\n{failed_text}")
+                "Some datasets could not be read",
+                "Statistics could not be computed for the following "
+                "datasets, which are not included in the output:\n\n"
+                f"{failed_text}")
 
         if not values:
             QtWidgets.QMessageBox.warning(
