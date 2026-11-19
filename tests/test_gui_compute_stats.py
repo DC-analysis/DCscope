@@ -145,3 +145,39 @@ def test_gui_stats_folder_only_broken_files(qtbot, mw, tmp_path):
         assert not dlg.export_statistics()
     assert warn.call_count == 2
     assert not tpath.exists()
+
+
+def test_gui_stats_session_unreadable_dataset_issue_208(qtbot, mw, tmp_path):
+    """Datasets whose data cannot be read are skipped and named (#208)"""
+    qtbot.addWidget(mw)
+    path = data_path / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path, path])
+    mw.pipeline.slots[1].name = "broken slot"
+
+    get_dataset = mw.pipeline.get_dataset
+
+    def get_dataset_broken(slot_index, *args, **kwargs):
+        if slot_index == 1:
+            # e.g. corrupted file or connection to DCOR lost
+            raise OSError("Can't synchronously read data (data error "
+                          "detected by Fletcher32 checksum)")
+        return get_dataset(slot_index, *args, **kwargs)
+
+    dlg = ComputeStatistics(mw, pipeline=mw.pipeline)
+    qtbot.addWidget(dlg)
+    tpath = tmp_path / "out.tsv"
+    with mock.patch.object(mw.pipeline, "get_dataset",
+                           side_effect=get_dataset_broken), \
+            mock.patch.object(QtWidgets.QFileDialog,
+                              "getSaveFileName",
+                              return_value=(str(tpath), None)), \
+            mock.patch.object(QtWidgets.QMessageBox, "warning") as warn:
+        assert dlg.export_statistics()
+    warn.assert_called_once()
+    text = warn.call_args.args[2]
+    assert text.count("broken slot")
+    assert text.count("Fletcher32")
+    lines = tpath.read_text(encoding="utf-8").split("\n")
+    # one dataset and a trailing empty line
+    assert len(lines) == 4 + 1 + 1
+    assert not "".join(lines).count("broken slot")
