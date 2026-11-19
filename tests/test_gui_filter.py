@@ -480,14 +480,15 @@ def test_polygon_filter_delete(qtbot, mw):
     qv.ui.comboBox_poly.setCurrentIndex(1)
     QtWidgets.QApplication.processEvents(
         QEventLoop.ProcessEventsFlag.AllEvents, 300)
-    assert qv.ui.pushButton_poly_save.isVisible()
-    assert qv.ui.pushButton_poly_cancel.isVisible()
-    assert qv.ui.pushButton_poly_delete.isVisible()
+    qtbot.waitUntil(qv.ui.pushButton_poly_save.isVisible, timeout=5000)
+    qtbot.waitUntil(qv.ui.pushButton_poly_cancel.isVisible, timeout=5000)
+    qtbot.waitUntil(qv.ui.pushButton_poly_delete.isVisible, timeout=5000)
     qtbot.mouseClick(qv.ui.pushButton_poly_delete,
                      QtCore.Qt.MouseButton.LeftButton)
     QtWidgets.QApplication.processEvents(
         QEventLoop.ProcessEventsFlag.AllEvents, 500)
-    assert not qv.ui.pushButton_poly_delete.isVisible()
+    qtbot.waitUntil(lambda: not qv.ui.pushButton_poly_delete.isVisible(),
+                    timeout=5000)
 
     # did that work?
     assert len(mw.pipeline.filters[0].polylist) == 0

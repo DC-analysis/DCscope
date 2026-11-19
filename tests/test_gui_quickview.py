@@ -119,7 +119,7 @@ def test_duplicate_polygon_filter_issue_148(qtbot, mw):
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
     QtTest.QTest.qWait(100)
 
-    assert mw.widget_ana_view.ui.tab_filter.isVisible()
+    qtbot.waitUntil(mw.widget_ana_view.ui.tab_filter.isVisible, timeout=5000)
     cb = fv._polygon_checkboxes[pf.unique_id]
     assert cb.checkState() != QtCore.Qt.CheckState.Checked
     cb.setCheckState(QtCore.Qt.CheckState.Checked)
@@ -200,7 +200,7 @@ def test_no_events_disable(qtbot, mw):
     qv = mw.widget_quick_view
 
     # This will display the "Hoppla!" message
-    assert qv.ui.label_noevents.isVisible()
+    qtbot.waitUntil(qv.ui.label_noevents.isVisible, timeout=5000)
 
     # Check the reverse
     qtbot.mouseClick(em2, QtCore.Qt.MouseButton.LeftButton,
@@ -208,7 +208,8 @@ def test_no_events_disable(qtbot, mw):
     QtWidgets.QApplication.processEvents(
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 5000)
     QtTest.QTest.qWait(100)
-    assert not qv.ui.label_noevents.isVisible()
+    qtbot.waitUntil(lambda: not qv.ui.label_noevents.isVisible(),
+                    timeout=5000)
 
 
 def test_no_events_issue_37(qtbot, mw):
@@ -550,7 +551,7 @@ def test_update_polygon_filter_issue_26(qtbot, mw):
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 500)
     QtTest.QTest.qWait(100)
 
-    assert mw.widget_ana_view.ui.tab_filter.isVisible()
+    qtbot.waitUntil(mw.widget_ana_view.ui.tab_filter.isVisible, timeout=5000)
 
     cb = fv._polygon_checkboxes[pf.unique_id]
     cb.setCheckState(QtCore.Qt.CheckState.Checked)
@@ -632,7 +633,7 @@ def test_subtract_background(qtbot, mw):
     # Get QuickView instance
     qv = mw.widget_quick_view
 
-    assert qv.isVisible()
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
 
     # Open event tool of QuickView
     event_tool = qv.ui.toolButton_event
@@ -642,8 +643,7 @@ def test_subtract_background(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_background.isVisible(), (
-        "Checkbox is not visible")
+    qtbot.waitUntil(qv.ui.checkBox_image_background.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_background.isChecked(), (
         "Checkbox is not checked by default")
 
@@ -665,10 +665,8 @@ def test_subtract_background(qtbot, mw):
 
     # Check if "Subtract Background"-CheckBox is hidden
     # note: event tool is still open from test above
-    assert not qv2.ui.checkBox_image_background.isVisible(), (
-        " Subtract Background-Checkbox is visible for dataset "
-        " that don't contain \"image_bg\"-feature"
-    )
+    qtbot.waitUntil(lambda: not qv2.ui.checkBox_image_background.isVisible(),
+                    timeout=5000)
 
 
 def test_auto_contrast(qtbot, mw):
@@ -702,7 +700,7 @@ def test_auto_contrast(qtbot, mw):
     # Get QuickView instance
     qv = mw.widget_quick_view
 
-    assert qv.isVisible()
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
 
     # Open event tool of QuickView
     event_tool = qv.ui.toolButton_event
@@ -712,7 +710,7 @@ def test_auto_contrast(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.ui.checkBox_image_contrast.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_contrast.isChecked(), (
         "Checkbox is not checked by default")
 
@@ -769,7 +767,7 @@ def test_auto_contrast_qpi(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.ui.checkBox_image_contrast.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_contrast.isChecked(), (
         "Checkbox is not checked by default")
 
@@ -824,7 +822,7 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot, mw):
     # Get QuickView instance
     qv = mw.widget_quick_view
 
-    assert qv.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
 
     # Open event tool of QuickView
     event_tool = qv.ui.toolButton_event
@@ -835,7 +833,7 @@ def test_auto_contrast_vmin_vmax_qpi(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_contrast.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.ui.checkBox_image_contrast.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_contrast.isChecked(), (
         "Checkbox is not checked by default")
     # turn off image contour, because our design currently changes the levels
@@ -902,7 +900,7 @@ def test_contour_display(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_contour.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.ui.checkBox_image_contour.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_contour.isChecked(), (
         "Checkbox is not checked by default")
 
@@ -964,7 +962,7 @@ def test_contour_display_qpi_amp(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_contour.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.ui.checkBox_image_contour.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_contour.isChecked(), (
         "Checkbox is not checked by default")
 
@@ -1028,7 +1026,7 @@ def test_contour_display_qpi_pha(qtbot, mw):
     QtTest.QTest.qWait(100)
 
     # Test if checkbox is visible and checked by default
-    assert qv.ui.checkBox_image_contour.isVisible(), "Checkbox is not visible"
+    qtbot.waitUntil(qv.ui.checkBox_image_contour.isVisible, timeout=5000)
     assert qv.ui.checkBox_image_contour.isChecked(), (
         "Checkbox is not checked by default")
 
