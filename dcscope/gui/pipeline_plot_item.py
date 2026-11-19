@@ -26,6 +26,10 @@ linestyles = {
 
 
 class PipelinePlotItem(SimplePlotItem):
+    #: Emitted with the plot identifier when the plot range was updated
+    #: with the range determined in the background thread
+    range_corrected = QtCore.pyqtSignal(str)
+
     def __init__(self, task_manager: TaskManager, pipeline, *args, **kwargs):
         """A pipeline plot item is one subplot"""
         super(PipelinePlotItem, self).__init__(*args, **kwargs)
@@ -181,6 +185,43 @@ class PipelinePlotItem(SimplePlotItem):
                           dx=4,
                           )
 
+    def update_range_from_pipeline(self):
+        """Apply the plot range that was determined in the background
+
+        The "auto range" check (:func:`.Pipeline.get_plot`) is performed
+        in the background thread when computing the scatter and contour
+        data (see :mod:`.pipeline_plot_compute`). Thus, when a plot is
+        shown for the first time, the plot state used in
+        :func:`request_draw` does not yet contain the range of the
+        data (#229). This method updates the plot state and the view
+        box with the current range of the plot in the pipeline.
+
+        Returns
+        -------
+        changed: bool
+            Whether the range was updated
+        """
+        plot_state = self.state_data["plot_state"]
+        plot_id = plot_state["identifier"]
+        if self.pipeline is None or plot_id not in self.pipeline.plot_ids:
+            return False
+        plot = self.pipeline.get_plot(plot_id, run_checks=False)
+        gen_pip = plot.__getstate__()["general"]
+        gen = plot_state["general"]
+        changed = False
+        for key in ["range x", "range y"]:
+            if not np.array_equal(gen[key], gen_pip[key]):
+                gen[key] = list(gen_pip[key])
+                changed = True
+        if changed:
+            set_viewbox(self,
+                        range_x=gen["range x"],
+                        range_y=gen["range y"],
+                        scale_x=gen["scale x"],
+                        scale_y=gen["scale y"])
+            self.range_corrected.emit(plot_id)
+        return changed
+
     def request_contour(self, plot_state, rtdc_ds, slot_state):
         task = {
             "func": compute_contours_from_state,
@@ -205,6 +246,7 @@ class PipelinePlotItem(SimplePlotItem):
             # ignore events from different plot items
             return
 
+        self.update_range_from_pipeline()
         plot_state = self.state_data["plot_state"]
         slot_state = task["kwargs"]["slot_state"]
         contours = result
@@ -294,6 +336,7 @@ class PipelinePlotItem(SimplePlotItem):
             # ignore events from different plot items
             return
 
+        self.update_range_from_pipeline()
         plot_state = self.state_data["plot_state"]
         hash_flag = self.state_data["hash_flag"]
         x, y, _, _, brush = result

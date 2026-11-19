@@ -689,3 +689,59 @@ def test_plot_not_resized_on_apply(qtbot, mw):
 
     assert state_c["layout"]["size x"] == state_a["layout"]["size x"]
     assert state_c["layout"]["size y"] == state_a["layout"]["size y"]
+
+
+def check_plot_range_matches_data(mw, plot_id, num_plot_items):
+    # range determined from the data ("auto range")
+    gen = mw.pipeline.get_plot(plot_id).__getstate__()["general"]
+    assert gen["range x"][0] < gen["range x"][1]
+    assert gen["range y"][0] < gen["range y"][1]
+
+    plot_widget = mw.subwindows_plots[plot_id].widget()
+    assert len(plot_widget.plot_items) == num_plot_items
+    for pp in plot_widget.plot_items:
+        (x0, x1), (y0, y1) = pp.getViewBox().viewRange()
+        assert np.allclose([x0, x1], gen["range x"], rtol=1e-3, atol=0)
+        assert np.allclose([y0, y1], gen["range y"], rtol=1e-3, atol=0)
+
+    # The range controls in the Analysis View show the same range
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_plot)
+    pv = mw.widget_ana_view.ui.widget_plot
+    for ax, wid in [("x", pv.ui.widget_range_x), ("y", pv.ui.widget_range_y)]:
+        rr = wid.read_pipeline_state()
+        assert np.allclose([rr["start"], rr["end"]], gen[f"range {ax}"],
+                           rtol=1e-3, atol=0)
+
+
+def test_plot_range_on_first_show_issue_229(qtbot, mw):
+    """The plot range must match the data when a plot is first shown
+
+    https://github.com/DC-analysis/DCscope/issues/229
+    """
+    qtbot.addWidget(mw)
+
+    slot_ids = mw.add_dataslot(
+        paths=[datapath / "calibration_beads_47.rtdc",
+               datapath / "calibration_beads_47.rtdc"])
+    plot_id = mw.add_plot()
+
+    # Activate the first slot-plot pair (first show of the plot)
+    pe = mw.ui.block_matrix.get_widget(
+        filt_plot_id=plot_id, slot_id=slot_ids[0])
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+    # scatter plot and contour plot
+    check_plot_range_matches_data(mw, plot_id, num_plot_items=2)
+
+    # Activate the second slot-plot pair
+    pe = mw.ui.block_matrix.get_widget(
+        filt_plot_id=plot_id, slot_id=slot_ids[1])
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+    # two scatter plots and a contour plot
+    check_plot_range_matches_data(mw, plot_id, num_plot_items=3)
