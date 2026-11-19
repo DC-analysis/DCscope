@@ -1,11 +1,15 @@
 """Test stats functionality"""
 import pathlib
+import shutil
 import tempfile
 from unittest import mock
 
-from PyQt6 import QtWidgets
+import dclab
+import numpy as np
+from PyQt6 import QtCore, QtWidgets
 
 from dcscope import session
+from dcscope.gui.compute import comp_stats
 from dcscope.gui.compute.comp_stats import ComputeStatistics
 import pytest
 
@@ -50,3 +54,70 @@ def test_gui_stats_basic(qtbot, mw):
     assert lines[3].count("Mean Absolute tilt of raw contour")
     assert lines[3].split("\t")[3].strip() == "Events"
     assert lines[4].split("\t")[3].strip() == "47"
+
+
+def make_ml_datasets(tmp_path):
+    """Create two datasets with ml_score features in a directory tree"""
+    path_in = data_path / "calibration_beads_47.rtdc"
+    path_a = tmp_path / "a.rtdc"
+    path_b = tmp_path / "sub" / "b.rtdc"
+    path_b.parent.mkdir()
+    for pp, feats in [(path_a, ["ml_score_abc"]),
+                      (path_b, ["ml_score_abc", "ml_score_xyz"])]:
+        shutil.copy2(path_in, pp)
+        with dclab.RTDCWriter(pp) as hw:
+            for feat in feats:
+                hw.store_feature(feat, np.linspace(0, 1, 47))
+    # a file that cannot be opened
+    (tmp_path / "broken.rtdc").write_text("not an HDF5 file")
+    return path_a, path_b
+
+
+def test_find_ml_score_features(tmp_path):
+    make_ml_datasets(tmp_path)
+    assert comp_stats.find_ml_score_features(tmp_path) == [
+        "ml_score_abc", "ml_score_xyz"]
+    # abort after the first file (files are sorted)
+    assert comp_stats.find_ml_score_features(
+        tmp_path, callback=lambda ii, size: True) == ["ml_score_abc"]
+
+
+def test_gui_stats_folder_ml_score_issue_108(qtbot, mw, tmp_path):
+    """ml_score features of datasets in a directory (#108)"""
+    qtbot.addWidget(mw)
+    make_ml_datasets(tmp_path)
+
+    with mock.patch.object(QtWidgets.QFileDialog,
+                           "getExistingDirectory",
+                           return_value=str(tmp_path)):
+        # no datasets in the pipeline, so the directory mode is used
+        dlg = ComputeStatistics(mw, pipeline=mw.pipeline)
+    qtbot.addWidget(dlg)
+    assert dlg.path == str(tmp_path)
+    assert "ml_score_abc" not in dlg.features
+
+    # select only one feature
+    dlg.ui.bulklist_features.on_select_none()
+    lw = dlg.ui.bulklist_features.ui.listWidget
+    for ii in range(lw.count()):
+        if lw.item(ii).data(101) == "deform":
+            lw.item(ii).setCheckState(QtCore.Qt.CheckState.Checked)
+
+    qtbot.mouseClick(dlg.ui.pushButton_ml_search,
+                     QtCore.Qt.MouseButton.LeftButton)
+    assert dlg.features_ml == ["ml_score_abc", "ml_score_xyz"]
+    # the selection is kept and the ml_score features are selected
+    assert dlg.ui.bulklist_features.get_selection() == [
+        "deform", "ml_score_abc", "ml_score_xyz"]
+
+    # the statistics export cannot handle broken files
+    (tmp_path / "broken.rtdc").unlink()
+    tpath = tmp_path / "out.tsv"
+    with mock.patch.object(QtWidgets.QFileDialog,
+                           "getSaveFileName",
+                           return_value=(str(tpath), None)):
+        dlg.done(True)
+    lines = tpath.read_text(encoding="utf-8").split("\n")
+    header = lines[3].split("\t")
+    assert any(h.count("ML score ABC") for h in header)
+    assert any(h.count("ML score XYZ") for h in header)

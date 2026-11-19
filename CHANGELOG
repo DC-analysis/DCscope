@@ -8,6 +8,8 @@
  - enh: user-defined default settings for new plots ("Save as default"
    in the plot settings) and default Young's modulus viscosity model
    and look-up table for new datasets (preferences) (#129)
+ - enh: allow computing statistics of machine-learning score features
+   ("ml_score_???") for datasets in a directory (#108)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope

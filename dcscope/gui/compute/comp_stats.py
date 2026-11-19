@@ -4,6 +4,7 @@ import pathlib
 import time
 
 import dclab
+import h5py
 from PyQt6 import QtCore, QtWidgets
 
 from ..._version import version
@@ -16,6 +17,42 @@ STAT_METHODS = sorted(dclab.statistics.Statistics.available_methods.keys())
 STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
 
 
+def find_ml_score_features(path, callback=None):
+    """Find all "ml_score_???" features in the .rtdc files in `path`
+
+    Only the "events" group of the HDF5 files is checked (basins
+    are not considered). Files that cannot be opened are ignored.
+
+    Parameters
+    ----------
+    path: str or pathlib.Path
+        Directory that is searched recursively for .rtdc files
+    callback: callable
+        Called with the arguments `(index, number_of_files)` after
+        each file. If it returns True, the search is aborted.
+
+    Returns
+    -------
+    features: list of str
+        Sorted list of machine-learning score features
+    """
+    files = sorted(pathlib.Path(path).rglob("*.rtdc"))
+    features = set()
+    for ii, pp in enumerate(files):
+        try:
+            with h5py.File(pp, "r") as h5:
+                if "events" in h5:
+                    features.update(
+                        feat for feat in h5["events"]
+                        if (feat.startswith("ml_score_")
+                            and dclab.dfn.scalar_feature_exists(feat)))
+        except BaseException:
+            pass
+        if callback is not None and callback(ii + 1, len(files)):
+            break
+    return sorted(features)
+
+
 class ComputeStatistics(QtWidgets.QDialog):
     def __init__(self, parent, pipeline, *args, **kwargs):
         super(ComputeStatistics, self).__init__(parent=parent, *args, **kwargs)
@@ -25,10 +62,13 @@ class ComputeStatistics(QtWidgets.QDialog):
 
         # for external statistics
         self.path = None
+        #: machine-learning score features found in `self.path` (#108)
+        self.features_ml = []
         # set pipeline
         self.pipeline = pipeline
         # Signals
         self.ui.pushButton_path.clicked.connect(self.on_browse)
+        self.ui.pushButton_ml_search.clicked.connect(self.on_search_ml)
         self.ui.comboBox.currentIndexChanged.connect(self.on_combobox)
         # Populate statistics methods
         self.ui.bulklist_stats.set_title("Statistical methods")
@@ -160,6 +200,7 @@ class ComputeStatistics(QtWidgets.QDialog):
                                                          'Export directory')
         if out:
             self.path = out
+            self.features_ml = []
             self.ui.lineEdit_path.setText(self.path)
             self.ui.comboBox.setCurrentIndex(1)
         else:
@@ -182,6 +223,30 @@ class ComputeStatistics(QtWidgets.QDialog):
             self.update_feature_list(use_pipeline=True)
 
     @QtCore.pyqtSlot()
+    def on_search_ml(self):
+        """Search `self.path` for machine-learning score features (#108)"""
+        if not self.path:
+            return
+        prog = QtWidgets.QProgressDialog(
+            "Searching for machine-learning features...", "Abort", 0, 1,
+            self)
+        prog.setMinimumDuration(0)
+
+        def callback(index, size):
+            prog.setMaximum(size)
+            prog.setValue(index)
+            QtWidgets.QApplication.processEvents(
+                QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+            return prog.wasCanceled()
+
+        self.features_ml = find_ml_score_features(self.path,
+                                                  callback=callback)
+        prog.close()
+        self.update_feature_list(use_pipeline=False, keep_selection=True)
+        self.ui.label_ml.setText(
+            f"Machine-learning features ({len(self.features_ml)} found)")
+
+    @QtCore.pyqtSlot()
     def on_select_features_innate(self):
         """Only select all innate features of the first dataset"""
 
@@ -198,18 +263,34 @@ class ComputeStatistics(QtWidgets.QDialog):
                 else:
                     wid.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
-    def update_feature_list(self, use_pipeline=True):
+    def update_feature_list(self, use_pipeline=True, keep_selection=False):
+        """Update the list of features for which statistics are computed
+
+        Parameters
+        ----------
+        use_pipeline: bool
+            Whether to use the features of the datasets in the pipeline
+            or (if False) all scalar features (for datasets in a
+            directory)
+        keep_selection: bool
+            Whether to keep the current selection of features; the
+            machine-learning features found in the directory are
+            selected as well
+        """
         if use_pipeline:
             self.features = self.pipeline.get_features(scalar=True,
                                                        union=True,
                                                        label_sort=True)
         else:
-            # We want to compute statistics from a folder
-            # TODO:
-            # - Add ml_score_??? features
+            # We want to compute statistics from a folder. The
+            # machine-learning score features are not part of
+            # `scalar_feature_names`; the user can search for them
+            # in the directory (`on_search_ml`, #108).
 
             # label-sorted features
-            features = dclab.dfn.scalar_feature_names
+            features = (list(dclab.dfn.scalar_feature_names)
+                        + [f for f in self.features_ml
+                           if f not in dclab.dfn.scalar_feature_names])
             labs = [dclab.dfn.get_feature_label(f) for f in features]
             lf = sorted(zip(labs, features))
             self.features = [it[1] for it in lf]
@@ -220,4 +301,12 @@ class ComputeStatistics(QtWidgets.QDialog):
                 self.features.remove(feat)
 
         labels = [dclab.dfn.get_feature_label(feat) for feat in self.features]
+        selection = self.ui.bulklist_features.get_selection()
         self.ui.bulklist_features.set_items(self.features, labels)
+        if keep_selection:
+            selection += self.features_ml
+            lw = self.ui.bulklist_features.ui.listWidget
+            for ii in range(lw.count()):
+                wid = lw.item(ii)
+                if wid.data(101) in selection:
+                    wid.setCheckState(QtCore.Qt.CheckState.Checked)
