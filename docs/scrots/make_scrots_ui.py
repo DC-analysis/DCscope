@@ -6,7 +6,7 @@ import pathlib
 import sys
 
 import dclab
-from PyQt6 import QtCore, QtTest
+from PyQt6 import QtCore
 from PyQt6.QtWidgets import QApplication
 from dcscope.gui.main import DCscope
 
@@ -18,6 +18,7 @@ scrots_common.ensure_datasets()
 app = QApplication(sys.argv)
 scrots_common.setup_icon_theme()
 scrots_common.setup_style()
+scrots_common.use_default_settings()
 
 QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.Language.C))
 
@@ -48,17 +49,14 @@ mw.subwindows_plots[mw.pipeline.plot_ids[2]].widget().grab().save(
     "_ui_plot3.png")
 
 # quick view
-mw.pp_mod_send.emit({"quickview": {
-    "enabled": True,
-    "slot_index": 1,
-    "slot_id": mw.pipeline.slot_ids[1],
-    "filt_index": 0,
-    "filt_id": mw.pipeline.filter_ids[0],
-}})
-QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+# (same as shift-clicking on the block matrix element, see dm_element.py)
+mw.pipeline.quickview_element["slot_id"] = mw.pipeline.slot_ids[1]
+mw.pipeline.quickview_element["filt_id"] = mw.pipeline.filter_ids[0]
+mw.pp_mod_send.emit({"quickview": {"enabled": True}})
+qv = mw.widget_quick_view
+scrots_common.wait_for_quickview(qv)
 mw.widget_quick_view.ui.toolButton_settings.toggle()
-QtTest.QTest.qWait(500)
-QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+scrots_common.wait_for_quickview(qv)
 idx = mw.widget_quick_view.ui.comboBox_x.findData("fl3_max_ctc")
 mw.widget_quick_view.ui.comboBox_x.setCurrentIndex(idx)
 idy = mw.widget_quick_view.ui.comboBox_y.findData("fl2_max_ctc")
@@ -67,16 +65,16 @@ mw.widget_quick_view.ui.comboBox_xscale.setCurrentIndex(1)
 mw.widget_quick_view.ui.comboBox_yscale.setCurrentIndex(1)
 mw.widget_quick_view.ui.checkBox_hue.setChecked(True)
 mw.widget_quick_view.ui.toolButton_apply.click()
-# make sure all plotting signals are processed
-QtTest.QTest.qWait(500)
-QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+# make sure that the scatter plot is computed and shown
+scrots_common.wait_for_quickview(qv)
 mw.widget_quick_view.grab().save("_ui_qv_settings.png")
 mw.widget_quick_view.ui.toolButton_event.toggle()
-QtTest.QTest.qWait(500)
-QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+scrots_common.wait_for_quickview(qv)
+# (the value is limited to the number of events in the dataset)
 mw.widget_quick_view.ui.spinBox_event.setValue(4829)
-QtTest.QTest.qWait(500)
-QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+# wait until the event image and traces are shown
+scrots_common.wait_for_quickview(
+    qv, event_index=qv.ui.spinBox_event.value())
 mw.widget_quick_view.grab().save("_ui_qv_event.png")
 # manually create a polygon filter with points from the poly file
 mw.widget_quick_view.on_poly_create()
@@ -87,8 +85,8 @@ mw.widget_quick_view.ui.lineEdit_poly.setText("CD66⁺/CD14⁻")
 mw.widget_quick_view.ui.widget_scatter.set_poly_points(pf.points)
 # show an event
 mw.widget_quick_view.ui.imageView_image_poly.show()
-QtTest.QTest.qWait(500)
-QApplication.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+scrots_common.wait_for_quickview(
+    qv, event_index=qv.ui.spinBox_event.value())
 mw.widget_quick_view.grab().save("_ui_qv_poly.png")
 
 # block matrix
