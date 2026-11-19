@@ -64,7 +64,7 @@ class SlotPanel(QtWidgets.QWidget):
             emod_visc = self.ui.doubleSpinBox_visc.value()  # user input
             scenario = None
         emod_visc_model = self.ui.comboBox_visc_model.currentData()
-        emod_select_lut = self.ui.comboBox_lut.currentText()
+        emod_select_lut = self.ui.comboBox_lut.currentData()
         state = {
             "identifier": slot_state["identifier"],
             "name": self.ui.lineEdit_name.text(),
