@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: DCscope documentation
+    url: https://dcscope.readthedocs.io
+    about: Quick guides and a description of the user interface
+  - name: dclab issues
+    url: https://github.com/DC-analysis/dclab/issues
+    about: Problems with the dclab Python library (not the DCscope user interface)

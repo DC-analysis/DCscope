@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest a new feature or an improvement for DCscope
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Please describe your use case or the problem you would like to solve.
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How could DCscope support this? Where in the user interface would you expect it?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Did you find a workaround (e.g. with dclab or another tool)?
+  - type: input
+    id: version
+    attributes:
+      label: DCscope version
+      description: Shown in *Help → About*.
+      placeholder: e.g. 2.28.4

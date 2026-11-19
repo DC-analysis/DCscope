@@ -1,0 +1,66 @@
+name: Installation or startup problem
+description: DCscope cannot be installed or does not start
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please make sure that you are using the latest version of DCscope
+        (https://github.com/DC-analysis/DCscope/releases).
+  - type: input
+    id: version
+    attributes:
+      label: DCscope version
+      description: Which version did you try to install?
+      placeholder: e.g. 2.28.4
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - Windows installer
+        - macOS app
+        - pip / pipx
+        - conda
+        - Other (please specify below)
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system (including version)
+      description: On Windows, you can find the version in *Settings → System → About*.
+      placeholder: e.g. Windows 11 23H2, macOS 15.1 (Apple Silicon), Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: >
+        At which point does the problem occur (during installation, when
+        starting DCscope, ...)? Did a previous version of DCscope work on
+        this computer?
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error message
+      description: >
+        Please paste the complete error message. If you installed DCscope
+        with pip/pipx/conda, please start DCscope from a terminal
+        (`dcscope`) and paste the output of the terminal. You can also
+        drag and drop screenshots here.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Other software
+      description: >
+        Is other software installed that might interfere (e.g. another
+        Python installation, an older version of Shape-Out, or R)? Did you
+        install DCscope with administrator rights?

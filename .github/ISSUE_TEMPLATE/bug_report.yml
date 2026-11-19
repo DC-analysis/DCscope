@@ -1,0 +1,84 @@
+name: Bug report
+description: DCscope shows an error message or does not behave as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a problem! Please fill in
+        the information below, so that we can reproduce the problem. If
+        DCscope does not start or cannot be installed, please use the
+        "Installation or startup problem" template instead.
+  - type: input
+    id: version
+    attributes:
+      label: DCscope version
+      description: Shown in *Help → About* (or in the title of the error message).
+      placeholder: e.g. 2.28.4
+    validations:
+      required: true
+  - type: dropdown
+    id: installation
+    attributes:
+      label: Installation method
+      options:
+        - Windows installer
+        - macOS app
+        - pip / pipx
+        - conda
+        - Other (please specify below)
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: e.g. Windows 11, macOS 15.1, Ubuntu 24.04
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Please describe what happened and what you expected to happen instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Which steps lead to the problem (e.g. load a dataset, add a filter, open the plot settings)? Does it happen every time?
+      placeholder: |
+        1. Load a dataset
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error message
+      description: >
+        If DCscope showed an "Unhandled exception" error message, please
+        click *Copy message to clipboard and close* and paste the full
+        message here.
+      render: shell
+  - type: textarea
+    id: data
+    attributes:
+      label: Data and session
+      description: >
+        Can the problem be reproduced with a specific dataset or session
+        file (.so2)? Please tell us how the data were recorded (e.g. Naiad
+        Capture, Shape-In, or exported with DCscope) and, if possible,
+        attach the files or share them on DCOR. You can also drag and drop
+        screenshots here.
+  - type: textarea
+    id: software
+    attributes:
+      label: Software versions
+      description: >
+        Optional, but helpful: copy the text shown in *Help → Software*
+        (versions of DCscope, dclab, and other libraries). For problems
+        with the statistical significance computation (lme4), please also
+        state your R version.
+      render: text
