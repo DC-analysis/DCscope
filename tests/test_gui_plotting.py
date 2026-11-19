@@ -191,7 +191,7 @@ def test_handle_empty_plots_issue_27(qtbot, mw):
 
 @pytest.mark.filterwarnings('ignore::dclab.kde.base.ContourSpacingTooLarge')
 @pytest.mark.filterwarnings(
-    'ignore::dclab.kde.binning.KernelDensityEstimationForEmtpyArrayWarning')
+    'ignore::dclab.kde.binning.KernelDensityEstimationForEmptyArrayWarning')
 @pytest.mark.filterwarnings(
     'ignore::dcscope.pipeline.core.ContourSpacingWarning')
 def test_handle_empty_plots_issue_223(qtbot, mw):

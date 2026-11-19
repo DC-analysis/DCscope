@@ -23,6 +23,8 @@
  - ref: use relative imports within the dcscope package
  - setup: add GitHub issue templates for bug reports, installation
    problems, and feature requests (#90)
+ - setup: bump dclab to 0.75.0 (contour plots, caching, statistics
+   "mode", hierarchy children, and many other fixes)
 2.28.4
  - setup: bump dclab to 0.73.0 (chopped image basins support)
 2.28.3
