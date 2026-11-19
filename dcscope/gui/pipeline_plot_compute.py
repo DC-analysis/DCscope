@@ -4,6 +4,9 @@ The idea is you can only change the pyqtgraph plots in the main loop,
 but you can prepare the plotted data (e.g. KDE computation) in the
 background, keeping the UI responsive.
 """
+import warnings
+
+from dclab.features.emodulus import viscosity
 from dclab.kde import KernelDensityEstimator
 from dclab.kde.smooth_contour import compute_contour_opening_angles
 import numpy as np
@@ -175,3 +178,81 @@ def compute_scatter_data_from_state(
         brush = pg.mkBrush(colork)
 
     return x, y, kde, idx, brush
+
+
+def get_emodulus_warnings(rtdc_ds, plot_state):
+    """Return warnings about inaccurate Young's modulus data in a plot (#144)
+
+    The warnings correspond to those that dclab issues when computing
+    the Young's modulus. Since dclab caches the Young's modulus, its
+    warnings are only issued once, so they are deduced here:
+
+    - more than 10% of the events are not covered by the look-up table
+      (:class:`dclab.features.emodulus.YoungsModulusLookupTableExceededWarning`)
+    - the temperature is outside the valid range of the viscosity model
+      (:class:`dclab.features.emodulus.viscosity.TemperatureOutOfRangeWarning`)
+
+    Parameters
+    ----------
+    rtdc_ds: dclab.rtdc_dataset.RTDCBase
+        Dataset with filters applied
+    plot_state: dict
+        Plot state; warnings are only returned if the Young's modulus
+        is plotted (axes or scatter plot hue)
+
+    Returns
+    -------
+    messages: list of tuple
+        Short messages for display in the plot and detailed
+        descriptions (e.g. for tooltips)
+    """
+    gen = plot_state["general"]
+    sca = plot_state["scatter"]
+    features = [gen["axis x"], gen["axis y"]]
+    if sca["enabled"] and sca["marker hue"] == "feature":
+        features.append(sca["hue feature"])
+    if "emodulus" not in features or "emodulus" not in rtdc_ds:
+        return []
+
+    messages = []
+    filt = rtdc_ds.filter.all
+    emod = np.asarray(rtdc_ds["emodulus"][filt])
+    if emod.size:
+        nan_fraction = np.mean(np.isnan(emod))
+        if nan_fraction > 0.1:
+            lut = rtdc_ds.config["calculation"].get("emodulus lut", "")
+            messages.append((
+                f"{nan_fraction:.0%} of events outside LUT",
+                f"The Young's modulus could not be computed for "
+                f"{nan_fraction:.0%} of the events, because they are not "
+                f"covered by the look-up table '{lut}'."))
+
+    # temperature range of the viscosity model (known media only)
+    calc = rtdc_ds.config["calculation"]
+    medium = calc.get("emodulus medium", "other")
+    if medium in viscosity.KNOWN_MEDIA:
+        if "emodulus temperature" in calc:
+            temperature = calc["emodulus temperature"]
+        elif "temp" in rtdc_ds:
+            temperature = np.asarray(rtdc_ds["temp"][filt])
+        else:
+            temperature = None
+        if temperature is not None and np.size(temperature):
+            with warnings.catch_warnings(record=True) as ws:
+                warnings.simplefilter("always")
+                viscosity.get_viscosity(
+                    medium=medium,
+                    channel_width=rtdc_ds.config["setup"]["channel width"],
+                    flow_rate=rtdc_ds.config["setup"]["flow rate"],
+                    temperature=temperature,
+                    model=calc.get("emodulus viscosity model",
+                                   "herold-2017"),
+                )
+            for w in ws:
+                if issubclass(w.category,
+                              viscosity.TemperatureOutOfRangeWarning):
+                    messages.append((
+                        "Temperature out of range",
+                        f"Young's modulus: {w.message}"))
+                    break
+    return messages

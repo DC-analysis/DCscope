@@ -15,6 +15,7 @@ from .pipeline_plot_compute import (
     compute_contours_from_state,
     compute_contour_reliable,
     compute_scatter_data_from_state,
+    get_emodulus_warnings,
 )
 
 
@@ -42,6 +43,8 @@ class PipelinePlotItem(SimplePlotItem):
         self._task_data_contour = []
         self._task_data_scatter = []
         self._list_contours = []
+        #: warnings displayed in this plot (see `add_warning_labels`)
+        self._warnings_shown = []
         self.legend = None
         # circumvent problems with removed plots
         self.setAcceptHoverEvents(False)
@@ -106,6 +109,7 @@ class PipelinePlotItem(SimplePlotItem):
         for el in self._plot_elements:
             self.removeItem(el)
         self._plot_elements.clear()
+        self._warnings_shown.clear()
         self._list_contours.clear()
 
         if not dslist:
@@ -304,6 +308,9 @@ class PipelinePlotItem(SimplePlotItem):
                       dy=-12,
                       )
 
+        self.add_warning_labels(
+            get_emodulus_warnings(task["kwargs"]["rtdc_ds"], plot_state))
+
         with self._update_lock:
             self._list_contours += contours
             self._task_data_contour.remove(task)
@@ -358,6 +365,9 @@ class PipelinePlotItem(SimplePlotItem):
         if gen["scale y"] == "log":
             y = np.log10(y)
 
+        self.add_warning_labels(
+            get_emodulus_warnings(task["kwargs"]["rtdc_ds"], plot_state))
+
         # add dcnum hash label
         if hash_flag:
             add_label(
@@ -387,6 +397,33 @@ class PipelinePlotItem(SimplePlotItem):
         with self._update_lock:
             self._task_data_scatter.remove(task)
             self._plot_elements.append(scatter)
+
+    def add_warning_labels(self, messages):
+        """Display warnings in the plot (e.g. inaccurate Young's modulus)
+
+        The warnings are shown in red in the bottom left corner, above
+        the "Please reduce KDE spacing" label, with a detailed
+        description as tooltip. Each warning is only shown once per
+        plot (e.g. when multiple datasets are plotted).
+
+        Parameters
+        ----------
+        messages: list of tuple
+            Short message and detailed description for each warning
+        """
+        for msg, description in messages:
+            if msg in self._warnings_shown:
+                continue
+            label = add_label(msg,
+                              anchor_parent=self.axes["bottom"]["item"],
+                              font_size_diff=-1,
+                              color="red",
+                              text_halign="left",
+                              text_valign="bottom",
+                              dy=-26 - 14 * len(self._warnings_shown),
+                              )
+            label.setToolTip(description)
+            self._warnings_shown.append(msg)
 
     def zoomin_contours(self, margin_per=5):
         """Zoom-in to contour data with margin"""
@@ -479,6 +516,11 @@ def add_label(text, anchor_parent, text_halign="center", text_valign="center",
         Manual horizontal positioning
     dy: float
         Manual vertical positioning
+
+    Returns
+    -------
+    label: QtWidgets.QGraphicsTextItem
+        The label item
     """
     assert text_halign in ["left", "center", "right"]
     assert text_valign in ["top", "center", "bottom"]
@@ -511,6 +553,7 @@ def add_label(text, anchor_parent, text_halign="center", text_valign="center",
     else:  # "bottom"
         y = -height/2
     label.setPos(x + dx, y + dy)
+    return label
 
 
 def get_axes_labels(plot_state, slot_states):

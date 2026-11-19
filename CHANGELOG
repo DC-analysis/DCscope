@@ -29,6 +29,9 @@
    to all datasets in the Dataset tab of the Analysis View (#198)
  - enh: allow to hide the traces of individual fluorescence channels
    in the Quick View (#200)
+ - enh: show warnings about an inaccurate Young's modulus (events
+   outside of the look-up table, temperature outside of the range of
+   the viscosity model) in the plots (#144)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope

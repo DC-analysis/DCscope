@@ -745,3 +745,42 @@ def test_plot_range_on_first_show_issue_229(qtbot, mw):
         QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
     # two scatter plots and a contour plot
     check_plot_range_matches_data(mw, plot_id, num_plot_items=3)
+
+
+@pytest.mark.filterwarnings(
+    "ignore::dclab.features.emodulus.YoungsModulusLookupTableExceededWarning")
+@pytest.mark.filterwarnings(
+    'ignore::dclab.kde.binning.KernelDensityEstimationForEmptyArrayWarning')
+@pytest.mark.filterwarnings('ignore::dclab.kde.base.ContourSpacingTooLarge')
+@pytest.mark.filterwarnings(
+    'ignore::dcscope.pipeline.core.ContourSpacingWarning')
+def test_emodulus_warning_in_plot_issue_144(qtbot, mw):
+    """Inaccurate Young's modulus data are indicated in the plots"""
+    qtbot.addWidget(mw)
+    # most of the events are outside of the look-up table
+    slot_ids = mw.add_dataslot(paths=[datapath / "extreme_shear.rtdc"])
+    plot_id = mw.add_plot()
+    plot = mw.pipeline.get_plot(plot_id, run_checks=False)
+    state = plot.__getstate__()
+    state["general"]["axis y"] = "emodulus"
+    plot.__setstate__(state)
+
+    pe = mw.ui.block_matrix.get_widget(
+        filt_plot_id=plot_id, slot_id=slot_ids[0])
+    qtbot.mouseClick(pe, QtCore.Qt.MouseButton.LeftButton)
+    mw.wait_for_tasks()
+    QtWidgets.QApplication.processEvents(
+        QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
+    plot_widget = mw.subwindows_plots[plot_id].widget()
+
+    def warnings_shown():
+        warnings = [pp._warnings_shown for pp in plot_widget.plot_items]
+        # scatter plot and contour plot
+        assert len(warnings) == 2
+        for ws in warnings:
+            assert len(ws) == 1
+            assert ws[0].count("of events outside LUT")
+
+    # the warnings are added when the plot data are received
+    qtbot.waitUntil(warnings_shown, timeout=5000)
