@@ -23,6 +23,8 @@
    were cut off in dropdown lists with the "Windows" style) (#194)
  - enh: show the current dataset and filter ray position in the title
    of the Quick View (#195)
+ - enh: add the fluorescence baseline offset ([fluorescence]: "baseline N
+   offset") to the traces shown in the Quick View (#81)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope

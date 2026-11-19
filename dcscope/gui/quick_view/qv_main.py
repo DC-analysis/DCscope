@@ -461,6 +461,17 @@ class QuickView(QtWidgets.QWidget):
             view.setColorMap(cmap)
             self._last_cmap_pha[view] = cmap
 
+    def get_trace_baseline_offset(self, channel):
+        """Return the baseline offset of a fluorescence channel
+
+        The offset is defined by the [fluorescence]: "baseline N offset"
+        configuration key (0 if not defined).
+        """
+        if self.rtdc_ds is None:
+            return 0
+        cfg_fl = self.rtdc_ds.config.get("fluorescence", {})
+        return cfg_fl.get(f"baseline {channel} offset", 0)
+
     def show_traces(self, tdata):
         state = self.read_pipeline_state()
         # remove legend items
@@ -484,9 +495,13 @@ class QuickView(QtWidgets.QWidget):
                 show = True
             flid = name.split("_")[0]
             if name in tdata and show and self.slot is not None:
-                range_fl[0] = min(range_fl[0], tdata[name].min())
-                range_fl[1] = max(range_fl[1], tdata[name].max())
-                self.trace_plots[name].setData(tdata["time"], tdata[name])
+                # The baseline offset is added to the trace data to obtain
+                # the actual signal (e.g. used for computing fl1_max) (#81).
+                offset = self.get_trace_baseline_offset(channel=name[2])
+                trace = np.asarray(tdata[name], dtype=float) + offset
+                range_fl[0] = min(range_fl[0], trace.min())
+                range_fl[1] = max(range_fl[1], trace.max())
+                self.trace_plots[name].setData(tdata["time"], trace)
                 self.trace_plots[name].setVisible(True)
                 if state["event"]["trace zoom"]:
                     range_t[0] = min(

@@ -1404,3 +1404,38 @@ def test_window_title_dataset_and_filter_issue_195(qtbot, mw):
     qtbot.waitUntil(lambda: qv.windowTitle() == title, timeout=5000)
     # also shown in the title bar of the MDI subwindow
     assert mw.subwindows["quick_view"].windowTitle() == title
+
+
+def test_trace_baseline_offset_issue_81(qtbot, mw, tmp_path):
+    """The fluorescence baseline offset is added to the traces (#81)"""
+    path = tmp_path / "data.rtdc"
+    shutil.copy2(datapath / "calibration_beads_47.rtdc", path)
+    with h5py.File(path, "a") as h5:
+        h5.attrs["fluorescence:baseline 1 offset"] = 17
+    qtbot.addWidget(mw)
+    mw.add_dataslot(paths=[path])
+
+    slot_id = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+    qv = mw.widget_quick_view
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
+    qtbot.mouseClick(qv.ui.toolButton_event,
+                     QtCore.Qt.MouseButton.LeftButton)
+
+    plot_fl1 = qv.trace_plots["fl1_raw"]
+    plot_fl2 = qv.trace_plots["fl2_raw"]
+    qtbot.waitUntil(lambda: plot_fl1.yData is not None
+                    and plot_fl2.yData is not None,
+                    timeout=5000)
+
+    index = qv.ui.spinBox_event.value() - 1
+    with dclab.new_dataset(path) as ds:
+        fl1 = ds["trace"]["fl1_raw"][index]
+        fl2 = ds["trace"]["fl2_raw"][index]
+    # offset only defined for channel 1
+    assert np.allclose(plot_fl1.yData, fl1 + 17)
+    assert np.allclose(plot_fl2.yData, fl2)
