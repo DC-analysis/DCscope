@@ -1,4 +1,5 @@
 import codecs
+import logging
 import numbers
 import pathlib
 import time
@@ -12,6 +13,8 @@ from ..widgets import show_wait_cursor
 from ..widgets.feature_combobox import HIDDEN_FEATURES
 from .comp_stats_ui import Ui_Dialog
 
+
+logger = logging.getLogger(__name__)
 
 STAT_METHODS = sorted(dclab.statistics.Statistics.available_methods.keys())
 STAT_METHODS.remove("%-gated")  # This does not make sense with Pipeline
@@ -125,6 +128,8 @@ class ComputeStatistics(QtWidgets.QDialog):
         prog.setValue(0)
         # compute statistics
         values = []
+        #: files (datasets in a directory) that could not be read
+        failed = []
         if self.ui.comboBox.currentIndex() == 0:
             # from pipeline
             prog.setMaximum(len(self.pipeline.slots))
@@ -149,22 +154,47 @@ class ComputeStatistics(QtWidgets.QDialog):
             files = sorted(inpath.rglob("*.rtdc"))
             prog.setMaximum(len(files))
             for ii, pp in enumerate(files):
-                ds = dclab.new_dataset(pp)
-                title = ds.title
-                slot_id = self.ui.comboBox_filter_ray.currentData()
-                if slot_id is not None:
-                    ds = self.pipeline.apply_filter_ray(rtdc_ds=ds,
-                                                        slot_id=slot_id)
-                    title += " ({})".format(slot_id)
-                h, v = dclab.statistics.get_statistics(ds,
-                                                       methods=methods,
-                                                       features=features)
-                h = ["Path", "Name"] + h
-                v = ["{}".format(pp), title] + v
-                values.append(v)
+                try:
+                    ds = dclab.new_dataset(pp)
+                    title = ds.title
+                    slot_id = self.ui.comboBox_filter_ray.currentData()
+                    if slot_id is not None:
+                        ds = self.pipeline.apply_filter_ray(rtdc_ds=ds,
+                                                            slot_id=slot_id)
+                        title += " ({})".format(slot_id)
+                    h, v = dclab.statistics.get_statistics(
+                        ds, methods=methods, features=features)
+                except BaseException as e:
+                    # Skip files that cannot be read (e.g. broken files)
+                    # and tell the user about them below.
+                    error = f"{type(e).__name__}: {e}"
+                    logger.error(f"Could not compute statistics for "
+                                 f"'{pp}': {error}")
+                    failed.append((pp, error))
+                else:
+                    h = ["Path", "Name"] + h
+                    v = ["{}".format(pp), title] + v
+                    values.append(v)
                 prog.setValue(ii + 1)
                 QtWidgets.QApplication.processEvents(
                     QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
+
+        if failed:
+            failed_text = "\n".join(
+                f"- {pp}\n  ({error})" for pp, error in failed)
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Some files could not be read",
+                "Statistics could not be computed for the following files, "
+                f"which are not included in the output:\n\n{failed_text}")
+
+        if not values:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "No statistics computed",
+                "There are no datasets for which statistics could be "
+                "computed. No file was written.")
+            return False
 
         # Header
         header = ["Statistics Output",

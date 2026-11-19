@@ -5,6 +5,8 @@
  - fix: plotting errors were shown by all plot windows (also for
    plots not in the session anymore), and errors with non-string
    arguments crashed DCscope
+ - fix: computing statistics for datasets in a directory failed if a
+   file could not be read; such files are now skipped and listed
  - enh: user-defined default settings for new plots ("Save as default"
    in the plot settings) and default Young's modulus viscosity model
    and look-up table for new datasets (preferences) (#129)
