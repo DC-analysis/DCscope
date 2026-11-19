@@ -1080,12 +1080,12 @@
   <customwidget>
    <class>FeatureComboBox</class>
    <extends>QComboBox</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
   <customwidget>
    <class>RangeControl</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

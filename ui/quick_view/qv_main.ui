@@ -1273,28 +1273,28 @@
   <customwidget>
    <class>SimplePlotWidget</class>
    <extends>QGraphicsView</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
   <customwidget>
    <class>SimpleImageView</class>
    <extends>QGraphicsView</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
   <customwidget>
    <class>FeatureComboBox</class>
    <extends>QComboBox</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
   <customwidget>
    <class>QuickViewScatterWidget</class>
    <extends>QWidget</extends>
-   <header>dcscope.gui.quick_view.qv_scatter</header>
+   <header>.qv_scatter</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>KeyValueTableWidget</class>
    <extends>QTableWidget</extends>
-   <header>dcscope.gui.widgets</header>
+   <header>..widgets</header>
   </customwidget>
  </customwidgets>
  <resources/>

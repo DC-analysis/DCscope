@@ -6,9 +6,9 @@ import numpy as np
 
 from PyQt6 import QtCore, QtWidgets
 
-from dcscope.gui import defaults
-from dcscope.gui.analysis.ana_slot import SlotPanel
-from dcscope.gui.widgets import show_wait_cursor
+from .. import defaults
+from ..analysis.ana_slot import SlotPanel
+from ..widgets import show_wait_cursor
 
 from .bulk_emodulus_ui import Ui_Dialog
 
