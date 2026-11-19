@@ -87,15 +87,20 @@ class PipelinePlot(QtWidgets.QWidget):
             ):
                 pass
             else:
-                plot = self.pipeline.get_plot(self.identifier,
-                                              run_checks=False)
-                plot_state = plot.__getstate__()
+                # Note that the plot range is determined in a background
+                # thread (see `on_plot_range_corrected`).
                 self.update_content()
-                if plot.__getstate__() != plot_state:
-                    # Updated the range controls
-                    self.pp_mod_send.emit({"pipeline-rendering": {
-                        "plot_range_corrected": self.identifier,
-                    }})
+
+    @QtCore.pyqtSlot(str)
+    def on_plot_range_corrected(self, plot_id):
+        """A plot item applied the range determined from the data (#229)
+
+        Notify other widgets (e.g. the range controls in the Analysis
+        View) that the range of the plot changed.
+        """
+        self.pp_mod_send.emit({"pipeline-rendering": {
+            "plot_range_corrected": plot_id,
+        }})
 
     @QtCore.pyqtSlot(QtGui.QResizeEvent)
     def resizeEvent(self, a0: QtGui.QResizeEvent | None):
@@ -223,6 +228,7 @@ class PipelinePlot(QtWidgets.QWidget):
                                   task_manager=self.tm,
                                   pipeline=self.pipeline)
             self.plot_items.append(pp)
+            pp.range_corrected.connect(self.on_plot_range_corrected)
             linner.addItem(item=pp,
                            row=None,
                            col=None,
@@ -239,6 +245,7 @@ class PipelinePlot(QtWidgets.QWidget):
                                       task_manager=self.tm,
                                       pipeline=self.pipeline)
                 self.plot_items.append(pp)
+                pp.range_corrected.connect(self.on_plot_range_corrected)
                 linner.addItem(item=pp,
                                row=None,
                                col=None,
@@ -261,6 +268,7 @@ class PipelinePlot(QtWidgets.QWidget):
                                       task_manager=self.tm,
                                       pipeline=self.pipeline)
                 self.plot_items.append(pp)
+                pp.range_corrected.connect(self.on_plot_range_corrected)
                 linner.addItem(item=pp,
                                row=None,
                                col=None,
@@ -277,6 +285,7 @@ class PipelinePlot(QtWidgets.QWidget):
                                   task_manager=self.tm,
                                   pipeline=self.pipeline)
             self.plot_items.append(pp)
+            pp.range_corrected.connect(self.on_plot_range_corrected)
             linner.addItem(item=pp,
                            row=None,
                            col=None,
@@ -292,6 +301,7 @@ class PipelinePlot(QtWidgets.QWidget):
                                   task_manager=self.tm,
                                   pipeline=self.pipeline)
             self.plot_items.append(pp)
+            pp.range_corrected.connect(self.on_plot_range_corrected)
             linner.addItem(item=pp,
                            row=None,
                            col=None,
