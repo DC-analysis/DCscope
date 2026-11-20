@@ -1375,3 +1375,32 @@ def test_cache_selected_event_using_dataslot_issue_196(qtbot, mw):
     # check whether slot1_event, slot1_even2 are still exists in cache dict
     assert qv._dataset_event_plot_indices_cache[ds_id1] == slot1_event
     assert qv._dataset_event_plot_indices_cache[ds_id2] == slot2_event
+
+
+def test_window_title_dataset_and_filter_issue_195(qtbot, mw):
+    """The Quick View title shows the dataset and filter ray position"""
+    qtbot.addWidget(mw)
+    path = datapath / "calibration_beads_47.rtdc"
+    mw.add_dataslot(paths=[path])
+    mw.add_filter()
+    mw.pipeline.slots[0].name = "my sample"
+    mw.pipeline.filters[1].name = "my filter"
+
+    slot_id = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[1]
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
+    # Activate
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    # Open QuickView for the second filter
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+    qv = mw.widget_quick_view
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
+
+    # display name as in the other parts of the UI
+    name = mw.pipeline.deduce_display_names()[0]
+    assert name.startswith("my sample")
+    title = f"Quick View: {name} | filter ray position 2/2 (my filter)"
+    qtbot.waitUntil(lambda: qv.windowTitle() == title, timeout=5000)
+    # also shown in the title bar of the MDI subwindow
+    assert mw.subwindows["quick_view"].windowTitle() == title

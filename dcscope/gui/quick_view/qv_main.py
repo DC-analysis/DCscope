@@ -282,6 +282,7 @@ class QuickView(QtWidgets.QWidget):
                 logger.debug(f"Could not find element for QuickView: {pqv}")
                 self.current_pipeline_element = None
                 self.enable_interface(False)
+                self.update_window_title()
             else:
                 replot = False
 
@@ -303,6 +304,10 @@ class QuickView(QtWidgets.QWidget):
                     # Only update current pipeline element when we
                     # actually changed the quickview.
                     self.current_pipeline_element = pqv
+
+                # names of the dataset and filters might have changed
+                self.update_window_title(slot_index=slot_index,
+                                         filt_index=filt_index)
 
             self.update_polygon_panel()
 
@@ -969,6 +974,26 @@ class QuickView(QtWidgets.QWidget):
             self.ui.tableWidget_feats.set_key_vals(keys, vals)
 
     @QtCore.pyqtSlot(object, object)
+    def update_window_title(self, slot_index=None, filt_index=None):
+        """Show the current dataset and filter ray position (#195)
+
+        Parameters
+        ----------
+        slot_index: int or None
+            Index of the dataset in the pipeline
+        filt_index: int or None
+            Index of the filter in the filter ray; the dataset is shown
+            with all active filters up to and including this filter
+        """
+        title = "Quick View"
+        if slot_index is not None and filt_index is not None:
+            names = self.pipeline.deduce_display_names()
+            filt = self.pipeline.filters[filt_index]
+            title += (f": {names[slot_index]} | filter ray position "
+                      f"{filt_index + 1}/{self.pipeline.num_filters} "
+                      f"({filt.name})")
+        self.setWindowTitle(title)
+
     def show_rtdc(self, rtdc_ds, slot):
         """Display an RT-DC measurement given by `path` and `filters`"""
         if np.all(rtdc_ds.filter.all) and rtdc_ds.format == "hierarchy":
