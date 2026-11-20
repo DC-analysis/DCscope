@@ -412,8 +412,6 @@ class FilterPanel(QtWidgets.QWidget):
                 rc = self._box_range_controls[feat]
                 if feat in mmdict:
                     rc.setLimits(*mmdict[feat])
-                else:
-                    print("Ignoring feature", feat)
                 if self.current_filter is not None:
                     state = self.current_filter.__getstate__()
                     if feat not in state["box filters"]:
