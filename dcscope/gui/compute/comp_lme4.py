@@ -110,4 +110,4 @@ class ComputeSignificance(QtWidgets.QDialog):
     def on_help(self):
         """Show DCscope docs"""
         webbrowser.open(
-            "https://dclab.readthedocs.io/en/stable/sec_av_lme4.html")
+            "https://dcscope.readthedocs.io/en/stable/sec_qg_lme4.html")

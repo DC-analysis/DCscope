@@ -188,17 +188,17 @@
            </property>
            <item>
             <property name="text">
-             <string>No basins: Store only the selected feature data (legacy behavior)</string>
+             <string>No basins: Store only selected features (legacy behavior)</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>With basins: Store features, refer to the original file (recommended)</string>
+             <string>With basins: Store features, link to original data (recommended)</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Basins only: Do not store features, refer to original file (fast)</string>
+             <string>Only basins: Do not store features, link to original data (fast)</string>
             </property>
            </item>
           </widget>

@@ -347,7 +347,7 @@ class FilterPanel(QtWidgets.QWidget):
                 rc.ui.doubleSpinBox_min.setEnabled(True)
                 rc.ui.doubleSpinBox_max.setEnabled(True)
                 rc.ui.range_slider.setEnabled(True)
-            self.ui.toolButton_moreless.setText("Choose filters...")
+            self.ui.toolButton_moreless.setText("Select box filters...")
             self.ui.label_box_edit.setVisible(False)
             self._box_edit_view = False
             # Update box filter ranges

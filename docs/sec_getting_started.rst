@@ -12,7 +12,7 @@ DCscope can be installed via multiple channels.
    (i.e. ``DCscope_X.Y.Z_win_64bit_setup.exe``) from the official
    `release page <https://github.com/DC-analysis/DCscope/releases/latest>`__. 
 
-2. **Python 3.8 with pip:** DCscope can easily be installed with
+2. **Python 3.10 or newer with pip:** DCscope can easily be installed with
    `pip <https://pip.pypa.io/en/stable/quickstart/>`__:
 
    .. code:: bash
@@ -35,16 +35,15 @@ DCscope can be installed via multiple channels.
 
 Update
 ======
-DCscope automatically searches for updates (you may opt out via the
-Help menu) and notifies the user when a new version is available.
+DCscope automatically searches for updates and notifies the user when a
+new version is available. You may opt out by unchecking *Check for updates
+on startup* in the *General* tab of the :ref:`preferences <sec_preferences>`
+(*Edit | Preferences*).
 
 1. **Windows installer:** The older version of DCscope will be
    automatically uninstalled when installing a new version.
 
-2. **macOS:** The older version of DCscope will be
-   automatically uninstalled when installing a new version.
-
-3. **Python 3.8 and pip:**
+2. **Python 3.10 or newer with pip:**
 
    .. code:: bash
 
@@ -61,8 +60,10 @@ If you have **.tdms-based datasets** (created using antique versions of Shape-In
 you can still use the data after you have converted them to .rtdc files using
 `DCKit <https://github.com/DC-analysis/DCKit/releases/latest>`_,
 which provides a convenient GUI for several other RT-DC data
-management tasks as well. The .rtdc file format is faster than the .tdms file
-format, occupies less disk space, and consists of only one file per measurement.
+management tasks as well, or using the command-line tool
+:ref:`dclab-tdms2rtdc <dclab:sec_tdms2rtdc>`. The .rtdc file format is
+faster than the .tdms file format, occupies less disk space, and consists
+of only one file per measurement.
 
 If you have **raw .rtdc files** that only contain the recorded images and no
 extracted events, you can perform segmentation and feature extraction using

@@ -134,7 +134,7 @@ class SlotPanel(QtWidgets.QWidget):
             self.ui.comboBox_medium.setEnabled(False)  # prevent modification
         else:
             self.ui.comboBox_medium.setEnabled(True)  # user-defined
-        # https://dclab.readthedocs.io/en/latest/sec_av_emodulus.html
+        # https://dclab.readthedocs.io/en/stable/sec_av_emodulus/
         scenario = emodulus.get("emodulus scenario", "manual")
         if scenario:
             idx_scen = self.ui.comboBox_temp.findData(scenario)

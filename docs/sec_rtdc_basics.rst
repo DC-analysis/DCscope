@@ -57,7 +57,7 @@ The porosity is often used for filtering, e.g. to
    Visualization of porosity. (A) The measured contour (blue line) defines
    the measured area (blue shade). The convex contour (red line) results
    in an area (red shade) that is usually larger than the measured area.
-   (B) The porosity is the ratio between measured and convex contour. The
+   (B) The porosity is the ratio between convex and measured area. The
    difference (the "pores") between the measured and convex areas is
    indicated in green. Porosity is often used to remove events with
    non-physical contours, e.g. for cells all events with a porosity above 1.05.
@@ -122,7 +122,8 @@ hull to prevent an overestimation due to irregular, non-convex event shapes.
 It has been shown that the knowledge of deformation and area allows one to
 derive a value for elasticity in RT-DC :cite:`Mietke2015` :cite:`Mokbel2017`.
 As a convenient measure for elasticity, isoelasticity lines are often
-employed to visualize stiffness.
+employed to visualize stiffness (see also
+:ref:`this example in the dclab documentation <dclab:example_isoelastics>`).
 
 .. figure:: figures/deform.jpg
 
@@ -141,7 +142,8 @@ Real-time fluorescence and deformability cytometry (RT-FDC) records, in
 addition to the event images, the fluorescence signal of each event
 :cite:`Rosendahl2018`. The raw fluorescence data consists of the
 one-dimensional fluorescence intensity trace from which features such
-as peak fluorescence or peak width can be computed. For more advanced
+as peak fluorescence or peak width can be computed (see also
+:ref:`fluorescence traces in dclab <dclab:sec_av_fltrace>`). For more advanced
 applications, RT-FDC also supports multiple fluorescence channels.
 
 

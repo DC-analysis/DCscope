@@ -21,7 +21,7 @@ maintainers = [
 ]
 description = "User interface for deformability cytometry (DC)"
 readme = "README.rst"
-requires-python = ">=3.9, <4"
+requires-python = ">=3.10, <4"
 keywords = ["RT-DC", "DC", "deformability", "cytometry"]
 classifiers = [
     'Operating System :: OS Independent',

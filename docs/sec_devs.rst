@@ -81,7 +81,8 @@ GUI development
 ===============
 DCscope is based on the `Qt6 <https://doc.qt.io/qt-6>`_ framework.
 This means you can use `QtCreator/QtDesigner <https://www.youtube.com/watch?v=ot94H3-d5d8>`_
-to graphically design the `.ui` files that are then loaded when starting DCscope.
+to graphically design the user interface. The `.ui` files are located in the
+`ui` directory in the root of the repository.
 We use `PyQt6` (not `PySide6`) to interface with Qt.
 
 Note that for some reason, new versions of QtDesigner produce .ui files
@@ -90,17 +91,11 @@ Python code). As a result, we have to use QtCreator 8 in order for things
 to work (If you have a better solution, please let us know.):
 https://github.com/qt-creator/qt-creator/releases/tag/v8.0.2
 
-The .ui files are loaded directly into DCscope and are not (as it is
-shown in many tutorials) converted to .py files and added to git versioning.
-If this annoys you, because it makes your development experience (e.g. code
-completion) unbearable: Feel free to scratch that itch and migrate DCscope
-to the .py-style scheme. The only requirements for that to be merged are:
-
-- put all .ui files in a directory called `ui` in the root of the repository
-- make sure the .ui files are included in the .tar.gz Python source distributable
-- write a script that automatically converts all .ui files to .py files in
-  the correct locations
-- exclude the automatically generated .py files from linting
-- add a GitHub Action that makes sure that changes in the .ui files
-  are reflected in the .py files (to prevent a developer from forgetting
-  to build the .py files)
+The .ui files are converted to Python files (`*_ui.py`) in the
+corresponding locations in the `dcscope/gui` directory with the
+`ui/run_uic.sh` script (which calls `pyuic6`). The generated `*_ui.py`
+files are committed to the repository and excluded from linting.
+Whenever you modify a .ui file, run `ui/run_uic.sh` and commit the
+resulting changes in the `*_ui.py` files as well. Never edit the
+`*_ui.py` files by hand, because your changes will be overwritten the
+next time the script is run.

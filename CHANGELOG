@@ -16,6 +16,10 @@
    skipped and listed (#208)
  - fix: copying the statistics in the Quick View to the clipboard
    raised an AttributeError (`QtWidgets.qApp` does not exist in PyQt6)
+ - fix: the button for selecting box filters in the Filter tab was
+   renamed to "Choose filters..." after editing box filters
+ - fix: the help button of the statistical significance dialog
+   opened the dclab documentation instead of the R-lme4 quick guide
  - enh: user-defined default settings for new plots ("Save as default"
    in the plot settings) and default Young's modulus viscosity model
    and look-up table for new datasets (preferences) (#129)
@@ -34,6 +38,8 @@
  - enh: show warnings about an inaccurate Young's modulus (events
    outside of the look-up table, temperature outside of the range of
    the viscosity model) in the plots (#144)
+ - enh: help links for fluorescence crosstalk correction (Dataset tab)
+   and S3 basins (preferences)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope
@@ -49,6 +55,14 @@
  - docs: the legend of the fluorescence traces can be moved (#201)
  - docs: fix typos and grammar in the documentation, docstrings, and
    user interface texts
+ - setup: require Python 3.10 or newer (required by dclab and pyqtgraph)
+ - docs: update outdated information (Python version, update opt-out,
+   macOS installers, GUI development, porosity definition, viscosity
+   model temperature ranges) and document missing features (Preferences,
+   viscosity model and LUT selection, Young's modulus plot warnings,
+   encrypted DCOR access tokens, S3 basins, Quick View, Filter, Plot,
+   and Block Matrix options)
+ - docs: link to the dclab documentation where applicable
 2.28.4
  - setup: bump dclab to 0.73.0 (chopped image basins support)
 2.28.3

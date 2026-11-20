@@ -443,6 +443,19 @@
           </property>
          </spacer>
         </item>
+        <item row="0" column="5">
+         <widget class="QLabel" name="label_ct_help">
+          <property name="text">
+           <string>&lt;a href=&quot;https://dcscope.readthedocs.io/en/stable/sec_qg_fl_crosstalk.html&quot;&gt; help &lt;/a&gt;</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
         <item row="1" column="2">
          <widget class="QDoubleSpinBox" name="doubleSpinBox_ct12">
           <property name="decimals">

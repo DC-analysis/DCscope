@@ -6,7 +6,13 @@ Excluding invalid events
 ========================
 Filters can be used to exclude invalid events, such as cell debris,
 cell doublets or larger aggregates, or cells that are not intact, from
-an analysis.
+an analysis. In DCscope, you can use box filters (a range for a
+feature) and polygon filters (a polygon in a scatter plot of two features)
+for that purpose (see the *Filter* tab in the :ref:`sec_analysis_view`).
+The implementation of :ref:`box filters <dclab:sec_ref_rtdc_filter>` and
+:ref:`polygon filters <dclab:sec_ref_polygon_filter>` is described in the
+dclab documentation, as are the
+:ref:`features <dclab:sec_features_scalar>` mentioned below.
 
 - **Area:**
 
@@ -36,7 +42,7 @@ an analysis.
 
 - **Porosity:**
 
-  The porosity is the ratio between measured contour and the convex contour.
+  The porosity is the ratio between the convex area and the measured area.
   Porosity is commonly used to remove events with non-physical contours,
   e.g. for cells, all events with a porosity above 1.05.
 

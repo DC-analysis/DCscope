@@ -343,6 +343,16 @@
         </layout>
        </item>
        <item>
+        <widget class="QLabel" name="label_s3_help">
+         <property name="text">
+          <string>&lt;a href=&quot;https://dcscope.readthedocs.io/en/stable/sec_qg_dcor.html#sec-qg-dcor-s3&quot;&gt;What are S3 basins?&lt;/a&gt;</string>
+         </property>
+         <property name="openExternalLinks">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <spacer name="verticalSpacer_5">
          <property name="orientation">
           <enum>Qt::Orientation::Vertical</enum>
