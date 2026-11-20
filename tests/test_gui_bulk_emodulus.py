@@ -80,7 +80,7 @@ def test_manual_basic(qtbot, mw):
     assert dlg.ui.comboBox_visc_model.currentText() == "Buyukurganci (2022)"
     imed = dlg.ui.comboBox_medium.findData("0.59% MC-PBS")
     assert dlg.ui.comboBox_medium.itemText(imed) == \
-        "0.59% MC-PBS (CellCarrierB)"
+        "0.59% MC-PBS (CellCarrier B)"
 
     dlg.ui.comboBox_temp.setCurrentIndex(
         dlg.ui.comboBox_temp.findData("manual"))
@@ -121,7 +121,7 @@ def test_manual_wrong_medium(qtbot, mw, warnings_shown):
 
     # The user is informed that the medium was not changed (#124)
     assert len(warnings_shown) == 1
-    assert warnings_shown[0][1].count(": 0.59% MC-PBS (CellCarrierB)") == 2
+    assert warnings_shown[0][1].count(": 0.59% MC-PBS (CellCarrier B)") == 2
 
     for slot in mw.pipeline.slots:
         ds = slot.get_dataset()

@@ -1,3 +1,5 @@
+2.29.1
+ - tests: correct test string
 2.29.0
  - fix: plots were shown with a wrong range (not the range of the
    data) on first show and the range controls in the Analysis View

@@ -391,7 +391,7 @@ def test_medium_and_viscosity_model_names(qtbot, mw):
         "0.49% MC-PBS", "0.59% MC-PBS", "0.83% MC-PBS", "water",
         "other", "undefined"]
     assert cbm.itemText(0) == "0.49% MC-PBS (CellCarrier)"
-    assert cbm.itemText(1) == "0.59% MC-PBS (CellCarrierB)"
+    assert cbm.itemText(1) == "0.59% MC-PBS (CellCarrier B)"
     assert cbm.itemText(2) == "0.83% MC-PBS"
     cbv = wsl.ui.comboBox_visc_model
     assert [cbv.itemText(ii) for ii in range(cbv.count())] == [
@@ -410,7 +410,7 @@ def test_medium_name_alias_from_metadata(qtbot, mw):
     assert wsl.ui.comboBox_medium.count() == 1
     assert wsl.ui.comboBox_medium.currentData() == "CellCarrier B"
     assert wsl.ui.comboBox_medium.currentText() == \
-        "0.59% MC-PBS (CellCarrierB)"
+        "0.59% MC-PBS (CellCarrier B)"
 
 
 def test_medium_name_alias_from_session(qtbot, mw):
