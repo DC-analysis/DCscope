@@ -1428,17 +1428,22 @@ def test_trace_baseline_offset_issue_81(qtbot, mw, tmp_path):
 
     plot_fl1 = qv.trace_plots["fl1_raw"]
     plot_fl2 = qv.trace_plots["fl2_raw"]
-    qtbot.waitUntil(lambda: plot_fl1.yData is not None
-                    and plot_fl2.yData is not None,
-                    timeout=5000)
 
     index = qv.ui.spinBox_event.value() - 1
     with dclab.new_dataset(path) as ds:
-        fl1 = ds["trace"]["fl1_raw"][index]
-        fl2 = ds["trace"]["fl2_raw"][index]
-    # offset only defined for channel 1
-    assert np.allclose(plot_fl1.yData, fl1 + 17)
-    assert np.allclose(plot_fl2.yData, fl2)
+        fl1 = np.array(ds["trace"]["fl1_raw"][index])
+        fl2 = np.array(ds["trace"]["fl2_raw"][index])
+
+    def traces_shown():
+        # The trace plots initially contain placeholder data, so we have
+        # to wait until the event data are shown.
+        assert len(plot_fl1.yData) == fl1.size
+        assert len(plot_fl2.yData) == fl2.size
+        # offset only defined for channel 1
+        assert np.allclose(plot_fl1.yData, fl1 + 17)
+        assert np.allclose(plot_fl2.yData, fl2)
+
+    qtbot.waitUntil(traces_shown, timeout=5000)
 
 
 def test_hide_fluorescence_channel_traces_issue_200(qtbot, mw):
