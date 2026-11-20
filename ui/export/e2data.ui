@@ -29,7 +29,7 @@
      <item>
       <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>&lt;a href=&quot;https://dcscope.readthedocs.io/en/stable/sec_qg_export_data.html&quot;&gt;Help&lt;a&gt;</string>
+        <string>&lt;a href=&quot;https://dcscope.readthedocs.io/en/stable/sec_qg_export_data.html&quot;&gt;Help&lt;/a&gt;</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>

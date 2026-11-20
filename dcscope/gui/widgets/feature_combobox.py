@@ -11,7 +11,7 @@ class FeatureComboBox(QtWidgets.QComboBox):
     def __init__(self, *args, **kwargs):
         """A DC data aware combobox for displaying DC features
 
-        The combobox uses different colors do indicate the
+        The combobox uses different colors to indicate the
         availability of features. Features can be ancillary,
         innate, basin-based, etc.
 
@@ -37,7 +37,7 @@ class FeatureComboBox(QtWidgets.QComboBox):
         devmode = bool(int(settings.value("advanced/developer mode", 0)))
         self.hidden_feats = HIDDEN_FEATURES if not devmode else []
 
-        # where the data at
+        # where the data are
         self.data_role = QtCore.Qt.ItemDataRole.UserRole
 
         # Set background color to white

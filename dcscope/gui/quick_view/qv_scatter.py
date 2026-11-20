@@ -122,7 +122,7 @@ class QuickViewScatterWidget(SimplePlotWidget):
                 padding=0.05)
         # set data
         self.setData(x, y, brush=brush)
-        # set axes labels (replace with user-defined flourescence names)
+        # set axes labels (replace with user-defined fluorescence names)
         left = pipeline_plot_item.get_axis_label_from_feature(
             self.yax, slot_state=self.slot.__getstate__())
         bottom = pipeline_plot_item.get_axis_label_from_feature(
@@ -262,4 +262,4 @@ class RTDCScatterPlot(pg.ScatterPlotItem):
 
     def mouseClickEvent(self, ev):
         """Override that does not handle events"""
-        ev.ignore()  # clicks are handles by CustomViewBox
+        ev.ignore()  # clicks are handled by CustomViewBox

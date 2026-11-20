@@ -7,7 +7,7 @@ from PyQt6 import QtCore, QtWidgets
 
 class KeyValueTableWidget(QtWidgets.QTableWidget):
     def __init__(self, *args, **kwargs):
-        """A table widgets with two columns for key-value visualization"""
+        """A table widget with two columns for key-value visualization"""
         super(KeyValueTableWidget, self).__init__(*args, **kwargs)
         ref = importlib.resources.files(
             "dcscope.gui.widgets") / "key_value_table_widget.css"

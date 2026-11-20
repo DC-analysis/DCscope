@@ -158,7 +158,7 @@ class Ui_Dialog(object):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Data export"))
         self.label_3.setText(_translate("Dialog", "Export filtered session data to other file formats"))
-        self.label_5.setText(_translate("Dialog", "<a href=\"https://dcscope.readthedocs.io/en/stable/sec_qg_export_data.html\">Help<a>"))
+        self.label_5.setText(_translate("Dialog", "<a href=\"https://dcscope.readthedocs.io/en/stable/sec_qg_export_data.html\">Help</a>"))
         self.label_2.setText(_translate("Dialog", "Output directory:"))
         self.pushButton_path.setText(_translate("Dialog", "Browse"))
         self.label.setText(_translate("Dialog", "Format:"))

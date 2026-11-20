@@ -7,9 +7,9 @@ from .ana_basins_ui import Ui_Form
 
 
 class BasinsPanel(QtWidgets.QWidget):
-    """Tables panel widget
+    """Basins panel widget
 
-    Visualizes tables stored in the .rtdc file
+    Visualizes the basins defined in the .rtdc file
     """
     # widgets emit these whenever they changed the pipeline
     pp_mod_send = QtCore.pyqtSignal(dict)
@@ -49,7 +49,7 @@ class BasinsPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(int)
     def on_select_dataset(self, ds_idx):
-        """Show the tables of the dataset in the right-hand list widget"""
+        """Show the basins of the dataset in the basin tree widget"""
         self.ui.treeWidget_basin_name.clear()
         if ds_idx >= 0:
             ds = self.pipeline.slots[ds_idx].get_dataset()
@@ -58,7 +58,7 @@ class BasinsPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot(QtWidgets.QTreeWidgetItem, QtWidgets.QTreeWidgetItem)
     def on_select_basin(self, current, previous=None):
-        """Show the tables of the dataset in the right-hand list widget"""
+        """Show the details of the selected basin"""
         ds_idx = self.ui.listWidget_dataset.currentRow()
         if current is not None and ds_idx >= 0:
             # Get the correct basin

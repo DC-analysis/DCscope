@@ -84,7 +84,7 @@ class PipelinePlotItem(SimplePlotItem):
         tm.close()
 
         win.addItem(explot)
-        win.addLabel("")  # spacer to avoid cut tick labels on the right(#7)
+        win.addLabel("")  # spacer to avoid cut tick labels on the right (#7)
         win.nextRow()
         win.addLabel(labelx, col=1)
         # Update the UI (do it twice, otherwise the tick labels overlap)
@@ -426,7 +426,7 @@ class PipelinePlotItem(SimplePlotItem):
             self._warnings_shown.append(msg)
 
     def zoomin_contours(self, margin_per=5):
-        """Zoom-in to contour data with margin"""
+        """Zoom in to contour data with margin"""
         if not self._list_contours:
             # no contours available
             return
@@ -460,10 +460,10 @@ def add_isoelastics(plot_item, axis_x, axis_y, channel_width, pixel_size,
     elements = []
     isodef = dclab.isoelastics.get_default()
     # We do not use isodef.get_with_rtdcbase, because then the
-    # isoelastics would be shifted according to flow rate and.
+    # isoelastics would be shifted according to flow rate and
     # viscosity. We could do it, but for visualization there is
     # really no need and also, the plots then look the same as
-    # in DCscope 1.
+    # in Shape-Out 1.
     try:
         iso = isodef.get(
             lut_identifier=lut_identifier if lut_identifier
@@ -506,7 +506,7 @@ def add_label(text, anchor_parent, text_halign="center", text_valign="center",
         ("left", "center", "right")
     text_valign: str
         Vertical text alignment relative to anchor point
-        ("left", "center", "right")
+        ("top", "center", "bottom")
     font_size_diff: int
         Change font size of text relative to `QtGui.QFont().pointSize()`
         (is added via css)

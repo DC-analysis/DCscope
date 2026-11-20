@@ -143,7 +143,7 @@ class SlotPanel(QtWidgets.QWidget):
             self.ui.comboBox_temp.blockSignals(False)
 
         idx_vm = self.ui.comboBox_visc_model.findData(
-            # use defaults from previous session (Herold-2107)
+            # use defaults from previous session (Herold-2017)
             emodulus.get("emodulus viscosity model", "herold-2017"))
 
         self.ui.comboBox_visc_model.setCurrentIndex(idx_vm)
@@ -239,7 +239,7 @@ class SlotPanel(QtWidgets.QWidget):
             if "temp" in ds:
                 choices.append(["From feature", "feature"])
             if "temperature" in ds.config["setup"]:
-                choices.append(["From meta data", "config"])
+                choices.append(["From metadata", "config"])
         choices.append(["Manual", "manual"])
         return choices
 
@@ -257,7 +257,7 @@ class SlotPanel(QtWidgets.QWidget):
         self.ui.comboBox_medium.blockSignals(False)
 
     def _update_emodulus_temp_choices(self):
-        """pupdate temperature choices for YM
+        """update temperature choices for YM
 
         The previous selection is preserved. Signals are blocked.
         """
@@ -380,10 +380,7 @@ class SlotPanel(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_ui_changed(self):
-        """Called when the user m
-        index: int
-            index of the slot in the pipeline;
-            indexing starts at "0".odifies the medium or temperature options"""
+        """Called when the user modifies the medium or temperature options"""
         medium = self.ui.comboBox_medium.currentData()
         tselec = self.ui.comboBox_temp.currentData()
         medium_key = ALIAS_MEDIA.get(medium, medium)

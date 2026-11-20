@@ -107,7 +107,7 @@ these events will be excluded from all plots when *remove invalid events*
 is checked in the *Filter* configuration tab.
 
 .. figure:: figures/qg_youngs_modulus_20um.png
-    :target: images/qg_youngs_modulus_20um.png
+    :target: _images/qg_youngs_modulus_20um.png
 
     Visualizations of the support and the values of the look-up table (LUT)
     used for determining the Young's modulus from deformation and
@@ -125,7 +125,7 @@ The reason for that is a very steep increase of the Young's modulus with
 little decrease in deformation that could potentially result in very large
 simulation errors. In addition, regions with high deformation are invalid as well,
 because the simulations do not converge (objects simulated with
-lower Young's moduli  become more and more elongated until they rupture).
+lower Young's moduli become more and more elongated until they rupture).
 In practice, this means that the channel size has to be selected carefully
 to match the object sizes. Larger object sizes require wider channels
 if meaningful values for the Young's modulus are to be computed.

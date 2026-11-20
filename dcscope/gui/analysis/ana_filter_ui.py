@@ -193,7 +193,7 @@ class Ui_Form(object):
         self.toolButton_remove.setText(_translate("Form", "Remove"))
         self.label_2.setText(_translate("Form", "Name"))
         self.checkBox_enable.setText(_translate("Form", "Use this filter"))
-        self.checkBox_limit.setToolTip(_translate("Form", "Set an upper limit for the number of events; Surplus events are removed randomly, but in a reproducible manner."))
+        self.checkBox_limit.setToolTip(_translate("Form", "Set an upper limit for the number of events; surplus events are removed randomly, but in a reproducible manner."))
         self.checkBox_limit.setText(_translate("Form", "Limit number of events to"))
         self.checkBox_invalid.setToolTip(_translate("Form", "Remove events that are nan- or inf-valued for any feature"))
         self.checkBox_invalid.setText(_translate("Form", "Remove invalid events"))

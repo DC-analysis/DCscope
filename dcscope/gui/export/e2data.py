@@ -254,7 +254,7 @@ class ExportData(QtWidgets.QDialog):
         tm.close()
 
     def get_export_filenames(self):
-        """Compute names for exporting data, avoiding overriding anything
+        """Compute names for exporting data, avoiding overwriting anything
 
         Return a list of tuples `(slot_index, filename)`.
         """

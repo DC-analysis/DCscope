@@ -489,7 +489,7 @@ class DCscope(QtWidgets.QMainWindow):
         rtd = "dcscope.readthedocs.io"
         about_text = (
             f"DCscope is a graphical user interface for the analysis "
-            f"and visualization of deformability cytometry data sets.<br><br>"
+            f"and visualization of deformability cytometry datasets.<br><br>"
             f"Author: Paul Müller<br>"
             f"GitHub: <a href='https://github.com/{gh}'>{gh}</a><br>"
             f"Documentation: <a href='https://{rtd}'>{rtd}</a><br>"
@@ -653,7 +653,7 @@ class DCscope(QtWidgets.QMainWindow):
         """Export the filter ray for each dataset to the dataset location"""
         #: dictionary with paths as keys and filter ID list as values
         filt_dict = {}
-        #: paths that already exist (user will be asked to override)
+        #: paths that already exist (user will be asked to overwrite)
         existing_paths = []
         #: keeps track of datasets that are loaded twice (will notify user)
         double_paths = []
@@ -674,7 +674,8 @@ class DCscope(QtWidgets.QMainWindow):
         if dcor_data:
             QMessageBox.warning(
                 self,
-                "Some datasets are DCOR data for which no filter rays ",
+                "No filter rays exported for DCOR data",
+                "Some datasets are DCOR data for which no filter rays "
                 "will be exported:\n\n"
                 + "\n".join([str(p) for p in list(set(dcor_data))])
             )
@@ -689,17 +690,17 @@ class DCscope(QtWidgets.QMainWindow):
         if existing_paths:
             button_reply = QMessageBox.question(
                 self,
-                "Override existing files?",
-                "The following files already exist, override?\n\n"
+                "Overwrite existing files?",
+                "The following files already exist, overwrite?\n\n"
                 + "\n".join([str(p) for p in existing_paths])
             )
             yes = button_reply == QMessageBox.StandardButton.Yes
             if yes:
-                # if the user agrees, these files will be overridden
+                # if the user agrees, these files will be overwritten
                 existing_paths.clear()
         for path, value in filt_dict.items():
             if path in existing_paths:
-                # not overriding this one
+                # not overwriting this one
                 continue
             else:
                 session.export_filters(path, self.pipeline, value)
@@ -716,14 +717,14 @@ class DCscope(QtWidgets.QMainWindow):
         Parameters
         ----------
         path: str or pathlib.Path
-            path to the filter to impoert
+            path to the filter to import
         """
         if path is None:
             path, _ = QFileDialog.getOpenFileName(
                 parent=self,
                 caption="Select Filter",
                 directory=settings.get_dir("filters", self.settings),
-                filter="Filters formats (*.poly *.sof)")
+                filter="Filter formats (*.poly *.sof)")
         if path:
             settings.set_dir("filters", path, self.settings)
             with self.pipeline.lock:
@@ -1141,7 +1142,7 @@ def copy_text_to_clipboard(text):
         cb.setText(text)
 
 
-# Make Ctr+C close the app
+# Make Ctrl+C close the app
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 # Display exception hook in separate dialog instead of crashing
 sys.excepthook = excepthook

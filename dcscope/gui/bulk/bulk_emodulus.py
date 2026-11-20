@@ -50,7 +50,7 @@ class BulkActionEmodulus(QtWidgets.QDialog):
 
         self.ui.comboBox_temp.clear()
         self.ui.comboBox_temp.addItem("From feature", "feature")
-        self.ui.comboBox_temp.addItem("From meta data", "config")
+        self.ui.comboBox_temp.addItem("From metadata", "config")
         self.ui.comboBox_temp.addItem("Manual", "manual")
         self.ui.comboBox_temp.setCurrentIndex(
             self.ui.comboBox_temp.findData("feature"))

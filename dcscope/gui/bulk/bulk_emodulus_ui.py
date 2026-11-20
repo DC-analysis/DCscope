@@ -92,7 +92,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Young\'s modulus computation"))
-        self.label.setText(_translate("Dialog", "<html><head/><body><p>Here you can set the parameters for Young\'s modulus computation for all datasets loaded. This is the bulk-version of the corresponding options in the <span style=\" font-style:italic;\">Dataset  </span> tab in the <span style=\" font-style:italic;\">Analysis View</span>.</p></body></html>"))
+        self.label.setText(_translate("Dialog", "<html><head/><body><p>Here you can set the parameters for Young\'s modulus computation for all datasets loaded. This is the bulk version of the corresponding options in the <span style=\" font-style:italic;\">Dataset  </span> tab in the <span style=\" font-style:italic;\">Analysis View</span>.</p></body></html>"))
         self.doubleSpinBox_temp.setSuffix(_translate("Dialog", "°C"))
         self.comboBox_medium.setItemText(0, _translate("Dialog", "CellCarrier"))
         self.comboBox_medium.setItemText(1, _translate("Dialog", "CellCarrier B"))

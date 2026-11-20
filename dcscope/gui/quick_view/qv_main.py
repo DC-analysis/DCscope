@@ -622,7 +622,7 @@ class QuickView(QtWidgets.QWidget):
 
     @QtCore.pyqtSlot()
     def on_event_scatter_spin(self):
-        """Sping control for event selection changed"""
+        """Spin control for event selection changed"""
         event = self.ui.spinBox_event.value()
         self.show_event(event - 1)
 
@@ -774,7 +774,7 @@ class QuickView(QtWidgets.QWidget):
         sender = self.sender()
 
         if isinstance(sender, QtWidgets.QToolButton) and sender in toblock:
-            # prevent a tool buttons from unchecking itself
+            # prevent a tool button from unchecking itself
             sender.setChecked(True)
 
         if sender == self.ui.toolButton_event:
@@ -950,7 +950,7 @@ class QuickView(QtWidgets.QWidget):
                 (self.ui.checkBox_hue, [self.ui.comboBox_hue,
                                         self.ui.comboBox_z_hue])]:
                 # Do not replot if the user changes the options for a
-                # disabled settings (e.g. downsampling, hue)
+                # disabled setting (e.g. downsampling, hue)
                 if sender in sen and not cb.isChecked():
                     break
             else:
@@ -1033,7 +1033,7 @@ class QuickView(QtWidgets.QWidget):
     def show_rtdc(self, rtdc_ds, slot):
         """Display an RT-DC measurement given by `path` and `filters`"""
         if np.all(rtdc_ds.filter.all) and rtdc_ds.format == "hierarchy":
-            # No filers applied, no additional hierarchy child required.
+            # No filters applied, no additional hierarchy child required.
             self.rtdc_ds = rtdc_ds
         else:
             # Create a hierarchy child so that the user can browse
@@ -1101,7 +1101,7 @@ class QuickView(QtWidgets.QWidget):
             self.ui.tableWidget_stat.set_key_vals(keys=h, vals=v)
 
     def update_feature_choices(self):
-        """Updates the axes comboboxes choices
+        """Updates the axes combobox choices
 
         This is used e.g. when emodulus becomes available
         """

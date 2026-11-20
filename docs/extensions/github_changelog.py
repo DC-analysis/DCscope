@@ -12,7 +12,7 @@ and hash) and a link is inserted
 
  https://github.com/RI-imaging/{PROJECT}/issues/{XY}
 
-where PROJECT ist the `project` variable defined in conf.py.
+where PROJECT is the `project` variable defined in conf.py.
 
 Changelog
 ---------
