@@ -753,7 +753,7 @@ class QuickView(QtWidgets.QWidget):
             tsv = ""
             for hi, vi in zip(h, v):
                 tsv += f"{hi}\t{vi:.7g}\n"
-            QtWidgets.qApp.clipboard().setText(tsv)
+            QtWidgets.QApplication.clipboard().setText(tsv)
 
     @QtCore.pyqtSlot()
     def on_tool(self, collapse=False):

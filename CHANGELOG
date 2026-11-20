@@ -14,6 +14,8 @@
    without naming the dataset if its data could not be read (e.g.
    corrupt file or lost connection to DCOR); such datasets are now
    skipped and listed (#208)
+ - fix: copying the statistics in the Quick View to the clipboard
+   raised an AttributeError (`QtWidgets.qApp` does not exist in PyQt6)
  - enh: user-defined default settings for new plots ("Save as default"
    in the plot settings) and default Young's modulus viscosity model
    and look-up table for new datasets (preferences) (#129)
