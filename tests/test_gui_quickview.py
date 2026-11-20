@@ -1486,3 +1486,25 @@ def test_hide_fluorescence_channel_traces_issue_200(qtbot, mw):
     # show FL-2 again
     qv.ui.checkBox_trace_fl2.setChecked(True)
     qtbot.waitUntil(lambda: tp["fl2_raw"].isVisible(), timeout=5000)
+
+
+def test_statistics_to_clipboard(qtbot, mw):
+    """Copy the Quick View statistics to the clipboard"""
+    qtbot.addWidget(mw)
+    mw.add_dataslot(paths=[datapath / "calibration_beads_47.rtdc"])
+    slot_id = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+    qv = mw.widget_quick_view
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
+
+    QtWidgets.QApplication.clipboard().clear()
+    # (the settings tool is not shown, so we cannot use qtbot.mouseClick)
+    qv.ui.toolButton_stats2clipboard.click()
+    text = QtWidgets.QApplication.clipboard().text()
+    lines = text.strip().split("\n")
+    assert lines[0].startswith("Events\t47")
+    assert len(lines) > 5
