@@ -53,7 +53,8 @@ one channel *to* the other channels. For instance, in
 additionally detected in FL-2. Only the coefficients between the
 fluorescence channels of the dataset are shown. Click *Apply* to apply
 the coefficients to the dataset. The coefficients are set for each dataset
-individually.
+individually. To use the same coefficients for all datasets of the session
+(e.g. measured with the same setup), click *Apply crosstalk to all datasets*.
 
 As soon as any of the coefficients is set (not zero), the crosstalk-corrected
 features *FL-1 maximum, crosstalk-corrected* (fl1_max_ctc),

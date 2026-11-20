@@ -64,7 +64,7 @@ mw.add_dataslot(paths=[tmp])
 mw.on_modify_slot(mw.pipeline.slot_ids[0])
 mw.widget_ana_view.repaint()
 wsl = mw.widget_ana_view.ui.widget_slot
-wsl.ui.groupBox_fl_cross.setFixedSize(360, 150)
+wsl.ui.groupBox_fl_cross.setFixedSize(360, 185)
 
 wsl.ui.doubleSpinBox_ct12.setValue(0.214)
 wsl.ui.doubleSpinBox_ct13.setValue(0.012)

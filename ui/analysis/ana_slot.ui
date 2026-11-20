@@ -521,6 +521,16 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="0" colspan="4">
+         <widget class="QPushButton" name="pushButton_ct_apply_all">
+          <property name="toolTip">
+           <string>Set these crosstalk values for all datasets in the session (other changes in this tab are not applied)</string>
+          </property>
+          <property name="text">
+           <string>Apply crosstalk to all datasets</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

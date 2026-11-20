@@ -25,6 +25,8 @@
    of the Quick View (#195)
  - enh: add the fluorescence baseline offset ([fluorescence]: "baseline N
    offset") to the traces shown in the Quick View (#81)
+ - enh: button for applying the fluorescence crosstalk coefficients
+   to all datasets in the Dataset tab of the Analysis View (#198)
  - docs: add quick guide for fluorescence crosstalk correction (#120)
  - docs: screenshot scripts download missing datasets from figshare
    and use the icon theme of DCscope
