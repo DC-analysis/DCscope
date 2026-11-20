@@ -72,7 +72,7 @@ class TaskWorker(QtCore.QObject):
         """Abort a task by setting `self.event_abort`
 
         This will raise `TaskAbortError` whenever the underlying method
-        calls their "communicate_message" or "communicate_progress"
+        calls its "communicate_message" or "communicate_progress"
         method, forcing it to exit at these predefined break points.
         """
         task_id = task["identifier"]

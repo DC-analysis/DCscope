@@ -710,7 +710,7 @@ class Pipeline:
     def get_min_max_coarse(self, feat, plot_id=None, margin=0.0):
         """Return coarse minimum and maximum values for a feature
 
-        Coarse feature computation is faster then the accurate
+        Coarse feature computation is faster than the accurate
         :func:`get_min_max`, because it uses metadata stored in the
         root dataset. The range is thus always equal to or larger
         than that returned by :func:`get_min_max`.
@@ -754,7 +754,7 @@ class Pipeline:
                     vmax = fdata.max()
 
                     if np.any(np.isinf([vmin, vmax])):
-                        # Until now, we might have gotton away with our
+                        # Until now, we might have gotten away with our
                         # custom h5attrs-backed ufuncs to get the minimum
                         # and maximum of the feature data. But if there is
                         # an inf present, then data is probably already loaded
@@ -921,7 +921,7 @@ class Pipeline:
         self._check_quick_view()
 
     def remove_plot(self, plot_id):
-        """Remove a filter by plot identifier"""
+        """Remove a plot by plot identifier"""
         index = self.plot_ids.index(plot_id)
         self.plots.pop(index)
         for slot_id in self.element_states:

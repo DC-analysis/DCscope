@@ -8,7 +8,7 @@ covered here, please create an
 
 Working Principle
 =================
-In Real-time deformability cytometry (RT-DC), small objects, such as cells
+In real-time deformability cytometry (RT-DC), small objects, such as cells
 or beads, are flushed through a narrow channel at high speeds.
 The flow profile inside the channel causes hydrodynamic stresses
 that deform these objects :cite:`Mietke2015`, :cite:`Mokbel2017`.
@@ -17,7 +17,7 @@ in real-time :cite:`Otto2015`.
 The analysis consists of the extraction of several features from the event
 images, such as deformation, projected area, or average brightness.
 These features can then be used to identify and characterize sample populations;
-For instance, major blood cells and their pathological
+for instance, major blood cells and their pathological
 changes in disease conditions :cite:`Toepfner2018`.
 
 .. figure:: figures/rtdc-setup.jpg
@@ -95,7 +95,7 @@ in a drop of blood :cite:`Toepfner2018`.
 
 .. figure:: figures/brightness.jpg
 
-   Blood-classification with event brightness and cell size.
+   Blood classification with event brightness and cell size.
    (A) Representative images of blood cell types acquired. Scale bar is 10 µm.
    (B) Brightness versus cell size (area) scatter plot with cell types labeled
    according to the color scheme in (A).
@@ -119,7 +119,7 @@ circular shape. It is defined via the circularity:
 with the projected area :math:`A` and the contour length of the convex hull
 of the event image :math:`l`. The contour length is computed from the *convex*
 hull to prevent an overestimation due to irregular, non-convex event shapes.
-It has been shown that the knowledge of deformation and area allows to
+It has been shown that the knowledge of deformation and area allows one to
 derive a value for elasticity in RT-DC :cite:`Mietke2015` :cite:`Mokbel2017`.
 As a convenient measure for elasticity, isoelasticity lines are often
 employed to visualize stiffness.
@@ -150,7 +150,7 @@ applications, RT-FDC also supports multiple fluorescence channels.
    (A) Event brightfield image. (B) Fluorescence trace of the event.
    The raw fluorescence data and the fluorescence data filtered with
    a rolling median filter (from which the parameters are computed)
-   is shown.
+   are shown.
    (C) Scatter plot of two parameters extracted from the fluorescence
    trace.
 
@@ -165,7 +165,7 @@ of deformation. In contrast to deformation (which is computed from the
 contour), inertia ratio is based on the integral over the cell area and thus
 less prone to noise. In comparison to deformation, the inertia ratio has a low
 correlation to porosity.
-DCscope also allows to compute the principal inertia ratio which is the
+DCscope also allows you to compute the principal inertia ratio which is the
 maximal inertia ratio that can be obtained by rotating the contour. Thus,
 the principal inertia ratio is rotation-invariant which makes it applicable
 to reservoir measurements where e.g. cells are not aligned with the channel.
@@ -181,7 +181,7 @@ relative to the channel axis.
    principal inertia ratio does not.
    (C) Comparison between deformation and inertia ratio when plotted
    against porosity for an exemplary RT-DC experiment. Deformation exhibits
-   a higher correlation to porisity.
+   a higher correlation to porosity.
 
 
 Volume
@@ -193,7 +193,7 @@ with a rotational axis parallel to the flow direction.
 The computation of the volume is based on a full
 rotation of the upper and the lower halves of the contour from which the
 average is then used :cite:`Halpern2002`.
-Volume has the advantage to be less correlated to deformation when compared
+Volume has the advantage of being less correlated to deformation when compared
 to the projected area and it is therefore a better measure of
 cell size in the channel.
 

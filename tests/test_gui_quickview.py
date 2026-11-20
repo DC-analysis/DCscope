@@ -53,7 +53,7 @@ def test_clear_session_issue_25(qtbot, mw):
     # did that work?
     assert mw.ui.toolButton_quick_view.isChecked()
 
-    # now clear the session (this raised the errror in #25)
+    # now clear the session (this raised the error in #25)
     mw.on_action_clear()
 
 

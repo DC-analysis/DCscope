@@ -1,4 +1,4 @@
-"""Convenience methods to retrieve meta data from .rtdc files"""
+"""Convenience methods to retrieve metadata from .rtdc files"""
 import functools
 import pathlib
 

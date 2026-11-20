@@ -84,13 +84,13 @@ def compute_scatter_data_from_state(
         pipeline: Pipeline | None = None,
         slot_state: dict | None = None,
         ):
-    """Compute scatte rplot data given the plot state and a dataset
+    """Compute scatter plot data given the plot state and a dataset
 
     If `pipeline` is specified, then the plot dictionary is taken
     from `pipeline.get_plot(plot_state["identifier"])`.
 
     `slot_state` is not used, but required for correctly assigning a
-    contour to a slot in the pipeline plot TaskManager workflow.
+    scatter plot to a slot in the pipeline plot TaskManager workflow.
     """
     if pipeline is not None:
         # get the latest plot state

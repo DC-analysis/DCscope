@@ -129,7 +129,7 @@
          <item>
           <widget class="QCheckBox" name="checkBox_limit">
            <property name="toolTip">
-            <string>Set an upper limit for the number of events; Surplus events are removed randomly, but in a reproducible manner.</string>
+            <string>Set an upper limit for the number of events; surplus events are removed randomly, but in a reproducible manner.</string>
            </property>
            <property name="text">
             <string>Limit number of events to</string>

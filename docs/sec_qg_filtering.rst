@@ -26,7 +26,7 @@ an analysis.
   The aspect ratio of the bounding box and the inertia ratio of the contour
   can be used to filter cell aggregates and otherwise invalid events.
   For instance, an aspect ratio below 1 (elongation perpendicular to the channel
-  axis) is most-likely debris and can be excluded from the analysis.
+  axis) is most likely debris and can be excluded from the analysis.
   An inertia ratio below 1 also indicates invalid events.
 
   .. figure:: figures/qg_filter_ratios.jpg

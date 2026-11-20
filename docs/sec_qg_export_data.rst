@@ -12,7 +12,7 @@ and export the result to a file. For instance, DCscope can export your DC data t
 file format or to tab-separated values (.tsv) files for data analysis in other
 software. If you export to the .rtdc file format, you will stay in the DC
 ecosystem, allowing you to make use of dclab and DCscope or other software
-that can interface with HDF5 data. Since DCscope.22.0, it is also possible
+that can interface with HDF5 data. Since DCscope 2.22.0, it is also possible
 to export event images as a video file.
 
 .. _qg_export_data:
@@ -38,7 +38,7 @@ Features
     longer.
 
 Storage strategy
-    Since DCscope.16 and with the introduction of :ref:`basins <dclab:sec_av_basins>`
+    Since DCscope 2.16 and with the introduction of :ref:`basins <dclab:sec_av_basins>`
     (which tell dclab/DCscope where to find features belonging to the same dataset in
     other locations) in dclab 0.58.0, you can select a storage strategy. The storage
     strategy defines whether features and/or basins are stored in the output file.
@@ -55,7 +55,7 @@ Storage strategy
     - Only basins: This option is useful if you have a very confined analysis
       pipeline and would like to avoid data redundancy. In the output file,
       there will be no feature data. The output file will only contain the
-      basin information. Naturally, this will massively speed-up data export
+      basin information. Naturally, this will massively speed up data export
       (less data written to disk, no ancillary features are computed, no basin
       features are retrieved from other sources). The downside is that if none
       of the basins are available, the exported files are useless. Make sure

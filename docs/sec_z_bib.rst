@@ -1,5 +1,5 @@
 =============
-Bilbliography
+Bibliography
 =============
 
 .. bibliography::

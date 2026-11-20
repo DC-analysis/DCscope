@@ -151,7 +151,7 @@
            </sizepolicy>
           </property>
           <property name="toolTip">
-           <string>Include/Exclude all Datasets for this plot</string>
+           <string>Include/Exclude all datasets for this plot</string>
           </property>
           <property name="text">
            <string>c</string>

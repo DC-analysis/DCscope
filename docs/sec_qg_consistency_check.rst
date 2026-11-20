@@ -17,7 +17,7 @@ Checking experimental data for consistency
      systematic trend over time, indicating stable measurement conditions.
 
 
-- **Countrate:**
+- **Count rate:**
 
   Trends over time do not directly visualize the count rate (measured events
   per second). The count rate is the slope of the event index versus event

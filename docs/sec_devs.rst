@@ -8,7 +8,7 @@ Some parts of this document might need improvement and corrections.
 
 Versioning
 ==========
-We try to adhere to `semantic versioning <https://semver.org/>`_
+We try to adhere to `semantic versioning <https://semver.org/>`_.
 DCscope uses `setuptools-scm <https://setuptools-scm.readthedocs.io>`_
 to automatically determine the version from the latest Git tag.
 
@@ -72,9 +72,9 @@ Pull Requests
 The ideal route of contribution is via pull requests into the `main` branch.
 Make sure to
 
-- name your forked branch after problem you are addressing
+- name your forked branch after the problem you are addressing
 - update the changelog correctly
-- all tests and linting (`flake8`) pass in CI
+- have all tests and linting (`flake8`) pass in CI
 
 
 GUI development

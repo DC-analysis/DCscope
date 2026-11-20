@@ -62,7 +62,7 @@ The menu bar is used for session management (File menu)
 and makes additional functionalities available, such as batch
 processing, data statistics, data export, plot export, or filter import/export.
 The tool bar contains shortcuts for adding new datasets,
-filters, or plots (left part) and allows to hide/show the
+filters, or plots (left part) and allows you to hide/show the
 :ref:`sec_block_matrix` as well as the :ref:`sec_quick_view` and
 :ref:`sec_analysis_view` windows (right part).
 
@@ -90,7 +90,7 @@ via the check box.
 Filters can also be modified, copied, removed and disabled.
 By default, all filters are disabled when they are created. To apply a filter
 to a dataset, click on the corresponding matrix element. The element changes
-its color from gray (incactive) to green (active). In DCscope, all
+its color from gray (inactive) to green (active). In DCscope, all
 filters that are applied to a dataset are called a **filter ray**.
 In the above example, the filter ray only consists of a single filter for each
 dataset. Filter rays may be different for each dataset. 
@@ -166,11 +166,11 @@ The **Logs** tab gives access to all logs stored in a dataset.
 
 Dataset
 .......
-The **Dataset** tab allows to
+The **Dataset** tab allows you to
 specify additional metadata, such as unique colors used for plotting and
 additional metadata for computing the Young's modulus or correcting
 for fluorescence crosstalk (see :ref:`sec_qg_fl_crosstalk`). It also
-allows to specify fluorescence
+allows you to specify fluorescence
 channel labels that will then be used for labeling the axes of plots.
 
 .. figure:: scrots/ui_ana_slot.png
@@ -192,10 +192,10 @@ Polygon filters are created in the :ref:`sec_quick_view` window.
 
 Plot
 ....
-The **Plot** tab allows to specify all plotting parameters. Please
+The **Plot** tab allows you to specify all plotting parameters. Please
 take special note of the *Division* option in the *Layout* section (defines
 the arrangement of the subplots) and the *Marker hue* option in the
-*Scatter plot* section (allows you the specify whether the scatter
+*Scatter plot* section (allows you to specify whether the scatter
 data points are colored according to a kernel density estimate (KDE),
 another feature dimension, or the dataset color specified in the
 *Dataset* tab). In this example, contour plots are not used.
@@ -230,7 +230,7 @@ availability:
 - *green*: The feature data are present in the current dataset or are
   already computed.
 - *blue*: The feature data are part of another dataset,
-  a :ref:`basin <dclab:sec_av_basins>`, which may at a remote location
+  a :ref:`basin <dclab:sec_av_basins>`, which may be at a remote location
   (e.g. on `DCOR <https://dcor.mpl.mpg.de/>`_) or on the local file system.
 - *orange*: The feature data must be computed before it can be displayed. The
   feature is an :ref:`ancillary feature <dclab:sec_features_ancillary>`.

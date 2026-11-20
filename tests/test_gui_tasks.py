@@ -48,7 +48,7 @@ def test_task_abort(qtbot):
     def method(argument, communicate_progress):
         # give manager enough time to abort this job
         for ii in range(100):
-            # call this method to trigger the TaskAbortError exceptin in worker
+            # call this method to trigger TaskAbortError exception in worker
             communicate_progress(0.3 * ii)
             time.sleep(0.1)
         return argument * 2
@@ -92,7 +92,7 @@ def test_task_abort_without_callback(qtbot):
     def method(argument, communicate_progress):
         # give manager enough time to abort this job
         for ii in range(100):
-            # call this method to trigger the TaskAbortError exceptin in worker
+            # call this method to trigger TaskAbortError exception in worker
             communicate_progress(0.3 * ii)
             time.sleep(0.1)
         return argument * 2
@@ -133,7 +133,7 @@ def test_task_abort_with_event(qtbot):
     def method(argument, event_abort):
         # give manager enough time to abort this job
         for _ in range(100):
-            # call this method to trigger the TaskAbortError exceptin in worker
+            # call this method to trigger TaskAbortError exception in worker
             if event_abort.is_set():
                 return
             time.sleep(0.1)

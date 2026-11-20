@@ -373,7 +373,7 @@ class Ui_Dialog(object):
         self.label_8.setText(_translate("Dialog", "Access Key ID"))
         self.lineEdit_s3_access_key_id.setToolTip(_translate("Dialog", "This is the access key for accessing .rtdc resources on S3"))
         self.lineEdit_s3_access_key_id.setPlaceholderText(_translate("Dialog", "e.g. 1ad3afa49c7241bac142ed4108343ea"))
-        self.label_9.setText(_translate("Dialog", "Secret Acces Key"))
+        self.label_9.setText(_translate("Dialog", "Secret Access Key"))
         self.lineEdit_s3_secret_access_key.setToolTip(_translate("Dialog", "This is the secret access key matching the Access Key ID"))
         self.lineEdit_s3_secret_access_key.setPlaceholderText(_translate("Dialog", "e.g. a3a4862a92643be730c946d267015e20"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_s3), _translate("Dialog", "S3 basins"))

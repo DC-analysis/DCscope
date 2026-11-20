@@ -35,7 +35,7 @@ DCscope can be installed via multiple channels.
 
 Update
 ======
-DCscope automatically searches for updates (you may opt-out via the
+DCscope automatically searches for updates (you may opt out via the
 Help menu) and notifies the user when a new version is available.
 
 1. **Windows installer:** The older version of DCscope will be

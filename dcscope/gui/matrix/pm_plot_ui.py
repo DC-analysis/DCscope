@@ -111,6 +111,6 @@ class Ui_Form(object):
         self.label.setText(_translate("Form", "Name"))
         self.toolButton_modify.setToolTip(_translate("Form", "Modify this plot in Analysis View"))
         self.toolButton_modify.setText(_translate("Form", "edit"))
-        self.toolButton_toggle.setToolTip(_translate("Form", "Include/Exclude all Datasets for this plot"))
+        self.toolButton_toggle.setToolTip(_translate("Form", "Include/Exclude all datasets for this plot"))
         self.toolButton_toggle.setText(_translate("Form", "c"))
         self.toolButton_opt.setText(_translate("Form", "..."))

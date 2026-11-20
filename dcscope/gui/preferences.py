@@ -272,7 +272,7 @@ class Preferences(QtWidgets.QDialog):
         # get path
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             parent=self,
-            caption="SSpecify encrypted DCOR access token",
+            caption="Specify encrypted DCOR access token",
             directory=self.settings.value("paths/encrypted access token", ""),
             filter="DCOR access token (*.dcor-access)")
         if not path:

@@ -382,7 +382,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_fl_cross">
        <property name="toolTip">
-        <string>The cross-talk matrix facilitates the computation of corrected fluorescence values.</string>
+        <string>The crosstalk matrix facilitates the computation of corrected fluorescence values.</string>
        </property>
        <property name="title">
         <string>Fluorescence crosstalk</string>
@@ -537,7 +537,7 @@
      <item>
       <widget class="QGroupBox" name="groupBox_fl_labels">
        <property name="toolTip">
-        <string>Choose user-definde labels that will be used for axes labels.</string>
+        <string>Choose user-defined labels that will be used for axes labels.</string>
        </property>
        <property name="title">
         <string>Fluorescence labels</string>

@@ -54,7 +54,7 @@ class Dataslot:
                 # https://dclab.readthedocs.io/en/latest/sec_av_emodulus.html
                 # possible values are:
                 # - "feature": scenario A
-                # - None: secnario B ("emodulus medium" is "other" or user-def)
+                # - None: scenario B ("emodulus medium" is "other" or user-def)
                 # - "config": scenario C (temperature taken from config)
                 # - "manual": scenario C (temperature entered manually)
                 "emodulus scenario": "manual",

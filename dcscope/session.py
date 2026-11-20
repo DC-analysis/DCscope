@@ -45,7 +45,7 @@ class PathlibJSONDecoder(json.JSONDecoder):
     def compat_2_5_1(obj):
         """New standard for emodulus computation keyword arguments
 
-        This compatibility hook was introduced in DCscope.5.1
+        This compatibility hook was introduced in DCscope 2.5.1
         and is used to convert [calculation]: "emodulus model" which
         was deprecated in dclab 0.32.0 to [calculation]: "emodulus lut".
         """

@@ -83,7 +83,7 @@ class BlockMatrix(QtWidgets.QWidget):
                 self.ui.toolButton_new_plot.setEnabled(False)
 
         if data.get("block_matrix"):
-            # Workaound: If this is not set, then the slot matrix element
+            # Workaround: If this is not set, then the slot matrix element
             # is resized, but its sizer is not. Sending the signal twice
             # resolves the issue.
             self.ui.data_matrix.pp_mod_recv.emit(data)

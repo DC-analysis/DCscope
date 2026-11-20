@@ -9,7 +9,7 @@ work, you need to have R installed (tested with
 `R 4.1.2 <https://cran.r-project.org>`_ ).
 The analysis uses linear mixed effects models (LMM) as described
 in :cite:`Herbig2018` and yields results identical to those obtained
-with DCscope 1.
+with Shape-Out 1.
 
 The LMM analysis is performed using the lme4 R package
 and is based on the :ref:`implementation in dclab <dclab:sec_av_lme4>`
@@ -36,7 +36,7 @@ five datasets:
 - MG63_pure_16uls_rep2_20150422.rtdc  (MG-63 repetition 2)
 - MG63_pure_16uls_rep3_20150422.rtdc  (MG-63 repetition 3)
 
-.. note:: The data sets are ordered according to run index. In an ideal case,
+.. note:: The datasets are ordered according to run index. In an ideal case,
     the run index would resemble the repetition of an experiment. Here,
     however, the run index is only an internal lab book reference.
 
@@ -111,7 +111,7 @@ The results of the LMM analysis for differential deformation are:
 .. figure:: scrots/qg_lme4_diff_results.png
     :target: _images/qg_lme4_diff_results.png
 
-The p-value for the differential deformation is magnitudes lower than the
+The p-value for the differential deformation is orders of magnitude lower than the
 p-value for the (non-differential) deformation in the previous example.
 This indicates that there is a non-negligible initial deformation of the
 cells in the reservoir.

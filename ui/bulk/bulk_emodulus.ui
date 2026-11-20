@@ -20,7 +20,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Here you can set the parameters for Young's modulus computation for all datasets loaded. This is the bulk-version of the corresponding options in the &lt;span style=&quot; font-style:italic;&quot;&gt;Dataset  &lt;/span&gt; tab in the &lt;span style=&quot; font-style:italic;&quot;&gt;Analysis View&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Here you can set the parameters for Young's modulus computation for all datasets loaded. This is the bulk version of the corresponding options in the &lt;span style=&quot; font-style:italic;&quot;&gt;Dataset  &lt;/span&gt; tab in the &lt;span style=&quot; font-style:italic;&quot;&gt;Analysis View&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
