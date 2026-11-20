@@ -28,7 +28,7 @@ EMODULUS_VISC_MODELS = {"Buyukurganci (2022)": "buyukurganci-2022",
 
 #: product names of MC-PBS media shown as a hint next to the medium name
 EMODULUS_MEDIUM_HINTS = {"0.49% MC-PBS": "CellCarrier",
-                         "0.59% MC-PBS": "CellCarrierB"}
+                         "0.59% MC-PBS": "CellCarrier B"}
 
 
 def get_emodulus_medium_name(medium):

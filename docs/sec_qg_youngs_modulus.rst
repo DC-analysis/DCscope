@@ -47,10 +47,10 @@ of 22.5°C from the [setup] metadata section is used. The value of the
 resulting viscosity is shown below.
 If the chip temperature is recorded for each event, then the user may select
 the *From feature* option (:numref:`qg_emodulus_feature`). In this case,
-the Young's modulus is computed from the individual viscosities for each event. 
+the Young's modulus is computed from the individual viscosities for each event.
 
 For MC-PBS media (e.g. 0.49% MC-PBS (CellCarrier) and 0.59% MC-PBS
-(CellCarrierB)), you can choose the viscosity model
+(CellCarrier B)), you can choose the viscosity model
 (*Buyukurganci (2022)* :cite:`Buyukurganci2022` or
 *Herold (2017)* :cite:`Herold2017`) next to the viscosity value.
 The models are compared in the
@@ -182,4 +182,3 @@ The underlying implementation is described in the :ref:`dclab docs
 <dclab:sec_av_emodulus>`. If you would like to compute the Young's modulus
 in a Python script, please have a look at the
 :ref:`usage section <dclab:sec_emodulus_usage>` there.
-
