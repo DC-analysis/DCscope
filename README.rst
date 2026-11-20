@@ -17,7 +17,7 @@ The documentation, including the code reference and examples, is available at
 
 Installation
 ------------
-Installers for Windows and macOS are available at the `release page <https://github.com/DC-analysis/DCscope/releases>`__.
+Installers for Windows are available at the `release page <https://github.com/DC-analysis/DCscope/releases>`__.
 
 If you have Python 3 installed, you can install DCscope with
 

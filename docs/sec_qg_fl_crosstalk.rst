@@ -26,8 +26,8 @@ measured with the same setup and settings as the actual sample:
    (optionally) an unstained control sample.
 2. Select the stained population with a filter
    (see :ref:`sec_qg_filtering`) and determine the median of
-   *FL-i maximum* and *FL-j maximum*, e.g. with the *Statistics* tool
-   in the *Compute* menu (see :ref:`sec_qg_batch_stats`).
+   *FL-i maximum* and *FL-j maximum*, e.g. with
+   *Compute | Statistical data...* (see :ref:`sec_qg_batch_stats`).
 3. The crosstalk coefficient from channel *i* to channel *j* is the
    ratio of the medians, i.e. *FL-j maximum* divided by
    *FL-i maximum*. If unstained cells already yield a signal (offset)

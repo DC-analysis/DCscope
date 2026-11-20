@@ -46,6 +46,17 @@ If the chip temperature is recorded for each event, then the user may select
 the *From feature* option (:numref:`qg_emodulus_feature`). In this case,
 the Young's modulus is computed from the individual viscosities for each event. 
 
+For MC-PBS media (e.g. CellCarrier and CellCarrier B), you can choose the
+viscosity model (Herold 2017 :cite:`Herold2017` or
+Buyukurganci 2022 :cite:`Buyukurganci2022`) next to the viscosity value.
+The models are compared in the
+:ref:`dclab documentation <dclab:sec_emodulus_viscosity>`
+(see also :ref:`this example <dclab:example_viscosity_models>`).
+In addition, you can select the look-up table (LUT) that is used for
+computing the Young's modulus (*Select LUT*). The default viscosity
+model and LUT for new datasets can be set in the *General* tab of the
+:ref:`preferences <sec_preferences>`.
+
 
 .. _qg_emodulus_badtemp:
 .. figure:: scrots/qg_emodulus_badtemp.png
@@ -56,8 +67,9 @@ the Young's modulus is computed from the individual viscosities for each event.
 If the temperature is not given as a feature or as metadata, then
 you may select the temperature manually. This case is visualized in
 :numref:`qg_emodulus_badtemp`. Here, the temperature is purposely set outside of
-the known range defined in :cite:`Buyukurganci2022`, which is highlighted by
-coloring the viscosity red.
+the known range of the selected viscosity model (18 °C to 26 °C for
+:cite:`Herold2017` and 22 °C to 37 °C for :cite:`Buyukurganci2022`),
+which is highlighted by coloring the viscosity red.
 
 .. _qg_emodulus_other:
 .. figure:: scrots/qg_emodulus_other.png
@@ -94,6 +106,8 @@ you will not be able to change the medium for a dataset if a medium is
 already given in its metadata. In this case, DCscope lists the datasets
 for which the medium was not changed. To verify the options set, you can
 always check the current setting via the *Analysis View* (see above).
+The viscosity model and the look-up table in this dialog are
+initialized with the defaults from the preferences.
 
 
 Validity
@@ -105,6 +119,18 @@ size values must be in a "valid region". Events outside this region will
 have a *nan*-valued (not a number) Young's modulus. Note that as a result,
 these events will be excluded from all plots when *remove invalid events*
 is checked in the *Filter* configuration tab.
+
+If the Young's modulus is shown in a plot (as an axis or as the
+marker hue of the scatter plot), DCscope displays warnings in red in the
+lower left corner of the plot when the results may be inaccurate:
+
+- *N% of events outside LUT*: For more than 10% of the events, the
+  Young's modulus could not be computed, because they are not covered
+  by the look-up table.
+- *Temperature out of range*: The temperature is outside the valid range
+  of the selected viscosity model (see above).
+
+Hover over a warning with the mouse pointer to see a detailed description.
 
 .. figure:: figures/qg_youngs_modulus_20um.png
     :target: _images/qg_youngs_modulus_20um.png
@@ -149,5 +175,7 @@ Implementation
 As described above, the Young's modulus can be derived in multiple ways,
 for known media and global or event-based temperature values.
 The underlying implementation is described in the :ref:`dclab docs
-<dclab:sec_av_emodulus>`.
+<dclab:sec_av_emodulus>`. If you would like to compute the Young's modulus
+in a Python script, please have a look at the
+:ref:`usage section <dclab:sec_emodulus_usage>` there.
 

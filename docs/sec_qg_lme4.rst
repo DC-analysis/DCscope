@@ -7,6 +7,13 @@ Since version 2.5.0, DCscope allows you to quantify the statistical
 significance (p-value) when comparing two measurement groups. For this to
 work, you need to have R installed (tested with
 `R 4.1.2 <https://cran.r-project.org>`_ ).
+DCscope looks for the R executable in the directories listed in the
+``PATH`` environment variable (and in ``R_HOME``). If R is not found,
+you can set the path to the R executable in the *R/lme4* tab of the
+:ref:`preferences <sec_preferences>` (*Edit | Preferences*). There, you
+can also check whether the lme4 R package is installed and install it
+(*Install...*).
+
 The analysis uses linear mixed effects models (LMM) as described
 in :cite:`Herbig2018` and yields results identical to those obtained
 with Shape-Out 1.

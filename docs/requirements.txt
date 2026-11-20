@@ -1,4 +1,4 @@
-dclab>=0.58.2
+dclab>=0.75.0
 h5py
 matplotlib
 numpy

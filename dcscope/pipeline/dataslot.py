@@ -51,7 +51,7 @@ class Dataslot:
                 "emodulus enabled": is_channel,  # False for reservoir
                 "emodulus lut": "LE-2D-FEM-19",
                 "emodulus medium": "undefined",
-                # https://dclab.readthedocs.io/en/latest/sec_av_emodulus.html
+                # https://dclab.readthedocs.io/en/stable/sec_av_emodulus/
                 # possible values are:
                 # - "feature": scenario A
                 # - None: scenario B ("emodulus medium" is "other" or user-def)
@@ -116,7 +116,7 @@ class Dataslot:
         """Set the Young's modulus data options
 
         The three cases in the dclab docs apply:
-        https://dclab.readthedocs.io/en/latest/sec_av_emodulus.html
+        https://dclab.readthedocs.io/en/stable/sec_av_emodulus/
         """
         # remove any information
         for key in self.config["emodulus"]:
