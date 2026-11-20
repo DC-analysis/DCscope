@@ -6,13 +6,18 @@
 - The icon theme and the "Fusion" style of DCscope are used (like in
   `dcscope/__main__.py`), so that the screenshots do not depend on the
   desktop environment.
+- Settings that change the appearance of DCscope are set to their
+  defaults while the screenshots are made (the user's settings are
+  restored afterwards).
 """
+import atexit
 import hashlib
 import importlib.resources
 import pathlib
+import time
 import urllib.request
 
-from PyQt6 import QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtTest, QtWidgets
 
 HERE = pathlib.Path(__file__).parent
 
@@ -63,6 +68,74 @@ def ensure_datasets():
         path = HERE / name
         if not path.exists():
             download(url, path, md5)
+
+
+#: settings (QSettings) that change the appearance of DCscope
+DEFAULT_SETTINGS = {
+    "advanced/developer mode": "0",
+    "gui/block matrix slot widget width": "65",
+}
+
+
+def use_default_settings():
+    """Use default values for settings that change the appearance
+
+    The current settings of the user are restored when the script
+    exits. Call this after creating the QApplication and before
+    creating the DCscope window.
+    """
+    # same settings location as DCscope (see `DCscope.__init__`)
+    QtCore.QCoreApplication.setOrganizationName("DC-analysis")
+    QtCore.QCoreApplication.setOrganizationDomain("dc-cosmos.org")
+    QtCore.QCoreApplication.setApplicationName("dcscope")
+    QtCore.QSettings.setDefaultFormat(QtCore.QSettings.Format.IniFormat)
+    settings = QtCore.QSettings()
+    user_values = {key: settings.value(key, None) for key in DEFAULT_SETTINGS}
+    for key, value in DEFAULT_SETTINGS.items():
+        settings.setValue(key, value)
+    settings.sync()
+
+    def restore():
+        settings = QtCore.QSettings()
+        for key, value in user_values.items():
+            if value is None:
+                settings.remove(key)
+            else:
+                settings.setValue(key, value)
+        settings.sync()
+
+    atexit.register(restore)
+
+
+def wait_for_quickview(qv, event_index=None, timeout=60):
+    """Wait until the Quick View finished plotting
+
+    Parameters
+    ----------
+    qv: dcscope.gui.quick_view.QuickView
+        Quick View instance
+    event_index: int or None
+        If given, also wait until the data of this event (index as
+        shown in the Quick View, starting at 1) are displayed
+    timeout: float
+        Maximum time to wait [s]
+    """
+    app = QtWidgets.QApplication.instance()
+    t0 = time.monotonic()
+    while time.monotonic() - t0 < timeout:
+        app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 100)
+        event_done = (
+            event_index is None
+            or (qv._last_event_data is not None
+                and qv._last_event_data.get("index") == event_index - 1))
+        if not qv.tm.num_tasks and qv.isEnabled() and event_done:
+            break
+        QtTest.QTest.qWait(100)
+    else:
+        print(f"Timeout while waiting for the Quick View ({timeout}s)")
+    # let the plots update
+    QtTest.QTest.qWait(300)
+    app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 
 
 def setup_style():

@@ -14,6 +14,7 @@ scrots_common.ensure_datasets()
 app = QApplication(sys.argv)
 scrots_common.setup_icon_theme()
 scrots_common.setup_style()
+scrots_common.use_default_settings()
 
 QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.Language.C))
 
