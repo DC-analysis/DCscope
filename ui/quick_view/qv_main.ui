@@ -160,6 +160,9 @@
             </item>
             <item>
              <widget class="QToolButton" name="toolButton_poly">
+              <property name="toolTip">
+               <string>Polygon filters</string>
+              </property>
               <property name="text">
                <string>P</string>
               </property>
@@ -400,7 +403,11 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="comboBox_lut"/>
+           <widget class="QComboBox" name="comboBox_lut">
+            <property name="toolTip">
+             <string>Look-up table for the isoelasticity lines</string>
+            </property>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_9">

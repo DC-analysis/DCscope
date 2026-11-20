@@ -36,8 +36,11 @@ The parameters for computing the Young's modulus can be set in the
 *Dataset* tab of the :ref:`Analysis View <sec_analysis_view>`.
 The Young's modulus is computed using a precomputed look-up table and
 additionally depends on channel width, flow rate, pixel size (pixelation
-correction), and viscosity. For known media, such as CellCarrier, the
-viscosity can be derived from channel width, flow rate, and temperature.
+correction), and viscosity. For known media, such as 0.49% MC-PBS
+(CellCarrier), the viscosity can be derived from channel width, flow rate,
+and temperature. DCscope lists the media with the names used by dclab and,
+for the MC-PBS media sold by Zellmechanik Dresden, the product name in
+brackets.
 In some RT-DC setups, the chip temperature is recorded during the measurement.
 For instance, in :numref:`qg_emodulus_config`, the average chip temperature
 of 22.5°C from the [setup] metadata section is used. The value of the
@@ -46,9 +49,10 @@ If the chip temperature is recorded for each event, then the user may select
 the *From feature* option (:numref:`qg_emodulus_feature`). In this case,
 the Young's modulus is computed from the individual viscosities for each event. 
 
-For MC-PBS media (e.g. CellCarrier and CellCarrier B), you can choose the
-viscosity model (Herold 2017 :cite:`Herold2017` or
-Buyukurganci 2022 :cite:`Buyukurganci2022`) next to the viscosity value.
+For MC-PBS media (e.g. 0.49% MC-PBS (CellCarrier) and 0.59% MC-PBS
+(CellCarrierB)), you can choose the viscosity model
+(*Buyukurganci (2022)* :cite:`Buyukurganci2022` or
+*Herold (2017)* :cite:`Herold2017`) next to the viscosity value.
 The models are compared in the
 :ref:`dclab documentation <dclab:sec_emodulus_viscosity>`
 (see also :ref:`this example <dclab:example_viscosity_models>`).

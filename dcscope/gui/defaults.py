@@ -4,6 +4,7 @@ import json
 import logging
 
 import dclab
+from dclab.features.emodulus.viscosity import ALIAS_MEDIA
 from PyQt6 import QtCore
 
 from ..pipeline.plot import DEFAULT_STATE as PLOT_DEFAULT_STATE
@@ -24,6 +25,24 @@ DEFAULT_EMODULUS_VISC_MODEL = "buyukurganci-2022"
 #: viscosity models available for the Young's modulus computation
 EMODULUS_VISC_MODELS = {"Buyukurganci (2022)": "buyukurganci-2022",
                         "Herold (2017)": "herold-2017"}
+
+#: product names of MC-PBS media shown as a hint next to the medium name
+EMODULUS_MEDIUM_HINTS = {"0.49% MC-PBS": "CellCarrier",
+                         "0.59% MC-PBS": "CellCarrierB"}
+
+
+def get_emodulus_medium_name(medium):
+    """Return the medium name preferred by dclab for display
+
+    Aliases (e.g. "CellCarrier") are replaced by the name preferred
+    by dclab (e.g. "0.49% MC-PBS") and the product name is appended
+    as a hint (e.g. "0.49% MC-PBS (CellCarrier)"). Unknown media
+    are returned unchanged.
+    """
+    name = ALIAS_MEDIA.get(medium, medium)
+    hint = EMODULUS_MEDIUM_HINTS.get(name)
+    return f"{name} ({hint})" if hint else name
+
 
 #: plot state keys that depend on a specific plot or on the data
 #: and are thus not stored as defaults

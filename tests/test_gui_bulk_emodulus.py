@@ -77,6 +77,10 @@ def test_manual_basic(qtbot, mw):
     # sanity check: default viscosity model should be "buyukurganci-2022"
     ivdm = dlg.ui.comboBox_visc_model.findData("buyukurganci-2022")
     assert dlg.ui.comboBox_visc_model.currentIndex() == ivdm
+    assert dlg.ui.comboBox_visc_model.currentText() == "Buyukurganci (2022)"
+    imed = dlg.ui.comboBox_medium.findData("0.59% MC-PBS")
+    assert dlg.ui.comboBox_medium.itemText(imed) == \
+        "0.59% MC-PBS (CellCarrierB)"
 
     dlg.ui.comboBox_temp.setCurrentIndex(
         dlg.ui.comboBox_temp.findData("manual"))
@@ -117,7 +121,7 @@ def test_manual_wrong_medium(qtbot, mw, warnings_shown):
 
     # The user is informed that the medium was not changed (#124)
     assert len(warnings_shown) == 1
-    assert warnings_shown[0][1].count("(CellCarrier B)") == 2
+    assert warnings_shown[0][1].count(": 0.59% MC-PBS (CellCarrierB)") == 2
 
     for slot in mw.pipeline.slots:
         ds = slot.get_dataset()
@@ -302,7 +306,7 @@ def test_wrong_medium_warning_only_for_fixed_media_issue_124(
     text = warnings_shown[0][1]
     # only one dataset is listed
     assert text.count("\n- ") == 1
-    assert text.count(f"- {slot_known.name} (CellCarrier)") == 1
+    assert text.count(f"- {slot_known.name}: 0.49% MC-PBS (CellCarrier)") == 1
 
 
 def test_no_warning_for_unchanged_medium(qtbot, mw, warnings_shown):

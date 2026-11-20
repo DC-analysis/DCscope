@@ -85,12 +85,6 @@ to graphically design the user interface. The `.ui` files are located in the
 `ui` directory in the root of the repository.
 We use `PyQt6` (not `PySide6`) to interface with Qt.
 
-Note that for some reason, new versions of QtDesigner produce .ui files
-that are incompatible with `pyuic6` (which converts the .ui files into
-Python code). As a result, we have to use QtCreator 8 in order for things
-to work (If you have a better solution, please let us know.):
-https://github.com/qt-creator/qt-creator/releases/tag/v8.0.2
-
 The .ui files are converted to Python files (`*_ui.py`) in the
 corresponding locations in the `dcscope/gui` directory with the
 `ui/run_uic.sh` script (which calls `pyuic6`). The generated `*_ui.py`

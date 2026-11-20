@@ -2,12 +2,13 @@ import warnings
 
 import dclab
 from dclab.features.emodulus.viscosity import (
-    ALIAS_MEDIA, KNOWN_MEDIA, TemperatureOutOfRangeWarning
+    ALIAS_MEDIA, KNOWN_MEDIA, SAME_MEDIA, TemperatureOutOfRangeWarning
 )
 import numpy as np
 from PyQt6 import QtCore, QtWidgets
 
 from ... import meta_tool
+from .. import defaults
 from .ana_slot_ui import Ui_Form
 from .dlg_slot_reorder import DlgSlotReorder
 
@@ -125,7 +126,11 @@ class SlotPanel(QtWidgets.QWidget):
         self._update_emodulus_temp_choices()
         emodulus = state["emodulus"]
         self.ui.groupBox_emod.setVisible(emodulus["emodulus enabled"])
-        idx_med = self.ui.comboBox_medium.findData(emodulus["emodulus medium"])
+        medium = emodulus["emodulus medium"]
+        idx_med = self.ui.comboBox_medium.findData(medium)
+        if idx_med == -1 and medium in ALIAS_MEDIA:
+            # alias of a medium (e.g. "CellCarrier" from older sessions)
+            idx_med = self.ui.comboBox_medium.findData(ALIAS_MEDIA[medium])
         if idx_med == -1:  # empty medium string
             idx_med = self.ui.comboBox_medium.findData("other")
         self.ui.comboBox_medium.setCurrentIndex(idx_med)
@@ -208,16 +213,14 @@ class SlotPanel(QtWidgets.QWidget):
         else:
             medium = "undefined"
         if medium in KNOWN_MEDIA:
+            # The medium is defined in the metadata and cannot be changed.
             valid_media = [medium]
         else:
-            valid_media = KNOWN_MEDIA + [medium, "other", "undefined"]
+            # Only offer the media names preferred by dclab (no aliases).
+            valid_media = list(SAME_MEDIA) + [medium, "other", "undefined"]
         choices = []
-        for vm in valid_media:
-            if vm == "CellCarrierB":
-                name = "CellCarrier B"  # [sic]
-            else:
-                name = vm
-            choices.append([name, vm])
+        for vm in dict.fromkeys(valid_media):  # remove duplicates
+            choices.append([defaults.get_emodulus_medium_name(vm), vm])
         return choices
 
     @staticmethod
@@ -295,9 +298,7 @@ class SlotPanel(QtWidgets.QWidget):
         self.ui.comboBox_visc_model.blockSignals(True)
         self.ui.comboBox_visc_model.clear()
 
-        choices = {"Herold (2017)": "herold-2017",
-                   "Buyukurganci (2022)": "buyukurganci-2022"}
-        for name, data in choices.items():
+        for name, data in defaults.EMODULUS_VISC_MODELS.items():
             self.ui.comboBox_visc_model.addItem(name, data)
         self.ui.comboBox_visc_model.blockSignals(False)
 

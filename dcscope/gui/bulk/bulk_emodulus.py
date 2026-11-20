@@ -34,13 +34,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         self.ui.comboBox_medium.clear()
         self.ui.comboBox_medium.addItem("Other", "other")
         for name in SAME_MEDIA:
-            for sk in SAME_MEDIA[name]:
-                if sk.count("Cell"):  # just add CellCarrier information
-                    info = f" ({sk})"
-                    break
-            else:
-                info = ""
-            self.ui.comboBox_medium.addItem(name + info, name)
+            self.ui.comboBox_medium.addItem(
+                defaults.get_emodulus_medium_name(name), name)
 
         self.ui.comboBox_medium.addItem("Not defined", "undefined")
         self.ui.comboBox_medium.addItem("Unchanged", "unchanged")
@@ -60,9 +55,8 @@ class BulkActionEmodulus(QtWidgets.QDialog):
         emod_defaults = defaults.get_emodulus_defaults(QtCore.QSettings())
 
         self.ui.comboBox_visc_model.clear()
-        self.ui.comboBox_visc_model.addItem("buyukurganci-2022",
-                                            "buyukurganci-2022")
-        self.ui.comboBox_visc_model.addItem("herold-2017", "herold-2017")
+        for name, data in defaults.EMODULUS_VISC_MODELS.items():
+            self.ui.comboBox_visc_model.addItem(name, data)
         self.ui.comboBox_visc_model.setCurrentIndex(
             self.ui.comboBox_visc_model.findData(
                 emod_defaults["emodulus viscosity model"]))
@@ -96,7 +90,7 @@ class BulkActionEmodulus(QtWidgets.QDialog):
             # Tell the user that the medium of some datasets was not
             # changed (#124).
             names = "\n".join(
-                f"- {name} ({medium})" for name, medium in skipped)
+                f"- {name}: {medium}" for name, medium in skipped)
             QtWidgets.QMessageBox.warning(
                 self,
                 "Medium not changed for some datasets",
