@@ -54,7 +54,7 @@ def test_allow_to_set_manual_temperature_for_known_medium(qtbot, mw):
     wsl = mw.widget_ana_view.ui.widget_slot
 
     # 1. test whether we can actually select things in comboBox_temp
-    ccidx = wsl.ui.comboBox_medium.findData("CellCarrier")
+    ccidx = wsl.ui.comboBox_medium.findData("0.49% MC-PBS")
     wsl.ui.comboBox_medium.setCurrentIndex(ccidx)
     assert wsl.ui.comboBox_temp.isEnabled()
 
@@ -376,3 +376,52 @@ def test_viscosity_defaults_to_buyukurganci_2022(qtbot, mw):
     idvm_loc = wsl.ui.comboBox_visc_model.findData("buyukurganci-2022")
     idvm_actual = wsl.ui.comboBox_visc_model.currentIndex()
     assert idvm_loc == idvm_actual
+
+
+def test_medium_and_viscosity_model_names(qtbot, mw):
+    """Media are listed with the names preferred by dclab (no aliases)"""
+    qtbot.addWidget(mw)
+    path1 = make_dataset(medium=None)
+    mw.add_dataslot(paths=[path1])
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_slot)
+    wsl = mw.widget_ana_view.ui.widget_slot
+    cbm = wsl.ui.comboBox_medium
+    assert [cbm.itemData(ii) for ii in range(cbm.count())] == [
+        "0.49% MC-PBS", "0.59% MC-PBS", "0.83% MC-PBS", "water",
+        "other", "undefined"]
+    assert cbm.itemText(0) == "0.49% MC-PBS (CellCarrier)"
+    assert cbm.itemText(1) == "0.59% MC-PBS (CellCarrierB)"
+    assert cbm.itemText(2) == "0.83% MC-PBS"
+    cbv = wsl.ui.comboBox_visc_model
+    assert [cbv.itemText(ii) for ii in range(cbv.count())] == [
+        "Buyukurganci (2022)", "Herold (2017)"]
+
+
+def test_medium_name_alias_from_metadata(qtbot, mw):
+    """A medium alias in the metadata is shown with the preferred name"""
+    qtbot.addWidget(mw)
+    path1 = make_dataset(medium="CellCarrier B")
+    mw.add_dataslot(paths=[path1])
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_slot)
+    wsl = mw.widget_ana_view.ui.widget_slot
+    assert not wsl.ui.comboBox_medium.isEnabled()
+    assert wsl.ui.comboBox_medium.count() == 1
+    assert wsl.ui.comboBox_medium.currentData() == "CellCarrier B"
+    assert wsl.ui.comboBox_medium.currentText() == \
+        "0.59% MC-PBS (CellCarrierB)"
+
+
+def test_medium_name_alias_from_session(qtbot, mw):
+    """A medium alias selected in older versions of DCscope is restored"""
+    qtbot.addWidget(mw)
+    path1 = make_dataset(medium=None)
+    mw.add_dataslot(paths=[path1])
+    mw.widget_ana_view.ui.tabWidget.setCurrentWidget(
+        mw.widget_ana_view.ui.tab_slot)
+    wsl = mw.widget_ana_view.ui.widget_slot
+    mw.pipeline.slots[0].config["emodulus"]["emodulus medium"] = \
+        "CellCarrier"
+    wsl.update_content()
+    assert wsl.ui.comboBox_medium.currentData() == "0.49% MC-PBS"

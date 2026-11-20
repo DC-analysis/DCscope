@@ -45,19 +45,19 @@ wsl = mw.widget_ana_view.ui.widget_slot
 wsl.ui.groupBox_emod.setFixedSize(420, 140)
 
 wsl.ui.comboBox_medium.setCurrentIndex(
-    wsl.ui.comboBox_medium.findData("CellCarrier"))
+    wsl.ui.comboBox_medium.findData("0.49% MC-PBS"))
 wsl.ui.comboBox_temp.setCurrentIndex(wsl.ui.comboBox_temp.findData("config"))
 app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 wsl.ui.groupBox_emod.grab().save("_qg_emodulus_config.png")
 
 wsl.ui.comboBox_medium.setCurrentIndex(
-    wsl.ui.comboBox_medium.findData("CellCarrier"))
+    wsl.ui.comboBox_medium.findData("0.49% MC-PBS"))
 wsl.ui.comboBox_temp.setCurrentIndex(wsl.ui.comboBox_temp.findData("feature"))
 app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)
 wsl.ui.groupBox_emod.grab().save("_qg_emodulus_feature.png")
 
 wsl.ui.comboBox_medium.setCurrentIndex(
-    wsl.ui.comboBox_medium.findData("CellCarrier"))
+    wsl.ui.comboBox_medium.findData("0.49% MC-PBS"))
 wsl.ui.comboBox_temp.setCurrentIndex(wsl.ui.comboBox_temp.findData("manual"))
 wsl.ui.doubleSpinBox_temp.setValue(38)
 app.processEvents(QtCore.QEventLoop.ProcessEventsFlag.AllEvents, 300)

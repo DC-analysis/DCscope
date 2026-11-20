@@ -467,6 +467,7 @@ class Ui_Form(object):
         self.label_17.setText(_translate("Form", "Y"))
         self.toolButton_spacing_find_best.setText(_translate("Form", "Find best spacing"))
         self.checkBox_isoelastics.setText(_translate("Form", "Isoelasticity lines"))
+        self.comboBox_lut.setToolTip(_translate("Form", "Look-up table for the isoelasticity lines"))
         self.label_18.setText(_translate("Form", "After clicking apply, set:"))
         self.toolButton_auto_xy_range.setToolTip(_translate("Form", "from minimum to maximum with 5% margin"))
         self.toolButton_auto_xy_range.setText(_translate("Form", "default XY range"))

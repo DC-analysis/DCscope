@@ -115,6 +115,7 @@ class Ui_Dialog(object):
         self.pushButton_enc_token.setObjectName("pushButton_enc_token")
         self.horizontalLayout_2.addWidget(self.pushButton_enc_token)
         self.label_6 = QtWidgets.QLabel(parent=self.tab_dcor)
+        self.label_6.setOpenExternalLinks(True)
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_2.addWidget(self.label_6)
         self.verticalLayout_4.addLayout(self.horizontalLayout_2)
