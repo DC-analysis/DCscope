@@ -1428,14 +1428,61 @@ def test_trace_baseline_offset_issue_81(qtbot, mw, tmp_path):
 
     plot_fl1 = qv.trace_plots["fl1_raw"]
     plot_fl2 = qv.trace_plots["fl2_raw"]
-    qtbot.waitUntil(lambda: plot_fl1.yData is not None
-                    and plot_fl2.yData is not None,
-                    timeout=5000)
 
     index = qv.ui.spinBox_event.value() - 1
     with dclab.new_dataset(path) as ds:
-        fl1 = ds["trace"]["fl1_raw"][index]
-        fl2 = ds["trace"]["fl2_raw"][index]
-    # offset only defined for channel 1
-    assert np.allclose(plot_fl1.yData, fl1 + 17)
-    assert np.allclose(plot_fl2.yData, fl2)
+        fl1 = np.array(ds["trace"]["fl1_raw"][index])
+        fl2 = np.array(ds["trace"]["fl2_raw"][index])
+
+    def traces_shown():
+        # The trace plots initially contain placeholder data, so we have
+        # to wait until the event data are shown.
+        assert len(plot_fl1.yData) == fl1.size
+        assert len(plot_fl2.yData) == fl2.size
+        # offset only defined for channel 1
+        assert np.allclose(plot_fl1.yData, fl1 + 17)
+        assert np.allclose(plot_fl2.yData, fl2)
+
+    qtbot.waitUntil(traces_shown, timeout=5000)
+
+
+def test_hide_fluorescence_channel_traces_issue_200(qtbot, mw):
+    """Traces of individual fluorescence channels can be hidden (#200)"""
+    qtbot.addWidget(mw)
+    mw.add_dataslot(paths=[datapath / "calibration_beads_47.rtdc"])
+    mw.pipeline.slots[0].fl_name_dict["FL-2"] = "PE"
+
+    slot_id = mw.pipeline.slot_ids[0]
+    filt_id = mw.pipeline.filter_ids[0]
+    em = mw.ui.block_matrix.get_widget(slot_id, filt_id)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton)
+    qtbot.mouseClick(em, QtCore.Qt.MouseButton.LeftButton,
+                     QtCore.Qt.KeyboardModifier.ShiftModifier)
+    qv = mw.widget_quick_view
+    qtbot.waitUntil(qv.isVisible, timeout=5000)
+    qtbot.mouseClick(qv.ui.toolButton_event,
+                     QtCore.Qt.MouseButton.LeftButton)
+    tp = qv.trace_plots
+    qtbot.waitUntil(lambda: tp["fl1_raw"].isVisible()
+                    and tp["fl2_raw"].isVisible(),
+                    timeout=5000)
+    # the checkboxes are labeled with the channel names
+    assert qv.ui.checkBox_trace_fl2.text() == "PE"
+
+    # hide FL-2
+    qv.ui.checkBox_trace_fl2.setChecked(False)
+    qtbot.waitUntil(lambda: not tp["fl2_raw"].isVisible(), timeout=5000)
+    assert not tp["fl2_median"].isVisible()
+    assert tp["fl1_raw"].isVisible()
+    assert tp["fl1_median"].isVisible()
+    assert tp["fl3_median"].isVisible()
+
+    # still hidden for the next event
+    qv.ui.spinBox_event.setValue(qv.ui.spinBox_event.value() + 1)
+    QtTest.QTest.qWait(500)
+    assert not tp["fl2_raw"].isVisible()
+    assert tp["fl1_raw"].isVisible()
+
+    # show FL-2 again
+    qv.ui.checkBox_trace_fl2.setChecked(True)
+    qtbot.waitUntil(lambda: tp["fl2_raw"].isVisible(), timeout=5000)

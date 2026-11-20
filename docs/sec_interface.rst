@@ -244,7 +244,9 @@ select single events by clicking in the scatter plot or by scrolling through
 the *Index* spin control. If available, the event image is shown alongside the
 fluorescence trace of the event. If the legend of the fluorescence trace
 plot covers parts of the traces, you can move it by dragging it with the
-mouse. All features of the event are listed in a separate tab.
+mouse. The checkboxes above the trace plot allow you to hide the raw traces
+or the traces of individual fluorescence channels. All features of the
+event are listed in a separate tab.
 
 .. figure:: scrots/ui_qv_event.png
     :target: _images/ui_qv_event.png

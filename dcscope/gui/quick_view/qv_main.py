@@ -143,6 +143,9 @@ class QuickView(QtWidgets.QWidget):
             self.on_event_scatter_update)
         self.ui.checkBox_trace_zoom.stateChanged.connect(
             self.on_event_scatter_update)
+        for ii in range(1, 4):
+            getattr(self.ui, f"checkBox_trace_fl{ii}").stateChanged.connect(
+                self.on_event_scatter_update)
         self.ui.tabWidget_event.currentChanged.connect(
             self.on_event_scatter_update)
 
@@ -334,6 +337,10 @@ class QuickView(QtWidgets.QWidget):
             "trace legend": self.ui.checkBox_trace_legend.isChecked(),
             "trace raw": self.ui.checkBox_trace_raw.isChecked(),
             "trace zoom": self.ui.checkBox_trace_zoom.isChecked(),
+            # fluorescence channels for which traces are shown (#200)
+            "trace channels": [
+                ii for ii in range(1, 4)
+                if getattr(self.ui, f"checkBox_trace_fl{ii}").isChecked()],
         }
         state = {
             "plot": plot,
@@ -383,6 +390,10 @@ class QuickView(QtWidgets.QWidget):
             self.ui.spinBox_event.setValue(event["index"])
             self.ui.checkBox_trace_raw.setChecked(event["trace raw"])
             self.ui.checkBox_trace_legend.setChecked(event["trace legend"])
+            channels = event.get("trace channels", [1, 2, 3])
+            for ii in range(1, 4):
+                getattr(self.ui, f"checkBox_trace_fl{ii}").setChecked(
+                    ii in channels)
 
     def enable_interface(self, value):
         # Initially, only show the info about how QuickView works
@@ -487,9 +498,19 @@ class QuickView(QtWidgets.QWidget):
         # fluorescence intensity
         range_fl = [0, 0]
 
+        # Show checkboxes only for the channels with traces (#200)
+        for ii in range(1, 4):
+            cb = getattr(self.ui, f"checkBox_trace_fl{ii}")
+            cb.setVisible(any(name.startswith(f"fl{ii}_") for name in tdata))
+            if self.slot is not None:
+                cb.setText(self.slot.fl_name_dict[f"FL-{ii}"])
+
         for name in dclab.dfn.FLUOR_TRACES:
             if name.count("raw") and not state["event"]["trace raw"]:
                 # hide raw trace data if user decided so
+                show = False
+            elif int(name[2]) not in state["event"]["trace channels"]:
+                # hide traces of this channel if user decided so
                 show = False
             else:
                 show = True
